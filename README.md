@@ -32,7 +32,10 @@ flutter pub get
 Copy `.env.example` to `.env` and set:
 
 - `SUPABASE_URL` – your Supabase project URL
-- `SUPABASE_ANON_KEY` – anon key
+- `SUPABASE_ANON_KEY` – anon/publishable key
+- `SUPABASE_SERVICE_ROLE_KEY` – service role (or `sb_secret_...`) for Edge Functions
+- `SUPABASE_ACCESS_TOKEN` – Supabase CLI personal access token
+- `SUPABASE_DB_PASSWORD` – remote Postgres password
 - `STRIPE_PUBLISHABLE_KEY` – Stripe publishable key (Flutter)
 - Price IDs for Starter/Growth/Pro (monthly/yearly) if using billing
 
@@ -44,6 +47,12 @@ For local runs without Supabase, the app uses placeholder values and will still 
 
 ```bash
 flutter run -d chrome
+```
+
+Or load Supabase values from `.env` automatically:
+
+```bash
+./scripts/flutter_with_env.sh run -d chrome
 ```
 
 **iOS**
@@ -69,7 +78,16 @@ flutter run -d chrome --dart-define=SUPABASE_URL=https://xxx.supabase.co --dart-
 ## Supabase setup
 
 1. Create a project at [supabase.com](https://supabase.com).
-2. Run migrations:
+2. Deploy all (migrations + function secrets + all edge functions):
+
+```bash
+set -a
+source .env
+set +a
+./scripts/deploy_supabase_all.sh
+```
+
+3. Or run manually:
 
 ```bash
 supabase link --project-ref YOUR_REF
@@ -78,14 +96,12 @@ supabase db push
 
 Or run the SQL in `supabase/migrations/` manually in the SQL Editor (in order: `20260101000001_initial_schema.sql`, then `20260101000002_rls.sql`).
 
-3. (Optional) Seed:
+4. (Optional) Seed:
 
-```bash
-supabase db execute -f supabase/seed.sql
-```
+Run `supabase/seed.sql` in the Supabase SQL Editor.
 
-4. Enable Email auth in Authentication → Providers.
-5. In Storage, create a bucket for imports if you use file uploads.
+5. Enable Email auth in Authentication → Providers.
+6. In Storage, create a bucket for imports if you use file uploads.
 
 ---
 
@@ -102,6 +118,8 @@ supabase functions deploy process-import
 supabase functions deploy generate-reorder-recommendations
 supabase functions deploy generate-forecast
 supabase functions deploy seed-demo-workspace
+supabase functions deploy accept-invitation
+supabase functions deploy send-alerts
 ```
 
 Set secrets:
