@@ -260,28 +260,27 @@ class _PurchaseOrdersPageState extends ConsumerState<PurchaseOrdersPage> {
                             subtitle: Text(
                               '${_getSupplierName(po['supplier_id'] ?? '')} • ${po['expected_delivery_date'] ?? 'No date'}',
                             ),
-                            trailing: PopupMenuButton(
-                              itemBuilder: (context) => [
-                                PopupMenuItem(
-                                  child: const Text('Edit'),
-                                  onTap: () => _openDrawerForEdit(po),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Chip(
+                                  label: Text(status),
+                                  backgroundColor: _getStatusColor(status).withValues(alpha: 0.2),
+                                  labelStyle: TextStyle(color: _getStatusColor(status)),
                                 ),
-                                PopupMenuItem(
-                                  child: const Text('Delete', style: TextStyle(color: Colors.red)),
-                                  onTap: () => _deletePO(po['id']),
+                                PopupMenuButton(
+                                  itemBuilder: (context) => [
+                                    PopupMenuItem(
+                                      child: const Text('Edit'),
+                                      onTap: () => _openDrawerForEdit(po),
+                                    ),
+                                    PopupMenuItem(
+                                      child: const Text('Delete', style: TextStyle(color: Colors.red)),
+                                      onTap: () => _deletePO(po['id']),
+                                    ),
+                                  ],
                                 ),
                               ],
-                            ),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.only(right: 8),
-                            child: Align(
-                              alignment: Alignment.centerRight,
-                              child: Chip(
-                                label: Text(status),
-                                backgroundColor: _getStatusColor(status).withValues(alpha: 0.2),
-                                labelStyle: TextStyle(color: _getStatusColor(status)),
-                              ),
                             ),
                           ),
                         );
@@ -368,8 +367,8 @@ class _PurchaseOrdersPageState extends ConsumerState<PurchaseOrdersPage> {
                             prefixIcon: const Icon(Icons.local_shipping_outlined),
                           ),
                           items: _suppliers
-                              .map((s) => DropdownMenuItem(
-                                    value: s['id'],
+                              .map((s) => DropdownMenuItem<String>(
+                                    value: (s['id'] as String?) ?? '',
                                     child: Text(s['name'] ?? 'Unknown'),
                                   ))
                               .toList(),

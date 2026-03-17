@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stockguard_ai/localization/app_localizations.dart';
+import '../../../features/app_shell/providers/workspace_provider.dart';
 
-class AnalyticsPage extends StatelessWidget {
+class AnalyticsPage extends ConsumerWidget {
   const AnalyticsPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final productsAsync = ref.watch(productsProvider);
+    final purchaseOrdersAsync = ref.watch(purchaseOrdersProvider);
+    final reorderAsync = ref.watch(reorderRecommendationsProvider);
+
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -18,14 +24,63 @@ class AnalyticsPage extends StatelessWidget {
                 style: Theme.of(context).textTheme.headlineMedium,
               ),
               const SizedBox(height: 24),
-              Wrap(
-                spacing: 16,
-                runSpacing: 16,
-                children: [
-                  _StatCard(title: context.l10n.t('inventory_value'), value: '€124.5k'),
-                  _StatCard(title: context.l10n.t('capital_locked'), value: '€38.2k'),
-                  _StatCard(title: 'Top risky SKUs', value: '12'),
-                ],
+              productsAsync.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (err, stack) => Text('Error: $err'),
+                data: (products) {
+                  return purchaseOrdersAsync.when(
+                    loading: () => const Center(child: CircularProgressIndicator()),
+                    error: (err, stack) => Text('Error: $err'),
+                    data: (purchaseOrders) {
+                      return reorderAsync.when(
+                        loading: () => const Center(child: CircularProgressIndicator()),
+                        error: (err, stack) => Text('Error: $err'),
+                        data: (reorderRecommendations) {
+                          // Calculate inventory value
+                          double inventoryValue = 0;
+                          for (var p in products) {
+                            final quantity = (p['quantity'] as num?)?.toDouble() ?? 0;
+                            final unitPrice = (p['unit_price'] as num?)?.toDouble() ?? 0;
+                            inventoryValue += quantity * unitPrice;
+                          }
+
+                          // Calculate capital locked (pending POs)
+                          double capitalLocked = 0;
+                          for (var po in purchaseOrders) {
+                            final status = po['status'] as String? ?? '';
+                            if (status != 'delivered' && status != 'cancelled') {
+                              final quantity = (po['quantity'] as num?)?.toDouble() ?? 0;
+                              final unitPrice = (po['unit_price'] as num?)?.toDouble() ?? 0;
+                              capitalLocked += quantity * unitPrice;
+                            }
+                          }
+
+                          // Count risky SKUs (with low stock)
+                          int riskySKUs = reorderRecommendations.length;
+
+                          return Wrap(
+                            spacing: 16,
+                            runSpacing: 16,
+                            children: [
+                              _StatCard(
+                                title: context.l10n.t('inventory_value'),
+                                value: '€${(inventoryValue / 1000).toStringAsFixed(1)}k',
+                              ),
+                              _StatCard(
+                                title: context.l10n.t('capital_locked'),
+                                value: '€${(capitalLocked / 1000).toStringAsFixed(1)}k',
+                              ),
+                              _StatCard(
+                                title: 'Top risky SKUs',
+                                value: riskySKUs.toString(),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
+                  );
+                },
               ),
             ],
           ),
