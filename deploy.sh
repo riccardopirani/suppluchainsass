@@ -1,0 +1,10 @@
+supabase functions deploy create-stripe-checkout-session --project-ref "$SUPABASE_PROJECT_REF" --use-api --no-verify-jwt
+supabase functions deploy create-stripe-portal-session   --project-ref "$SUPABASE_PROJECT_REF" --use-api --no-verify-jwt
+supabase functions deploy stripe-webhook                 --project-ref "$SUPABASE_PROJECT_REF" --use-api --no-verify-jwt
+supabase functions deploy submit-contact-form            --project-ref "$SUPABASE_PROJECT_REF" --use-api --no-verify-jwt
+supabase functions deploy process-import                 --project-ref "$SUPABASE_PROJECT_REF" --use-api --no-verify-jwt
+supabase functions deploy generate-reorder-recommendations --project-ref "$SUPABASE_PROJECT_REF" --use-api --no-verify-jwt
+supabase functions deploy generate-forecast              --project-ref "$SUPABASE_PROJECT_REF" --use-api --no-verify-jwt
+supabase functions deploy seed-demo-workspace            --project-ref "$SUPABASE_PROJECT_REF" --use-api --no-verify-jwt
+supabase functions deploy accept-invitation              --project-ref "$SUPABASE_PROJECT_REF" --use-api --no-verify-jwt
+supabase functions deploy send-alerts                    --project-ref "$SUPABASE_PROJECT_REF" --use-api --no-verify-jwt
