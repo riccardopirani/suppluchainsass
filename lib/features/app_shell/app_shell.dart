@@ -106,6 +106,11 @@ class _Sidebar extends StatelessWidget {
             onTap: () => context.go('/app/billing'),
           ),
           ListTile(
+            leading: const Icon(Icons.warehouse_outlined),
+            title: const Text('Warehouses'),
+            onTap: () => context.go('/app/warehouses'),
+          ),
+          ListTile(
             leading: const Icon(Icons.settings_outlined),
             title: Text(context.l10n.t('settings')),
             onTap: () => context.go('/app/settings'),

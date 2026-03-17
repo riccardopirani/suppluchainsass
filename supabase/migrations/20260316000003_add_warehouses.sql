@@ -44,6 +44,7 @@ ALTER TABLE warehouses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE product_inventory ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies for warehouses
+DROP POLICY IF EXISTS "Users can view warehouses in their workspace" ON warehouses;
 CREATE POLICY "Users can view warehouses in their workspace" ON warehouses
   FOR SELECT USING (
     workspace_id IN (
@@ -51,6 +52,7 @@ CREATE POLICY "Users can view warehouses in their workspace" ON warehouses
     )
   );
 
+DROP POLICY IF EXISTS "Users can insert warehouses in their workspace" ON warehouses;
 CREATE POLICY "Users can insert warehouses in their workspace" ON warehouses
   FOR INSERT WITH CHECK (
     workspace_id IN (
@@ -58,6 +60,7 @@ CREATE POLICY "Users can insert warehouses in their workspace" ON warehouses
     )
   );
 
+DROP POLICY IF EXISTS "Users can update warehouses in their workspace" ON warehouses;
 CREATE POLICY "Users can update warehouses in their workspace" ON warehouses
   FOR UPDATE USING (
     workspace_id IN (
@@ -65,6 +68,7 @@ CREATE POLICY "Users can update warehouses in their workspace" ON warehouses
     )
   );
 
+DROP POLICY IF EXISTS "Users can delete warehouses in their workspace" ON warehouses;
 CREATE POLICY "Users can delete warehouses in their workspace" ON warehouses
   FOR DELETE USING (
     workspace_id IN (
@@ -73,6 +77,7 @@ CREATE POLICY "Users can delete warehouses in their workspace" ON warehouses
   );
 
 -- RLS Policies for product_inventory
+DROP POLICY IF EXISTS "Users can view product_inventory in their workspace" ON product_inventory;
 CREATE POLICY "Users can view product_inventory in their workspace" ON product_inventory
   FOR SELECT USING (
     warehouse_id IN (
@@ -82,6 +87,7 @@ CREATE POLICY "Users can view product_inventory in their workspace" ON product_i
     )
   );
 
+DROP POLICY IF EXISTS "Users can insert product_inventory in their workspace" ON product_inventory;
 CREATE POLICY "Users can insert product_inventory in their workspace" ON product_inventory
   FOR INSERT WITH CHECK (
     warehouse_id IN (
@@ -91,6 +97,7 @@ CREATE POLICY "Users can insert product_inventory in their workspace" ON product
     )
   );
 
+DROP POLICY IF EXISTS "Users can update product_inventory in their workspace" ON product_inventory;
 CREATE POLICY "Users can update product_inventory in their workspace" ON product_inventory
   FOR UPDATE USING (
     warehouse_id IN (
@@ -100,6 +107,7 @@ CREATE POLICY "Users can update product_inventory in their workspace" ON product
     )
   );
 
+DROP POLICY IF EXISTS "Users can delete product_inventory in their workspace" ON product_inventory;
 CREATE POLICY "Users can delete product_inventory in their workspace" ON product_inventory
   FOR DELETE USING (
     warehouse_id IN (

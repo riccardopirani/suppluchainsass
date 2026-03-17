@@ -203,6 +203,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   child: SettingsPage(),
                 ),
               ),
+              GoRoute(
+                path: 'warehouses',
+                pageBuilder: (context, state) => const NoTransitionPage(
+                  child: WarehousesPage(),
+                ),
+              ),
             ],
           ),
         ],
