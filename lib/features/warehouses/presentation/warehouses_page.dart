@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stockguard_ai/localization/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../features/app_shell/providers/workspace_provider.dart';
 
@@ -51,6 +50,7 @@ class _WarehousesPageState extends ConsumerState<WarehousesPage> {
           _locationController.clear();
           _capacityController.clear();
           setState(() => _isDefault = false);
+          // Refresh the warehouses list
           ref.refresh(warehousesProvider);
         }
       } catch (e) {
@@ -93,6 +93,7 @@ class _WarehousesPageState extends ConsumerState<WarehousesPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Warehouse deleted')),
           );
+          // Refresh the warehouses list
           ref.refresh(warehousesProvider);
         }
       } catch (e) {
@@ -193,11 +194,6 @@ class _WarehousesPageState extends ConsumerState<WarehousesPage> {
   }
 
   void _showCreateDialog(BuildContext context) {
-    final workspaceId = ref.read(currentWorkspaceProvider).maybeWhen(
-          data: (id) => id,
-          orElse: () => null,
-        );
-
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -238,9 +234,18 @@ class _WarehousesPageState extends ConsumerState<WarehousesPage> {
             child: const Text('Cancel'),
           ),
           FilledButton(
-            onPressed: _isLoading ? null : () {
-              if (Navigator.canPop(context)) Navigator.pop(context);
-              _saveWarehouse(workspaceId);
+            onPressed: _isLoading ? null : () async {
+              try {
+                final workspaceId = await ref.read(currentWorkspaceProvider.future);
+                if (Navigator.canPop(context)) Navigator.pop(context);
+                _saveWarehouse(workspaceId);
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error: $e')),
+                  );
+                }
+              }
             },
             child: _isLoading ? const CircularProgressIndicator() : const Text('Create'),
           ),
