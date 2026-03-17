@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stockguard_ai/localization/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:stockguard_ai/features/app_shell/widgets/warehouse_selector.dart';
 
 class AppShell extends ConsumerWidget {
   const AppShell({super.key, required this.child});
@@ -56,6 +57,8 @@ class _Sidebar extends StatelessWidget {
               style: Theme.of(context).textTheme.titleLarge,
             ),
           ),
+          const WarehouseSelector(),
+          const Divider(),
           ListTile(
             leading: const Icon(Icons.dashboard_rounded),
             title: Text(context.l10n.t('dashboard')),

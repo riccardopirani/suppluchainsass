@@ -5,6 +5,17 @@ INSERT INTO workspaces (id, name, slug) VALUES
   ('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'Demo Company', 'demo-company')
 ON CONFLICT (id) DO NOTHING;
 
+-- Warehouses for demo workspace
+INSERT INTO warehouses (workspace_id, name, location, capacity, is_default) VALUES
+  ('a1eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'Main Warehouse', 'New York, NY', 10000, TRUE)
+ON CONFLICT (workspace_id, name) DO NOTHING;
+INSERT INTO warehouses (workspace_id, name, location, capacity, is_default) VALUES
+  ('a2eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'Secondary Warehouse', 'Los Angeles, CA', 5000, FALSE)
+ON CONFLICT (workspace_id, name) DO NOTHING;
+INSERT INTO warehouses (workspace_id, name, location, capacity, is_default) VALUES
+  ('a3eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'Distribution Center', 'Chicago, IL', 8000, FALSE)
+ON CONFLICT (workspace_id, name) DO NOTHING;
+
 -- Products for demo workspace
 INSERT INTO products (workspace_id, sku, name, current_stock, reorder_point, safety_stock, lead_time_days, unit_cost, selling_price)
 SELECT 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'SKU-1001', 'Product A', 45, 30, 10, 14, 12.50, 24.00

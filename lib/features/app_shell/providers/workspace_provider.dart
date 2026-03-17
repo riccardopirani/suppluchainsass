@@ -101,3 +101,64 @@ final salesHistoryProvider = FutureProvider<List<Map<String, dynamic>>>((ref) as
       .eq('workspace_id', workspaceId)
       .order('sale_date', ascending: false);
 });
+
+// Get all warehouses for current workspace
+final warehousesProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  final supabase = Supabase.instance.client;
+  final workspaceId = await ref.watch(currentWorkspaceProvider.future);
+  
+  return await supabase
+      .from('warehouses')
+      .select()
+      .eq('workspace_id', workspaceId)
+      .order('name', ascending: true);
+});
+
+// Selected warehouse ID (state provider)
+final selectedWarehouseProvider = StateProvider<String?>((ref) {
+  return null;
+});
+
+// Get current selected warehouse
+final currentWarehouseProvider = FutureProvider<Map<String, dynamic>?>((ref) async {
+  final selectedId = ref.watch(selectedWarehouseProvider);
+  if (selectedId == null) {
+    // Try to get default warehouse
+    final supabase = Supabase.instance.client;
+    final workspaceId = await ref.watch(currentWorkspaceProvider.future);
+    
+    final defaultWarehouse = await supabase
+        .from('warehouses')
+        .select()
+        .eq('workspace_id', workspaceId)
+        .eq('is_default', true)
+        .limit(1)
+        .maybeSingle();
+    
+    return defaultWarehouse;
+  }
+  
+  final supabase = Supabase.instance.client;
+  return await supabase
+      .from('warehouses')
+      .select()
+      .eq('id', selectedId)
+      .limit(1)
+      .maybeSingle();
+});
+
+// Get product inventory for selected warehouse
+final productInventoryProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  final supabase = Supabase.instance.client;
+  final warehouse = await ref.watch(currentWarehouseProvider.future);
+  
+  if (warehouse == null) {
+    return [];
+  }
+  
+  return await supabase
+      .from('product_inventory')
+      .select()
+      .eq('warehouse_id', warehouse['id'])
+      .order('created_at', ascending: false);
+});

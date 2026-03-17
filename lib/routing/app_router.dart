@@ -24,6 +24,7 @@ import 'package:stockguard_ai/features/purchase_orders/presentation/purchase_ord
 import 'package:stockguard_ai/features/analytics/presentation/analytics_page.dart';
 import 'package:stockguard_ai/features/billing/presentation/billing_page.dart';
 import 'package:stockguard_ai/features/settings/presentation/settings_page.dart';
+import 'package:stockguard_ai/features/warehouses/presentation/warehouses_page.dart';
 import 'package:stockguard_ai/features/auth/providers/auth_provider.dart';
 import 'package:stockguard_ai/localization/app_localizations.dart';
 
