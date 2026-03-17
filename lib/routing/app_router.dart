@@ -33,6 +33,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     initialLocation: '/',
     debugLogDiagnostics: true,
     redirect: (context, state) {
+      // Se lo stream di auth è ancora in caricamento, mostra loading
+      if (authState.isLoading) {
+        return '/loading';
+      }
+      
       final isLoggedIn = authState.valueOrNull != null;
       final isAuthRoute = state.matchedLocation.startsWith('/login') ||
           state.matchedLocation.startsWith('/register') ||
@@ -202,6 +207,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         ],
       ),
       GoRoute(
+        path: '/loading',
+        pageBuilder: (context, state) => const NoTransitionPage(
+          child: _LoadingPage(),
+        ),
+      ),
+      GoRoute(
         path: '/404',
         pageBuilder: (context, state) => const NoTransitionPage(
           child: _NotFoundPage(),
@@ -211,6 +222,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     errorBuilder: (context, state) => const _NotFoundPage(),
   );
 });
+
+class _LoadingPage extends StatelessWidget {
+  const _LoadingPage();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      body: Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+  }
+}
 
 class _NotFoundPage extends StatelessWidget {
   const _NotFoundPage();

@@ -38,6 +38,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
         password: _passwordController.text,
         data: {'full_name': _nameController.text.trim()},
       );
+      // Refresh session to ensure persistence
+      await Supabase.instance.client.auth.refreshSession();
       if (mounted) context.go('/onboarding');
     } on AuthException catch (e) {
       setState(() {

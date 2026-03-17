@@ -36,6 +36,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
+      // Refresh session to ensure persistence
+      await Supabase.instance.client.auth.refreshSession();
       if (mounted) context.go('/app');
     } on AuthException catch (e) {
       setState(() {
