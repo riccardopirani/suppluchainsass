@@ -9,7 +9,7 @@ void main() async {
     'SUPABASE_URL',
     defaultValue: String.fromEnvironment(
       'NEXT_PUBLIC_SUPABASE_URL',
-      defaultValue: 'https://placeholder.supabase.co',
+      defaultValue: 'https://ouieulumtrnnjsjtlyxe.supabase.co',
     ),
   );
   const anonKey = String.fromEnvironment(
@@ -18,7 +18,7 @@ void main() async {
       'SUPABASE_PUBLISHABLE_DEFAULT_KEY',
       defaultValue: String.fromEnvironment(
         'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY',
-        defaultValue: 'placeholder-anon-key',
+        defaultValue: 'sb_publishable_JNTjWqrSduUw_ZQtLF22Ug_tBl-QyMG',
       ),
     ),
   );

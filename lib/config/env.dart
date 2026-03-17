@@ -9,7 +9,7 @@ class Env {
     'SUPABASE_URL',
     defaultValue: String.fromEnvironment(
       'NEXT_PUBLIC_SUPABASE_URL',
-      defaultValue: '',
+      defaultValue: 'https://ouieulumtrnnjsjtlyxe.supabase.co',
     ),
   );
   String get supabaseAnonKey => const String.fromEnvironment(
@@ -18,7 +18,7 @@ class Env {
       'SUPABASE_PUBLISHABLE_DEFAULT_KEY',
       defaultValue: String.fromEnvironment(
         'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY',
-        defaultValue: '',
+        defaultValue: 'sb_publishable_JNTjWqrSduUw_ZQtLF22Ug_tBl-QyMG',
       ),
     ),
   );
