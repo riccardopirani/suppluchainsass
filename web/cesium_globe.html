@@ -53,6 +53,26 @@
         margin-right: 12px;
       }
 
+      .dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-right: 5px;
+      }
+
+      .dot-running {
+        background: #22c55e;
+      }
+
+      .dot-warning {
+        background: #f59e0b;
+      }
+
+      .dot-stopped {
+        background: #ef4444;
+      }
+
       #emptyState {
         position: absolute;
         inset: 0;
@@ -75,7 +95,9 @@
       <div><strong>FabricOS Global Network</strong></div>
       <div id="countLine">0 machine online</div>
       <div id="legend">
-        <span>🟢 Running</span><span>🟠 Warning</span><span>🔴 Stopped</span>
+        <span><i class="dot dot-running"></i>Running</span>
+        <span><i class="dot dot-warning"></i>Warning</span>
+        <span><i class="dot dot-stopped"></i>Stopped</span>
       </div>
     </div>
     <div id="emptyState">No machine geolocation data available yet.</div>
