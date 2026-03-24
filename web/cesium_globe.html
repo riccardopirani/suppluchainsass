@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FabricOS Globe</title>
+    <link
+      rel="stylesheet"
+      href="https://cesium.com/downloads/cesiumjs/releases/1.118/Build/Cesium/Widgets/widgets.css"
+    />
+    <style>
+      :root {
+        --panel-bg: rgba(4, 15, 30, 0.78);
+        --panel-border: rgba(14, 165, 233, 0.25);
+      }
+
+      html,
+      body,
+      #cesiumContainer {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background: radial-gradient(circle at 25% 15%, #113156, #040a12 62%);
+      }
+
+      #hud {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        z-index: 3;
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid var(--panel-border);
+        background: var(--panel-bg);
+        color: #dbeafe;
+        font-family: 'Segoe UI', sans-serif;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+      }
+
+      #hud strong {
+        color: #22d3ee;
+      }
+
+      #legend {
+        margin-top: 7px;
+        font-size: 12px;
+        opacity: 0.92;
+      }
+
+      #legend span {
+        margin-right: 12px;
+      }
+
+      #emptyState {
+        position: absolute;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        color: #dbeafe;
+        font-family: 'Segoe UI', sans-serif;
+        font-size: 14px;
+        text-align: center;
+        padding: 24px;
+        pointer-events: none;
+        z-index: 2;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="cesiumContainer"></div>
+    <div id="hud">
+      <div><strong>FabricOS Global Network</strong></div>
+      <div id="countLine">0 machine online</div>
+      <div id="legend">
+        <span>🟢 Running</span><span>🟠 Warning</span><span>🔴 Stopped</span>
+      </div>
+    </div>
+    <div id="emptyState">No machine geolocation data available yet.</div>
+
+    <script src="https://cesium.com/downloads/cesiumjs/releases/1.118/Build/Cesium/Cesium.js"></script>
+    <script>
+      function escapeHtml(text) {
+        return String(text ?? '')
+          .replaceAll('&', '&amp;')
+          .replaceAll('<', '&lt;')
+          .replaceAll('>', '&gt;')
+          .replaceAll('"', '&quot;')
+          .replaceAll("'", '&#039;');
+      }
+
+      function toNumber(value) {
+        if (typeof value === 'number') return value;
+        const parsed = Number.parseFloat(value);
+        return Number.isFinite(parsed) ? parsed : null;
+      }
+
+      function parseMarkers() {
+        const params = new URLSearchParams(window.location.search);
+        const raw = params.get('markers');
+        if (!raw) return [];
+        try {
+          const parsed = JSON.parse(decodeURIComponent(raw));
+          if (!Array.isArray(parsed)) return [];
+          return parsed
+            .map((item) => ({
+              name: item?.name || 'Machine',
+              city: item?.city || '',
+              country: item?.country || '',
+              address: item?.address || '',
+              status: (item?.status || 'running').toLowerCase(),
+              latitude: toNumber(item?.latitude),
+              longitude: toNumber(item?.longitude),
+            }))
+            .filter((item) => item.latitude !== null && item.longitude !== null);
+        } catch (_) {
+          return [];
+        }
+      }
+
+      function statusColor(status) {
+        if (status === 'stopped') return Cesium.Color.fromCssColorString('#ef4444');
+        if (status === 'warning') return Cesium.Color.fromCssColorString('#f59e0b');
+        return Cesium.Color.fromCssColorString('#22c55e');
+      }
+
+      const markers = parseMarkers();
+      const viewer = new Cesium.Viewer('cesiumContainer', {
+        imageryProvider: new Cesium.OpenStreetMapImageryProvider({
+          url: 'https://tile.openstreetmap.org/',
+        }),
+        geocoder: false,
+        homeButton: false,
+        sceneModePicker: false,
+        baseLayerPicker: false,
+        navigationHelpButton: false,
+        animation: false,
+        timeline: false,
+        fullscreenButton: false,
+        infoBox: true,
+        selectionIndicator: true,
+        shouldAnimate: true,
+      });
+
+      viewer.scene.globe.enableLighting = true;
+      viewer.scene.skyAtmosphere.show = true;
+      viewer.scene.backgroundColor = Cesium.Color.fromCssColorString('#020712');
+      viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString('#041526');
+      viewer._cesiumWidget._creditContainer.style.display = 'none';
+
+      document.getElementById('countLine').textContent =
+        `${markers.length} machine${markers.length === 1 ? '' : 's'} tracked`;
+
+      if (!markers.length) {
+        document.getElementById('emptyState').style.display = 'flex';
+      }
+
+      markers.forEach((marker) => {
+        const location = [marker.city, marker.country].filter(Boolean).join(', ');
+        const color = statusColor(marker.status);
+        viewer.entities.add({
+          name: marker.name,
+          position: Cesium.Cartesian3.fromDegrees(marker.longitude, marker.latitude),
+          point: {
+            pixelSize: 11,
+            color,
+            outlineColor: Cesium.Color.fromCssColorString('#061a2f'),
+            outlineWidth: 2,
+          },
+          label: {
+            text: marker.name,
+            showBackground: true,
+            backgroundColor: Cesium.Color.fromCssColorString('#0b2038').withAlpha(0.76),
+            fillColor: Cesium.Color.fromCssColorString('#e2e8f0'),
+            font: '12px Segoe UI',
+            pixelOffset: new Cesium.Cartesian2(0, -20),
+            horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
+          },
+          description:
+            `<b>${escapeHtml(marker.name)}</b><br/>` +
+            `${escapeHtml(location)}<br/>` +
+            `${escapeHtml(marker.address)}<br/>` +
+            `Status: <b>${escapeHtml(marker.status)}</b>`,
+        });
+      });
+
+      if (markers.length) {
+        viewer.flyTo(viewer.entities, { duration: 1.8, offset: new Cesium.HeadingPitchRange(0, -0.55, 0) });
+      } else {
+        viewer.camera.flyHome(0);
+      }
+    </script>
+  </body>
+</html>
