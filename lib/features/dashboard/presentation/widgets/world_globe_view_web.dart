@@ -46,7 +46,7 @@ class _WorldGlobeViewState extends State<WorldGlobeView> {
 
   void _updateSrc() {
     final markersJson = Uri.encodeComponent(jsonEncode(widget.points));
-    _iframe.src = 'cesium_globe.html?markers=$markersJson';
+    _iframe.src = '/cesium_globe.html?markers=$markersJson';
   }
 
   @override

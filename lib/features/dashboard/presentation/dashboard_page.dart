@@ -317,22 +317,29 @@ class DashboardPage extends ConsumerWidget {
     List<Map<String, dynamic>> machines,
   ) {
     return machines
-        .where(
-          (machine) =>
-              (machine['latitude'] as num?) != null &&
-              (machine['longitude'] as num?) != null,
-        )
-        .map(
-          (machine) => {
+        .map((machine) {
+          final latitude = _toDouble(machine['latitude']);
+          final longitude = _toDouble(machine['longitude']);
+          if (latitude == null || longitude == null) return null;
+
+          return {
             'name': machine['name']?.toString() ?? 'Machine',
             'city': machine['city']?.toString() ?? '',
             'country': machine['country']?.toString() ?? '',
             'address': machine['address']?.toString() ?? '',
-            'latitude': ((machine['latitude'] as num?) ?? 0).toDouble(),
-            'longitude': ((machine['longitude'] as num?) ?? 0).toDouble(),
-          },
-        )
+            'status': machine['status']?.toString() ?? 'running',
+            'latitude': latitude,
+            'longitude': longitude,
+          };
+        })
+        .whereType<Map<String, dynamic>>()
         .toList();
+  }
+
+  static double? _toDouble(dynamic value) {
+    if (value == null) return null;
+    if (value is num) return value.toDouble();
+    return double.tryParse(value.toString());
   }
 }
 
