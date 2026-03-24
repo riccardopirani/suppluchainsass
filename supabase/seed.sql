@@ -14,13 +14,27 @@ VALUES
   ('22222222-0000-0000-0000-000000000005', '11111111-1111-1111-1111-111111111111', 'Linea Automation', 'hello@lineaauto.example', 88, 'compliant', 2.0, 'low')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.machines (id, company_id, supplier_id, name, type, status, last_maintenance_at, failure_risk)
+INSERT INTO public.machines (
+  id,
+  company_id,
+  supplier_id,
+  name,
+  type,
+  country,
+  city,
+  address,
+  latitude,
+  longitude,
+  status,
+  last_maintenance_at,
+  failure_risk
+)
 VALUES
-  ('33333333-0000-0000-0000-000000000001', '11111111-1111-1111-1111-111111111111', '22222222-0000-0000-0000-000000000005', 'CNC Mill A1', 'CNC', 'running', now() - interval '18 days', 0.21),
-  ('33333333-0000-0000-0000-000000000002', '11111111-1111-1111-1111-111111111111', '22222222-0000-0000-0000-000000000005', 'Packaging Line B2', 'Packaging', 'warning', now() - interval '31 days', 0.67),
-  ('33333333-0000-0000-0000-000000000003', '11111111-1111-1111-1111-111111111111', '22222222-0000-0000-0000-000000000001', 'Laser Cutter C4', 'Laser', 'running', now() - interval '12 days', 0.18),
-  ('33333333-0000-0000-0000-000000000004', '11111111-1111-1111-1111-111111111111', '22222222-0000-0000-0000-000000000002', 'Hydraulic Press D1', 'Press', 'stopped', now() - interval '45 days', 0.92),
-  ('33333333-0000-0000-0000-000000000005', '11111111-1111-1111-1111-111111111111', '22222222-0000-0000-0000-000000000003', 'Assembly Robot E3', 'Robot', 'running', now() - interval '7 days', 0.28)
+  ('33333333-0000-0000-0000-000000000001', '11111111-1111-1111-1111-111111111111', '22222222-0000-0000-0000-000000000005', 'CNC Mill A1', 'CNC', 'Italy', 'Milan', 'Via della Produzione 18', 45.4642, 9.1900, 'running', now() - interval '18 days', 0.21),
+  ('33333333-0000-0000-0000-000000000002', '11111111-1111-1111-1111-111111111111', '22222222-0000-0000-0000-000000000005', 'Packaging Line B2', 'Packaging', 'Germany', 'Munich', 'Industriestrasse 77', 48.1351, 11.5820, 'warning', now() - interval '31 days', 0.67),
+  ('33333333-0000-0000-0000-000000000003', '11111111-1111-1111-1111-111111111111', '22222222-0000-0000-0000-000000000001', 'Laser Cutter C4', 'Laser', 'United States', 'Detroit', 'Woodward Ave 2200', 42.3314, -83.0458, 'running', now() - interval '12 days', 0.18),
+  ('33333333-0000-0000-0000-000000000004', '11111111-1111-1111-1111-111111111111', '22222222-0000-0000-0000-000000000002', 'Hydraulic Press D1', 'Press', 'Japan', 'Osaka', 'Kita-ku Plant District 4', 34.6937, 135.5023, 'stopped', now() - interval '45 days', 0.92),
+  ('33333333-0000-0000-0000-000000000005', '11111111-1111-1111-1111-111111111111', '22222222-0000-0000-0000-000000000003', 'Assembly Robot E3', 'Robot', 'Brazil', 'Sao Paulo', 'Av. Industrial 450', -23.5558, -46.6396, 'running', now() - interval '7 days', 0.28)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO public.maintenance_logs (id, company_id, machine_id, technician, notes, cost, performed_at)

@@ -49,6 +49,11 @@ CREATE TABLE IF NOT EXISTS public.machines (
   supplier_id UUID REFERENCES public.suppliers(id) ON DELETE SET NULL,
   name TEXT NOT NULL,
   type TEXT NOT NULL,
+  country TEXT,
+  city TEXT,
+  address TEXT,
+  latitude NUMERIC(9,6),
+  longitude NUMERIC(9,6),
   status TEXT NOT NULL DEFAULT 'running' CHECK (status IN ('running', 'warning', 'stopped')),
   last_maintenance_at TIMESTAMPTZ,
   next_maintenance_at TIMESTAMPTZ,
@@ -127,6 +132,7 @@ CREATE TABLE IF NOT EXISTS public.esg_reports (
 CREATE INDEX IF NOT EXISTS idx_users_company ON public.users(company_id);
 CREATE INDEX IF NOT EXISTS idx_suppliers_company ON public.suppliers(company_id);
 CREATE INDEX IF NOT EXISTS idx_machines_company ON public.machines(company_id);
+CREATE INDEX IF NOT EXISTS idx_machines_coordinates ON public.machines(latitude, longitude);
 CREATE INDEX IF NOT EXISTS idx_telemetry_company_machine ON public.machine_telemetry(company_id, machine_id, recorded_at DESC);
 CREATE INDEX IF NOT EXISTS idx_maintenance_company_machine ON public.maintenance_logs(company_id, machine_id, performed_at DESC);
 CREATE INDEX IF NOT EXISTS idx_orders_company_status ON public.orders(company_id, status);

@@ -15,24 +15,67 @@ class _MachinesPageState extends ConsumerState<MachinesPage> {
   Future<void> _createMachine(String companyId) async {
     final nameController = TextEditingController();
     final typeController = TextEditingController(text: 'CNC');
+    final countryController = TextEditingController();
+    final cityController = TextEditingController();
+    final addressController = TextEditingController();
+    final latitudeController = TextEditingController();
+    final longitudeController = TextEditingController();
 
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('New machine'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: nameController,
-              decoration: const InputDecoration(labelText: 'Name'),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: typeController,
-              decoration: const InputDecoration(labelText: 'Type'),
-            ),
-          ],
+        content: SizedBox(
+          width: 460,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(labelText: 'Name'),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: typeController,
+                decoration: const InputDecoration(labelText: 'Type'),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: countryController,
+                decoration: const InputDecoration(labelText: 'Country'),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: cityController,
+                decoration: const InputDecoration(labelText: 'City'),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: addressController,
+                decoration: const InputDecoration(labelText: 'Address'),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: latitudeController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(labelText: 'Latitude'),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextField(
+                      controller: longitudeController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(labelText: 'Longitude'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(
@@ -59,6 +102,17 @@ class _MachinesPageState extends ConsumerState<MachinesPage> {
         type: typeController.text.trim().isEmpty
             ? 'General'
             : typeController.text.trim(),
+        country: countryController.text.trim().isEmpty
+            ? null
+            : countryController.text.trim(),
+        city: cityController.text.trim().isEmpty
+            ? null
+            : cityController.text.trim(),
+        address: addressController.text.trim().isEmpty
+            ? null
+            : addressController.text.trim(),
+        latitude: double.tryParse(latitudeController.text.trim()),
+        longitude: double.tryParse(longitudeController.text.trim()),
       );
       ref.invalidate(machinesProvider);
     } finally {
@@ -231,6 +285,14 @@ class _MachinesPageState extends ConsumerState<MachinesPage> {
                                     final status =
                                         machine['status']?.toString() ??
                                         'running';
+                                    final city = machine['city']?.toString();
+                                    final country = machine['country']
+                                        ?.toString();
+                                    final location = [
+                                      if (city != null && city.isNotEmpty) city,
+                                      if (country != null && country.isNotEmpty)
+                                        country,
+                                    ].join(', ');
 
                                     return ListTile(
                                       contentPadding:
@@ -251,7 +313,7 @@ class _MachinesPageState extends ConsumerState<MachinesPage> {
                                         '${machine['name']} · ${machine['type']}',
                                       ),
                                       subtitle: Text(
-                                        'Last maintenance: ${_formatDate(machine['last_maintenance_at'])} | Risk ${risk.toStringAsFixed(1)}%',
+                                        'Last maintenance: ${_formatDate(machine['last_maintenance_at'])} | Risk ${risk.toStringAsFixed(1)}%${location.isNotEmpty ? ' | $location' : ''}',
                                       ),
                                       trailing: Wrap(
                                         spacing: 8,

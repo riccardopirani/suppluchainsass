@@ -284,7 +284,16 @@ class FabricOSRepository {
     required String companyId,
     required String name,
     required String type,
+    String? country,
+    String? city,
+    String? address,
+    double? latitude,
+    double? longitude,
   }) async {
+    final inferred = _inferCoordinates(country: country, city: city);
+    final resolvedLatitude = latitude ?? inferred?['latitude'];
+    final resolvedLongitude = longitude ?? inferred?['longitude'];
+
     await _client.from('machines').insert({
       'company_id': companyId,
       'name': name,
@@ -294,6 +303,11 @@ class FabricOSRepository {
           .subtract(const Duration(days: 30))
           .toIso8601String(),
       'failure_risk': 0.18,
+      'country': country,
+      'city': city,
+      'address': address,
+      'latitude': resolvedLatitude,
+      'longitude': resolvedLongitude,
     });
   }
 
@@ -409,6 +423,28 @@ class FabricOSRepository {
             (vibrationFactor * 0.45) +
             (pressureFactor * 0.2))
         .clamp(0.05, 0.99);
+  }
+
+  Map<String, double>? _inferCoordinates({String? country, String? city}) {
+    final key =
+        '${(country ?? '').trim().toLowerCase()}|${(city ?? '').trim().toLowerCase()}';
+
+    const known = <String, Map<String, double>>{
+      'italy|milan': {'latitude': 45.4642, 'longitude': 9.19},
+      'italy|turin': {'latitude': 45.0703, 'longitude': 7.6869},
+      'italy|bologna': {'latitude': 44.4949, 'longitude': 11.3426},
+      'germany|munich': {'latitude': 48.1351, 'longitude': 11.582},
+      'france|lyon': {'latitude': 45.764, 'longitude': 4.8357},
+      'spain|barcelona': {'latitude': 41.3874, 'longitude': 2.1686},
+      'united states|detroit': {'latitude': 42.3314, 'longitude': -83.0458},
+      'united states|chicago': {'latitude': 41.8781, 'longitude': -87.6298},
+      'japan|osaka': {'latitude': 34.6937, 'longitude': 135.5023},
+      'china|shenzhen': {'latitude': 22.5431, 'longitude': 114.0579},
+      'brazil|sao paulo': {'latitude': -23.5558, 'longitude': -46.6396},
+      'india|pune': {'latitude': 18.5204, 'longitude': 73.8567},
+    };
+
+    return known[key];
   }
 
   Future<void> createOrder({
