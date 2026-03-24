@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stockguard_ai/localization/app_localizations.dart';
-import 'package:stockguard_ai/localization/locale_provider.dart';
+import 'package:fabricos/localization/app_localizations.dart';
+import 'package:fabricos/localization/locale_provider.dart';
 
 class LanguageSelector extends ConsumerWidget {
   const LanguageSelector({super.key});

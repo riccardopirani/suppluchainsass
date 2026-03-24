@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:stockguard_ai/localization/app_localizations.dart';
+import 'package:fabricos/localization/app_localizations.dart';
 
 enum LegalType { privacy, terms, cookies }
 

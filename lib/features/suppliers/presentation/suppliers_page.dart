@@ -1,8 +1,6 @@
+import 'package:fabricos/features/app_shell/providers/fabricos_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stockguard_ai/localization/app_localizations.dart';
-import 'package:stockguard_ai/features/app_shell/providers/workspace_provider.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SuppliersPage extends ConsumerStatefulWidget {
   const SuppliersPage({super.key});
@@ -12,390 +10,315 @@ class SuppliersPage extends ConsumerStatefulWidget {
 }
 
 class _SuppliersPageState extends ConsumerState<SuppliersPage> {
-  final _scaffoldKey = GlobalKey<ScaffoldState>();
-  final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _phoneController = TextEditingController();
-  final _leadTimeDaysController = TextEditingController();
-  final _notesController = TextEditingController();
+  bool _busy = false;
 
-  bool _isLoading = false;
-  Map<String, dynamic>? _editingSupplier;
+  Future<void> _createSupplier(String companyId) async {
+    final nameController = TextEditingController();
+    final emailController = TextEditingController();
+    final reliabilityController = TextEditingController(text: '82');
+    String complianceStatus = 'compliant';
+    String riskLevel = 'medium';
 
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _emailController.dispose();
-    _phoneController.dispose();
-    _leadTimeDaysController.dispose();
-    _notesController.dispose();
-    super.dispose();
-  }
-
-  void _clearForm() {
-    _nameController.clear();
-    _emailController.clear();
-    _phoneController.clear();
-    _leadTimeDaysController.text = '7';
-    _notesController.clear();
-    _editingSupplier = null;
-  }
-
-  void _openDrawerForCreate() {
-    _clearForm();
-    _scaffoldKey.currentState?.openEndDrawer();
-  }
-
-  void _openDrawerForEdit(Map<String, dynamic> supplier) {
-    _editingSupplier = supplier;
-    _nameController.text = supplier['name'] ?? '';
-    _emailController.text = supplier['contact_email'] ?? '';
-    _phoneController.text = supplier['contact_phone'] ?? '';
-    _leadTimeDaysController.text = (supplier['lead_time_days'] ?? 7).toString();
-    _notesController.text = supplier['notes'] ?? '';
-    _scaffoldKey.currentState?.openEndDrawer();
-  }
-
-  Future<void> _saveSupplier() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    setState(() => _isLoading = true);
-    try {
-      final supabase = Supabase.instance.client;
-      final workspaceId = await ref.read(currentWorkspaceProvider.future);
-
-      if (_editingSupplier != null) {
-        // Update existing
-        await supabase.from('suppliers').update({
-          'name': _nameController.text.trim(),
-          'contact_email': _emailController.text.trim(),
-          'contact_phone': _phoneController.text.trim(),
-          'lead_time_days': int.tryParse(_leadTimeDaysController.text) ?? 7,
-          'notes': _notesController.text.trim(),
-        }).eq('id', _editingSupplier!['id']);
-      } else {
-        // Create new
-        await supabase.from('suppliers').insert({
-          'workspace_id': workspaceId,
-          'name': _nameController.text.trim(),
-          'contact_email': _emailController.text.trim(),
-          'contact_phone': _phoneController.text.trim(),
-          'lead_time_days': int.tryParse(_leadTimeDaysController.text) ?? 7,
-          'notes': _notesController.text.trim(),
-          'active': true,
-        });
-      }
-
-      // Refresh list
-      ref.refresh(suppliersProvider);
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              _editingSupplier != null ? 'Supplier updated!' : 'Supplier created!',
-            ),
-          ),
-        );
-        Navigator.pop(context);
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}')),
-        );
-      }
-    } finally {
-      setState(() => _isLoading = false);
-    }
-  }
-
-  Future<void> _deleteSupplier(String id) async {
-    final confirm = await showDialog<bool>(
+    final ok = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Supplier?'),
-        content: const Text('This action cannot be undone.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete'),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) => AlertDialog(
+            title: const Text('New supplier'),
+            content: SizedBox(
+              width: 440,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: nameController,
+                    decoration: const InputDecoration(
+                      labelText: 'Supplier name',
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: emailController,
+                    decoration: const InputDecoration(
+                      labelText: 'Contact email',
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: reliabilityController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Reliability score (0-100)',
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  DropdownButtonFormField<String>(
+                    initialValue: complianceStatus,
+                    items: const [
+                      DropdownMenuItem(
+                        value: 'compliant',
+                        child: Text('Compliant'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'under_review',
+                        child: Text('Under review'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'non_compliant',
+                        child: Text('Non compliant'),
+                      ),
+                    ],
+                    onChanged: (value) {
+                      if (value == null) return;
+                      setDialogState(() => complianceStatus = value);
+                    },
+                    decoration: const InputDecoration(
+                      labelText: 'Compliance status',
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  DropdownButtonFormField<String>(
+                    initialValue: riskLevel,
+                    items: const [
+                      DropdownMenuItem(value: 'low', child: Text('Low risk')),
+                      DropdownMenuItem(
+                        value: 'medium',
+                        child: Text('Medium risk'),
+                      ),
+                      DropdownMenuItem(value: 'high', child: Text('High risk')),
+                    ],
+                    onChanged: (value) {
+                      if (value == null) return;
+                      setDialogState(() => riskLevel = value);
+                    },
+                    decoration: const InputDecoration(labelText: 'Risk level'),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Create'),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
 
-    if (confirm != true) return;
+    if (ok != true || !mounted) return;
+    if (nameController.text.trim().isEmpty) return;
 
+    setState(() => _busy = true);
     try {
-      await Supabase.instance.client.from('suppliers').delete().eq('id', id);
-      ref.refresh(suppliersProvider);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Supplier deleted')),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
-      }
+      await ref
+          .read(fabricosRepositoryProvider)
+          .createSupplier(
+            companyId: companyId,
+            name: nameController.text.trim(),
+            reliabilityScore:
+                (double.tryParse(reliabilityController.text) ?? 75).clamp(
+                  0,
+                  100,
+                ),
+            complianceStatus: complianceStatus,
+            riskLevel: riskLevel,
+            contactEmail: emailController.text.trim().isEmpty
+                ? null
+                : emailController.text.trim(),
+          );
+      ref.invalidate(suppliersProvider);
+    } finally {
+      if (mounted) setState(() => _busy = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final suppliersAsyncValue = ref.watch(suppliersProvider);
+    final companyIdAsync = ref.watch(currentCompanyIdProvider);
+    final suppliersAsync = ref.watch(suppliersProvider);
+    final ordersAsync = ref.watch(ordersProvider);
 
     return Scaffold(
-      key: _scaffoldKey,
-      endDrawer: _buildSupplierDrawer(),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    context.l10n.t('suppliers'),
-                    style: Theme.of(context).textTheme.headlineMedium,
+          child: companyIdAsync.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (err, _) =>
+                Center(child: Text('Unable to load company context: $err')),
+            data: (companyId) => Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Supplier Monitoring',
+                        style: Theme.of(context).textTheme.headlineMedium,
+                      ),
+                    ),
+                    FilledButton.icon(
+                      onPressed: _busy
+                          ? null
+                          : () => _createSupplier(companyId),
+                      icon: const Icon(Icons.add),
+                      label: const Text('New supplier'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Evaluate reliability, delay behavior and compliance signals for each supplier.',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
-                  Builder(
-                    builder: (context) => FilledButton.icon(
-                      onPressed: _openDrawerForCreate,
-                      icon: const Icon(Icons.add, size: 18),
-                      label: const Text('New Supplier'),
+                ),
+                const SizedBox(height: 18),
+                Expanded(
+                  child: Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: suppliersAsync.when(
+                        loading: () =>
+                            const Center(child: CircularProgressIndicator()),
+                        error: (err, _) =>
+                            Text('Failed to load suppliers: $err'),
+                        data: (suppliers) {
+                          if (suppliers.isEmpty) {
+                            return const Center(
+                              child: Text('No suppliers yet.'),
+                            );
+                          }
+
+                          return ordersAsync.when(
+                            loading: () => const Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                            error: (err, _) =>
+                                Text('Failed to load order data: $err'),
+                            data: (orders) {
+                              return ListView.separated(
+                                itemCount: suppliers.length,
+                                separatorBuilder: (_, __) =>
+                                    const Divider(height: 1),
+                                itemBuilder: (context, index) {
+                                  final supplier = suppliers[index];
+                                  final supplierId = supplier['id'];
+                                  final supplierOrders = orders
+                                      .where(
+                                        (order) =>
+                                            order['supplier_id']?.toString() ==
+                                            supplierId?.toString(),
+                                      )
+                                      .toList();
+                                  final delayed = supplierOrders.where((o) {
+                                    final fromDb =
+                                        (o['delay_days'] as num?)?.toInt() ?? 0;
+                                    if (fromDb > 0) return true;
+                                    final expected = DateTime.tryParse(
+                                      o['expected_delivery_date']?.toString() ??
+                                          '',
+                                    );
+                                    if (expected == null) return false;
+                                    return o['status'] != 'completed' &&
+                                        DateTime.now().isAfter(expected);
+                                  }).length;
+
+                                  final reliability =
+                                      (supplier['reliability_score'] as num?)
+                                          ?.toDouble() ??
+                                      75;
+                                  final avgDelay =
+                                      (supplier['avg_delay_days'] as num?)
+                                          ?.toDouble() ??
+                                      (supplierOrders.isEmpty
+                                          ? 0
+                                          : (delayed * 1.8));
+                                  final performance =
+                                      (reliability - (avgDelay * 6)).clamp(
+                                        0,
+                                        100,
+                                      );
+                                  final risk =
+                                      supplier['risk_level']?.toString() ??
+                                      (performance > 75
+                                          ? 'low'
+                                          : performance > 50
+                                          ? 'medium'
+                                          : 'high');
+
+                                  return ListTile(
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      vertical: 8,
+                                      horizontal: 6,
+                                    ),
+                                    leading: CircleAvatar(
+                                      backgroundColor: _riskColor(
+                                        risk,
+                                      ).withValues(alpha: 0.15),
+                                      child: Icon(
+                                        Icons.local_shipping_outlined,
+                                        color: _riskColor(risk),
+                                      ),
+                                    ),
+                                    title: Text(
+                                      supplier['name']?.toString() ?? '-',
+                                    ),
+                                    subtitle: Text(
+                                      'Perf: ${performance.toStringAsFixed(0)}/100 · Delayed orders: $delayed · Compliance: ${supplier['compliance_status'] ?? 'n/a'}',
+                                    ),
+                                    trailing: Wrap(
+                                      spacing: 8,
+                                      children: [
+                                        Chip(
+                                          label: Text(risk.toUpperCase()),
+                                          backgroundColor: _riskColor(
+                                            risk,
+                                          ).withValues(alpha: 0.15),
+                                        ),
+                                        if (supplier['contact_email'] != null)
+                                          Tooltip(
+                                            message: supplier['contact_email']
+                                                .toString(),
+                                            child: const Icon(
+                                              Icons.mail_outline,
+                                              size: 18,
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              );
+                            },
+                          );
+                        },
+                      ),
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 24),
-              Expanded(
-                child: suppliersAsyncValue.when(
-                  loading: () => const Center(child: CircularProgressIndicator()),
-                  error: (err, stack) => Center(
-                    child: Text('Error: $err'),
-                  ),
-                  data: (suppliers) {
-                    if (suppliers.isEmpty) {
-                      return Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.local_shipping_outlined,
-                              size: 64,
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'No suppliers yet',
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                          ],
-                        ),
-                      );
-                    }
-
-                    return ListView.builder(
-                      itemCount: suppliers.length,
-                      itemBuilder: (context, i) {
-                        final supplier = suppliers[i];
-                        return Card(
-                          margin: const EdgeInsets.only(bottom: 12),
-                          child: ListTile(
-                            title: Text(supplier['name'] ?? 'Unknown'),
-                            subtitle: Text(
-                              'Lead time: ${supplier['lead_time_days'] ?? 7} days${supplier['contact_email'] != null ? ' • ${supplier['contact_email']}' : ''}',
-                            ),
-                            trailing: PopupMenuButton(
-                              itemBuilder: (context) => [
-                                PopupMenuItem(
-                                  child: const Text('Edit'),
-                                  onTap: () => _openDrawerForEdit(supplier),
-                                ),
-                                PopupMenuItem(
-                                  child: const Text('Delete', style: TextStyle(color: Colors.red)),
-                                  onTap: () => _deleteSupplier(supplier['id']),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    );
-                  },
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildSupplierDrawer() {
-    return Drawer(
-      width: 440,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              // Header
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          _editingSupplier != null ? 'Edit Supplier' : 'Add New Supplier',
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Fill in the details below',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                              ),
-                        ),
-                      ],
-                    ),
-                    IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.close),
-                    ),
-                  ],
-                ),
-              ),
-              const Divider(height: 1),
-
-              // Form
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(20),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        TextFormField(
-                          controller: _nameController,
-                          decoration: InputDecoration(
-                            labelText: 'Supplier Name *',
-                            hintText: 'e.g., Acme Supply Co.',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            prefixIcon: const Icon(Icons.local_shipping_outlined),
-                          ),
-                          validator: (v) => (v?.isEmpty ?? true) ? 'Name required' : null,
-                        ),
-                        const SizedBox(height: 12),
-                        TextFormField(
-                          controller: _emailController,
-                          decoration: InputDecoration(
-                            labelText: 'Email',
-                            hintText: 'contact@supplier.com',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            prefixIcon: const Icon(Icons.email_outlined),
-                          ),
-                          keyboardType: TextInputType.emailAddress,
-                        ),
-                        const SizedBox(height: 12),
-                        TextFormField(
-                          controller: _phoneController,
-                          decoration: InputDecoration(
-                            labelText: 'Phone',
-                            hintText: '+1 (555) 123-4567',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            prefixIcon: const Icon(Icons.phone_outlined),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        TextFormField(
-                          controller: _leadTimeDaysController,
-                          decoration: InputDecoration(
-                            labelText: 'Lead Time (days)',
-                            hintText: '7',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            prefixIcon: const Icon(Icons.schedule_outlined),
-                          ),
-                          keyboardType: TextInputType.number,
-                        ),
-                        const SizedBox(height: 12),
-                        TextFormField(
-                          controller: _notesController,
-                          decoration: InputDecoration(
-                            labelText: 'Notes',
-                            hintText: 'Additional information...',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            prefixIcon: const Icon(Icons.notes_outlined),
-                            alignLabelWithHint: true,
-                          ),
-                          maxLines: 3,
-                        ),
-                        const SizedBox(height: 32),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-
-              // Footer
-              const Divider(height: 1),
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: _clearForm,
-                        child: const Text('Clear'),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: FilledButton(
-                        onPressed: _isLoading ? null : _saveSupplier,
-                        child: _isLoading
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                ),
-                              )
-                            : Text(_editingSupplier != null ? 'Update' : 'Create'),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+  static Color _riskColor(String risk) {
+    switch (risk) {
+      case 'high':
+        return const Color(0xFFDC2626);
+      case 'medium':
+        return const Color(0xFFD97706);
+      default:
+        return const Color(0xFF15803D);
+    }
   }
 }

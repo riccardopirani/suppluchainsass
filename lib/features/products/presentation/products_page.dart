@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:stockguard_ai/localization/app_localizations.dart';
+import 'package:fabricos/localization/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ProductsPage extends StatefulWidget {
@@ -54,7 +54,7 @@ class _ProductsPageState extends State<ProductsPage> {
     setState(() => _isLoadingProducts = true);
     try {
       final supabase = Supabase.instance.client;
-      
+
       // Get current user's workspace
       final workspaceResult = await supabase
           .from('workspace_members')
@@ -62,7 +62,7 @@ class _ProductsPageState extends State<ProductsPage> {
           .eq('user_id', supabase.auth.currentUser!.id)
           .limit(1)
           .single();
-      
+
       final workspaceId = workspaceResult['workspace_id'];
 
       final response = await supabase
@@ -93,7 +93,7 @@ class _ProductsPageState extends State<ProductsPage> {
     setState(() => _isLoading = true);
     try {
       final supabase = Supabase.instance.client;
-      
+
       // Get current user's workspace
       final workspaceResult = await supabase
           .from('workspace_members')
@@ -101,7 +101,7 @@ class _ProductsPageState extends State<ProductsPage> {
           .eq('user_id', supabase.auth.currentUser!.id)
           .limit(1)
           .single();
-      
+
       final workspaceId = workspaceResult['workspace_id'];
 
       await supabase.from('products').insert({
@@ -136,15 +136,20 @@ class _ProductsPageState extends State<ProductsPage> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.t('product_created_successfully') ?? 'Product created!')),
+          SnackBar(
+            content: Text(
+              context.l10n.t('product_created_successfully') ??
+                  'Product created!',
+            ),
+          ),
         );
         Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
       }
     } finally {
       setState(() => _isLoading = false);
@@ -155,9 +160,7 @@ class _ProductsPageState extends State<ProductsPage> {
     return Drawer(
       width: 440,
       child: Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-        ),
+        decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface),
         child: SafeArea(
           child: Column(
             children: [
@@ -177,8 +180,11 @@ class _ProductsPageState extends State<ProductsPage> {
                         const SizedBox(height: 4),
                         Text(
                           'Fill in the details below',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
                               ),
                         ),
                       ],
@@ -214,7 +220,8 @@ class _ProductsPageState extends State<ProductsPage> {
                             ),
                             prefixIcon: const Icon(Icons.inventory_2_outlined),
                           ),
-                          validator: (v) => (v?.isEmpty ?? true) ? 'SKU required' : null,
+                          validator: (v) =>
+                              (v?.isEmpty ?? true) ? 'SKU required' : null,
                         ),
                         const SizedBox(height: 12),
                         TextFormField(
@@ -227,7 +234,8 @@ class _ProductsPageState extends State<ProductsPage> {
                             ),
                             prefixIcon: const Icon(Icons.label_outlined),
                           ),
-                          validator: (v) => (v?.isEmpty ?? true) ? 'Name required' : null,
+                          validator: (v) =>
+                              (v?.isEmpty ?? true) ? 'Name required' : null,
                         ),
                         const SizedBox(height: 12),
                         TextFormField(
@@ -271,9 +279,14 @@ class _ProductsPageState extends State<ProductsPage> {
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(8),
                                   ),
-                                  prefixIcon: const Icon(Icons.attach_money_outlined),
+                                  prefixIcon: const Icon(
+                                    Icons.attach_money_outlined,
+                                  ),
                                 ),
-                                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                keyboardType:
+                                    const TextInputType.numberWithOptions(
+                                      decimal: true,
+                                    ),
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -286,9 +299,14 @@ class _ProductsPageState extends State<ProductsPage> {
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(8),
                                   ),
-                                  prefixIcon: const Icon(Icons.attach_money_outlined),
+                                  prefixIcon: const Icon(
+                                    Icons.attach_money_outlined,
+                                  ),
                                 ),
-                                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                keyboardType:
+                                    const TextInputType.numberWithOptions(
+                                      decimal: true,
+                                    ),
                               ),
                             ),
                           ],
@@ -309,7 +327,8 @@ class _ProductsPageState extends State<ProductsPage> {
                             prefixIcon: const Icon(Icons.warehouse_outlined),
                           ),
                           keyboardType: TextInputType.number,
-                          validator: (v) => (v?.isEmpty ?? true) ? 'Stock required' : null,
+                          validator: (v) =>
+                              (v?.isEmpty ?? true) ? 'Stock required' : null,
                         ),
                         const SizedBox(height: 12),
                         Row(
@@ -323,7 +342,9 @@ class _ProductsPageState extends State<ProductsPage> {
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(8),
                                   ),
-                                  prefixIcon: const Icon(Icons.notifications_outlined),
+                                  prefixIcon: const Icon(
+                                    Icons.notifications_outlined,
+                                  ),
                                 ),
                                 keyboardType: TextInputType.number,
                               ),
@@ -338,7 +359,9 @@ class _ProductsPageState extends State<ProductsPage> {
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(8),
                                   ),
-                                  prefixIcon: const Icon(Icons.security_outlined),
+                                  prefixIcon: const Icon(
+                                    Icons.security_outlined,
+                                  ),
                                 ),
                                 keyboardType: TextInputType.number,
                               ),
@@ -398,7 +421,9 @@ class _ProductsPageState extends State<ProductsPage> {
                                 height: 20,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white,
+                                  ),
                                 ),
                               )
                             : const Text('Create Product'),
@@ -420,9 +445,9 @@ class _ProductsPageState extends State<ProductsPage> {
       child: Text(
         title,
         style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              color: Theme.of(context).colorScheme.primary,
-              fontWeight: FontWeight.w600,
-            ),
+          color: Theme.of(context).colorScheme.primary,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }
@@ -466,7 +491,8 @@ class _ProductsPageState extends State<ProductsPage> {
               ),
               const SizedBox(height: 24),
               TextField(
-                onChanged: (value) => setState(() => _searchQuery = value.toLowerCase()),
+                onChanged: (value) =>
+                    setState(() => _searchQuery = value.toLowerCase()),
                 decoration: InputDecoration(
                   hintText: context.l10n.t('search'),
                   prefixIcon: const Icon(Icons.search),
@@ -476,69 +502,87 @@ class _ProductsPageState extends State<ProductsPage> {
               const SizedBox(height: 24),
               Expanded(
                 child: _isLoadingProducts
-                    ? const Center(
-                        child: CircularProgressIndicator(),
-                      )
+                    ? const Center(child: CircularProgressIndicator())
                     : _products.isEmpty
-                        ? Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.inventory_2_outlined,
-                                  size: 64,
-                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  'No products yet',
-                                  style: Theme.of(context).textTheme.titleMedium,
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Click "New Product" to add your first product',
-                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                      ),
-                                ),
-                              ],
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.inventory_2_outlined,
+                              size: 64,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
                             ),
-                          )
-                        : ListView(
-                            children: _products
-                                .where((p) =>
-                                    (p['name']?.toString().toLowerCase().contains(_searchQuery) ?? false) ||
-                                    (p['sku']?.toString().toLowerCase().contains(_searchQuery) ?? false))
-                                .map(
-                                  (product) {
-                                    final currentStock = product['current_stock'] ?? 0;
-                                    final reorderPoint = product['reorder_point'] ?? 0;
-                                    final safetyStock = product['safety_stock'] ?? 0;
+                            const SizedBox(height: 16),
+                            Text(
+                              'No products yet',
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Click "New Product" to add your first product',
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : ListView(
+                        children: _products
+                            .where(
+                              (p) =>
+                                  (p['name']?.toString().toLowerCase().contains(
+                                        _searchQuery,
+                                      ) ??
+                                      false) ||
+                                  (p['sku']?.toString().toLowerCase().contains(
+                                        _searchQuery,
+                                      ) ??
+                                      false),
+                            )
+                            .map((product) {
+                              final currentStock =
+                                  product['current_stock'] ?? 0;
+                              final reorderPoint =
+                                  product['reorder_point'] ?? 0;
+                              final safetyStock = product['safety_stock'] ?? 0;
 
-                                    String status = context.l10n.t('status_safe');
-                                    if (currentStock <= safetyStock) {
-                                      status = context.l10n.t('status_critical');
-                                    } else if (currentStock <= reorderPoint) {
-                                      status = context.l10n.t('status_attention');
-                                    }
+                              String status = context.l10n.t('status_safe');
+                              if (currentStock <= safetyStock) {
+                                status = context.l10n.t('status_critical');
+                              } else if (currentStock <= reorderPoint) {
+                                status = context.l10n.t('status_attention');
+                              }
 
-                                    return ListTile(
-                                      title: Text(product['name'] ?? 'Unknown'),
-                                      subtitle: Text('${product['sku'] ?? 'N/A'} • $currentStock units'),
-                                      trailing: Chip(
-                                        label: Text(status),
-                                        backgroundColor: status == context.l10n.t('status_critical')
-                                            ? Colors.red.withValues(alpha: 0.2)
-                                            : status == context.l10n.t('status_attention')
-                                                ? Colors.orange.withValues(alpha: 0.2)
-                                                : Colors.green.withValues(alpha: 0.2),
-                                      ),
-                                      onTap: () => context.push('/app/products/${product['id']}'),
-                                    );
-                                  },
-                                )
-                                .toList(),
-                          ),
+                              return ListTile(
+                                title: Text(product['name'] ?? 'Unknown'),
+                                subtitle: Text(
+                                  '${product['sku'] ?? 'N/A'} • $currentStock units',
+                                ),
+                                trailing: Chip(
+                                  label: Text(status),
+                                  backgroundColor:
+                                      status ==
+                                          context.l10n.t('status_critical')
+                                      ? Colors.red.withValues(alpha: 0.2)
+                                      : status ==
+                                            context.l10n.t('status_attention')
+                                      ? Colors.orange.withValues(alpha: 0.2)
+                                      : Colors.green.withValues(alpha: 0.2),
+                                ),
+                                onTap: () => context.push(
+                                  '/app/products/${product['id']}',
+                                ),
+                              );
+                            })
+                            .toList(),
+                      ),
               ),
             ],
           ),

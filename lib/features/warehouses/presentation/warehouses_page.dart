@@ -55,9 +55,9 @@ class _WarehousesPageState extends ConsumerState<WarehousesPage> {
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: $e')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Error: $e')));
         }
       } finally {
         setState(() => _isLoading = false);
@@ -90,17 +90,17 @@ class _WarehousesPageState extends ConsumerState<WarehousesPage> {
         await supabase.from('warehouses').delete().eq('id', id);
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Warehouse deleted')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Warehouse deleted')));
           // Refresh the warehouses list
           ref.refresh(warehousesProvider);
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: $e')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Error: $e')));
         }
       }
     }
@@ -125,11 +125,13 @@ class _WarehousesPageState extends ConsumerState<WarehousesPage> {
               const SizedBox(height: 24),
               Expanded(
                 child: workspaceAsync.when(
-                  loading: () => const Center(child: CircularProgressIndicator()),
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
                   error: (err, stack) => Text('Error: $err'),
                   data: (workspaceId) {
                     return warehousesAsync.when(
-                      loading: () => const Center(child: CircularProgressIndicator()),
+                      loading: () =>
+                          const Center(child: CircularProgressIndicator()),
                       error: (err, stack) => Text('Error: $err'),
                       data: (warehouses) {
                         return Column(
@@ -146,32 +148,44 @@ class _WarehousesPageState extends ConsumerState<WarehousesPage> {
                                   ? Center(
                                       child: Text(
                                         'No warehouses yet',
-                                        style: Theme.of(context).textTheme.bodyLarge,
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.bodyLarge,
                                       ),
                                     )
                                   : ListView.builder(
                                       itemCount: warehouses.length,
                                       itemBuilder: (context, i) {
                                         final w = warehouses[i];
-                                        final isDefault = w['is_default'] as bool? ?? false;
+                                        final isDefault =
+                                            w['is_default'] as bool? ?? false;
 
                                         return Card(
-                                          margin: const EdgeInsets.only(bottom: 12),
+                                          margin: const EdgeInsets.only(
+                                            bottom: 12,
+                                          ),
                                           child: ListTile(
                                             title: Text(w['name'] ?? 'Unknown'),
-                                            subtitle: Text(w['location'] ?? 'No location'),
+                                            subtitle: Text(
+                                              w['location'] ?? 'No location',
+                                            ),
                                             trailing: PopupMenuButton(
                                               itemBuilder: (context) => [
                                                 PopupMenuItem(
                                                   child: const Text('Delete'),
-                                                  onTap: () => _deleteWarehouse(w['id']),
+                                                  onTap: () =>
+                                                      _deleteWarehouse(w['id']),
                                                 ),
                                               ],
                                             ),
                                             leading: isDefault
                                                 ? const Tooltip(
-                                                    message: 'Default warehouse',
-                                                    child: Icon(Icons.star, color: Colors.amber),
+                                                    message:
+                                                        'Default warehouse',
+                                                    child: Icon(
+                                                      Icons.star,
+                                                      color: Colors.amber,
+                                                    ),
                                                   )
                                                 : null,
                                           ),
@@ -216,7 +230,9 @@ class _WarehousesPageState extends ConsumerState<WarehousesPage> {
               const SizedBox(height: 12),
               TextFormField(
                 controller: _capacityController,
-                decoration: const InputDecoration(labelText: 'Capacity (units)'),
+                decoration: const InputDecoration(
+                  labelText: 'Capacity (units)',
+                ),
                 keyboardType: TextInputType.number,
               ),
               const SizedBox(height: 12),
@@ -234,20 +250,26 @@ class _WarehousesPageState extends ConsumerState<WarehousesPage> {
             child: const Text('Cancel'),
           ),
           FilledButton(
-            onPressed: _isLoading ? null : () async {
-              try {
-                final workspaceId = await ref.read(currentWorkspaceProvider.future);
-                if (Navigator.canPop(context)) Navigator.pop(context);
-                _saveWarehouse(workspaceId);
-              } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error: $e')),
-                  );
-                }
-              }
-            },
-            child: _isLoading ? const CircularProgressIndicator() : const Text('Create'),
+            onPressed: _isLoading
+                ? null
+                : () async {
+                    try {
+                      final workspaceId = await ref.read(
+                        currentWorkspaceProvider.future,
+                      );
+                      if (Navigator.canPop(context)) Navigator.pop(context);
+                      _saveWarehouse(workspaceId);
+                    } catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(
+                          context,
+                        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+                      }
+                    }
+                  },
+            child: _isLoading
+                ? const CircularProgressIndicator()
+                : const Text('Create'),
           ),
         ],
       ),

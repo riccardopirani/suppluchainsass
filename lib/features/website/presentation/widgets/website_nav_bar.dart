@@ -1,30 +1,23 @@
+import 'package:fabricos/features/website/presentation/widgets/language_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stockguard_ai/localization/app_localizations.dart';
-import 'package:stockguard_ai/features/website/presentation/widgets/language_selector.dart';
 
-class WebsiteNavBar extends ConsumerWidget implements PreferredSizeWidget {
+class WebsiteNavBar extends StatelessWidget implements PreferredSizeWidget {
   const WebsiteNavBar({super.key});
 
   @override
-  Size get preferredSize => const Size.fromHeight(64);
+  Size get preferredSize => const Size.fromHeight(68);
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = context.l10n;
-    final isWide = MediaQuery.sizeOf(context).width > 900;
+  Widget build(BuildContext context) {
+    final isWide = MediaQuery.sizeOf(context).width > 950;
 
     return AppBar(
-      elevation: 0,
       title: GestureDetector(
         onTap: () => context.go('/'),
-        child: Text(
-          l10n.t('app_name'),
-          style: const TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: 20,
-          ),
+        child: const Text(
+          'FabricOS',
+          style: TextStyle(fontWeight: FontWeight.w700),
         ),
       ),
       centerTitle: false,
@@ -32,33 +25,33 @@ class WebsiteNavBar extends ConsumerWidget implements PreferredSizeWidget {
         if (isWide) ...[
           TextButton(
             onPressed: () => context.go('/features'),
-            child: Text(l10n.t('nav_features')),
+            child: const Text('Features'),
           ),
           TextButton(
             onPressed: () => context.go('/pricing'),
-            child: Text(l10n.t('nav_pricing')),
+            child: const Text('Pricing'),
           ),
           TextButton(
             onPressed: () => context.go('/contact'),
-            child: Text(l10n.t('nav_contact')),
+            child: const Text('Contact'),
           ),
           TextButton(
             onPressed: () => context.go('/faq'),
-            child: Text(l10n.t('nav_faq')),
+            child: const Text('FAQ'),
           ),
         ],
         const LanguageSelector(),
         const SizedBox(width: 8),
         OutlinedButton(
           onPressed: () => context.go('/login'),
-          child: Text(l10n.t('nav_login')),
+          child: const Text('Login'),
         ),
         const SizedBox(width: 8),
         FilledButton(
           onPressed: () => context.go('/register'),
-          child: Text(l10n.t('nav_register')),
+          child: const Text('Start free'),
         ),
-        const SizedBox(width: 24),
+        const SizedBox(width: 20),
       ],
     );
   }

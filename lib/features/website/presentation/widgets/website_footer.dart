@@ -1,39 +1,45 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:stockguard_ai/localization/app_localizations.dart';
 
 class WebsiteFooter extends StatelessWidget {
   const WebsiteFooter({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final l10n = context.l10n;
-
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 24),
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 24),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
       ),
       child: Wrap(
-        spacing: 32,
-        runSpacing: 16,
-        alignment: WrapAlignment.center,
+        alignment: WrapAlignment.spaceBetween,
+        runAlignment: WrapAlignment.center,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: 12,
+        runSpacing: 12,
         children: [
-          TextButton(
-            onPressed: () => context.go('/privacy'),
-            child: Text(l10n.t('footer_privacy')),
-          ),
-          TextButton(
-            onPressed: () => context.go('/terms'),
-            child: Text(l10n.t('footer_terms')),
-          ),
-          TextButton(
-            onPressed: () => context.go('/cookies'),
-            child: Text(l10n.t('footer_cookies')),
-          ),
-          TextButton(
-            onPressed: () => context.go('/contact'),
-            child: Text(l10n.t('footer_contact')),
+          const Text('FabricOS · AI Operations Platform for Manufacturing'),
+          Wrap(
+            spacing: 8,
+            children: [
+              TextButton(
+                onPressed: () => context.go('/privacy'),
+                child: const Text('Privacy'),
+              ),
+              TextButton(
+                onPressed: () => context.go('/terms'),
+                child: const Text('Terms'),
+              ),
+              TextButton(
+                onPressed: () => context.go('/cookies'),
+                child: const Text('Cookies'),
+              ),
+              TextButton(
+                onPressed: () => context.go('/contact'),
+                child: const Text('Contact'),
+              ),
+            ],
           ),
         ],
       ),

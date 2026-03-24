@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:stockguard_ai/localization/app_localizations.dart';
 
 class FaqPage extends StatelessWidget {
   const FaqPage({super.key});
@@ -7,30 +6,46 @@ class FaqPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final items = [
-      ('How does reorder suggestion work?', 'We use your sales history, lead times, and safety stock to calculate when and how much to reorder.'),
-      ('Can I import from Excel?', 'Yes. CSV upload is supported. More integrations are coming.'),
-      ('Is there a free trial?', 'Yes. Start with a free trial and upgrade when you need more SKUs or users.'),
+      (
+        'How does predictive maintenance work in the MVP?',
+        'FabricOS combines telemetry snapshots and maintenance history to generate a failure-risk score with placeholder AI logic.',
+      ),
+      (
+        'Can we manage multiple plants or teams?',
+        'Yes. FabricOS uses a multi-tenant company workspace model and role-based access (Admin, Manager, Operator).',
+      ),
+      (
+        'Do you support compliance exports?',
+        'Yes. ESG reports can be generated and exported as PDF in the reports module.',
+      ),
+      (
+        'Is realtime included?',
+        'Yes. Alerts and machine status updates are delivered in realtime through Supabase.',
+      ),
     ];
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 24),
       child: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 600),
+          constraints: const BoxConstraints(maxWidth: 720),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                context.l10n.t('nav_faq'),
+                'Frequently Asked Questions',
                 style: Theme.of(context).textTheme.displaySmall,
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 20),
               ...items.map(
-                (e) => ExpansionTile(
-                  title: Text(e.$1),
-                  children: [Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Text(e.$2),
-                  )],
+                (item) => ExpansionTile(
+                  title: Text(item.$1),
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                      child: Text(item.$2),
+                    ),
+                  ],
                 ),
               ),
             ],

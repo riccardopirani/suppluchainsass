@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:stockguard_ai/localization/app_localizations.dart';
 
 class ContactPage extends StatelessWidget {
   const ContactPage({super.key});
@@ -10,49 +9,41 @@ class ContactPage extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 24),
       child: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 500),
+          constraints: const BoxConstraints(maxWidth: 560),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                context.l10n.t('nav_contact'),
+                'Contact FabricOS',
                 style: Theme.of(context).textTheme.displaySmall,
               ),
-              const SizedBox(height: 32),
-              TextFormField(
-                decoration: InputDecoration(
-                  labelText: context.l10n.t('name'),
-                  border: const OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                decoration: InputDecoration(
-                  labelText: context.l10n.t('login_email'),
-                  border: const OutlineInputBorder(),
-                ),
-                keyboardType: TextInputType.emailAddress,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                decoration: InputDecoration(
-                  labelText: context.l10n.t('company'),
-                  border: const OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                decoration: InputDecoration(
-                  labelText: context.l10n.t('message'),
-                  border: const OutlineInputBorder(),
-                  alignLabelWithHint: true,
-                ),
-                maxLines: 4,
+              const SizedBox(height: 12),
+              const Text(
+                'Tell us about your operations context and we will help you deploy FabricOS for your team.',
               ),
               const SizedBox(height: 24),
-              FilledButton(
-                onPressed: () {},
-                child: Text(context.l10n.t('send')),
+              TextFormField(
+                decoration: const InputDecoration(labelText: 'Full name'),
               ),
+              const SizedBox(height: 12),
+              TextFormField(
+                decoration: const InputDecoration(labelText: 'Work email'),
+                keyboardType: TextInputType.emailAddress,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                decoration: const InputDecoration(labelText: 'Company'),
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                maxLines: 4,
+                decoration: const InputDecoration(
+                  labelText: 'What do you need?',
+                  alignLabelWithHint: true,
+                ),
+              ),
+              const SizedBox(height: 18),
+              FilledButton(onPressed: () {}, child: const Text('Send request')),
             ],
           ),
         ),

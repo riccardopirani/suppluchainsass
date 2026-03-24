@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:stockguard_ai/localization/app_localizations.dart';
+import 'package:fabricos/localization/app_localizations.dart';
 
 class RegisterPage extends ConsumerStatefulWidget {
   const RegisterPage({super.key});
@@ -79,8 +79,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     Text(
                       l10n.t('register_subtitle'),
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
                     const SizedBox(height: 32),
                     if (_error != null) ...[
@@ -93,7 +93,9 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                         child: Text(
                           _error!,
                           style: TextStyle(
-                            color: Theme.of(context).colorScheme.onErrorContainer,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onErrorContainer,
                           ),
                         ),
                       ),
@@ -129,8 +131,9 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                         border: const OutlineInputBorder(),
                       ),
                       obscureText: true,
-                      validator: (v) =>
-                          (v == null || v.length < 6) ? 'Min 6 characters' : null,
+                      validator: (v) => (v == null || v.length < 6)
+                          ? 'Min 6 characters'
+                          : null,
                     ),
                     const SizedBox(height: 24),
                     FilledButton(

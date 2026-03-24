@@ -1,6 +1,6 @@
+import 'package:fabricos/app/app.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stockguard_ai/app/app.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
@@ -22,6 +22,7 @@ void main() async {
       ),
     ),
   );
+
   await Supabase.initialize(url: url, anonKey: anonKey);
-  runApp(const ProviderScope(child: StockGuardApp()));
+  runApp(const ProviderScope(child: FabricOSApp()));
 }

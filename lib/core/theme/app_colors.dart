@@ -24,11 +24,7 @@ abstract class AppColorsLight {
   );
 
   static const LinearGradient heroGradient = LinearGradient(
-    colors: [
-      Color(0xFF0F172A),
-      Color(0xFF1E293B),
-      Color(0xFF0F766E),
-    ],
+    colors: [Color(0xFF0F172A), Color(0xFF1E293B), Color(0xFF0F766E)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
@@ -58,11 +54,7 @@ abstract class AppColorsDark {
   );
 
   static const LinearGradient heroGradient = LinearGradient(
-    colors: [
-      Color(0xFF0F172A),
-      Color(0xFF1E293B),
-      Color(0xFF134E4A),
-    ],
+    colors: [Color(0xFF0F172A), Color(0xFF1E293B), Color(0xFF134E4A)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );

@@ -1,9 +1,9 @@
 const Map<String, String> appLocalizationsEn = {
-  'app_name': 'StockGuard AI',
-  'tagline': 'The autopilot for your warehouse.',
-  'hero_title': 'Stop stockouts before they happen.',
+  'app_name': 'FabricOS',
+  'tagline': 'AI operations platform for manufacturing.',
+  'hero_title': 'Run manufacturing operations with predictive intelligence.',
   'hero_subtitle':
-      'StockGuard AI helps e-commerce brands, distributors, and manufacturers know what to reorder, when to reorder it, and how much to buy.',
+      'FabricOS helps operations teams manage maintenance, orders, suppliers, and ESG reporting from one dashboard.',
   'cta_start_trial': 'Start free trial',
   'cta_book_demo': 'Book a demo',
   'cta_get_started': 'Get started',
@@ -59,7 +59,7 @@ const Map<String, String> appLocalizationsEn = {
   'supplier_risk': 'Supplier risk',
   'empty_state_title': 'No data yet',
   'empty_state_subtitle': 'Import your first data or connect a source.',
-  'onboarding_welcome': 'Welcome to StockGuard AI',
+  'onboarding_welcome': 'Welcome to FabricOS',
   'onboarding_company': 'Set up your company',
   'onboarding_data': 'Connect your data',
   'onboarding_done': "You're all set",
@@ -92,8 +92,10 @@ const Map<String, String> appLocalizationsEn = {
   'home': 'Home',
   'help': 'Help',
   'demo': 'Demo',
-  'hero_headline_benefit': 'Avoid stockouts and capital tied up in warehouse',
-  'hero_subheadline_one_line': 'StockGuard AI tells you what to reorder, when to do it, and how much to buy.',
+  'hero_headline_benefit':
+      'Operate smarter with predictive maintenance and supply visibility',
+  'hero_subheadline_one_line':
+      'FabricOS gives manufacturing teams live control over machines, orders, suppliers, and compliance.',
   'cta_try_free': 'Try free',
   'cta_watch_demo': 'Watch demo',
   'cta_see_how': 'See how it works',
@@ -103,28 +105,38 @@ const Map<String, String> appLocalizationsEn = {
   'social_proof_metric_stockout': '-22% stockouts',
   'social_proof_metric_forecast': '+18% forecast accuracy',
   'social_proof_metric_cash': 'Less capital in stock',
-  'testimonial_1': 'We cut stockouts in half in the first quarter. Clear recommendations, no more guesswork.',
+  'testimonial_1':
+      'We cut stockouts in half in the first quarter. Clear recommendations, no more guesswork.',
   'testimonial_1_author': 'Operations Manager, E-commerce',
-  'testimonial_2': 'Finally we see what\'s at risk before it\'s too late. The reorder suggestions save us hours.',
+  'testimonial_2':
+      'Finally we see what\'s at risk before it\'s too late. The reorder suggestions save us hours.',
   'testimonial_2_author': 'Supply Chain Lead, Retail',
   'problem_title': 'Sound familiar?',
   'problem_1_title': 'You lose sales to stockouts',
-  'problem_1_desc': 'Out-of-stock items mean lost revenue and customers who go elsewhere.',
+  'problem_1_desc':
+      'Out-of-stock items mean lost revenue and customers who go elsewhere.',
   'problem_2_title': 'You tie up cash in excess inventory',
-  'problem_2_desc': 'Too much stock locks working capital and increases carrying costs.',
+  'problem_2_desc':
+      'Too much stock locks working capital and increases carrying costs.',
   'problem_3_title': 'You still rely on Excel',
-  'problem_3_desc': 'Spreadsheets can\'t keep up with demand and lead times in real time.',
+  'problem_3_desc':
+      'Spreadsheets can\'t keep up with demand and lead times in real time.',
   'problem_4_title': 'You decide reorders too late',
-  'problem_4_desc': 'By the time you notice, it\'s already critical. Reactive instead of proactive.',
+  'problem_4_desc':
+      'By the time you notice, it\'s already critical. Reactive instead of proactive.',
   'solution_title': 'The solution',
   'solution_1_title': 'See products at risk',
-  'solution_1_desc': 'A clear view of what will run out and when. No more surprises.',
+  'solution_1_desc':
+      'A clear view of what will run out and when. No more surprises.',
   'solution_2_title': 'Get reorder suggestions',
-  'solution_2_desc': 'We tell you what to order, when, and how much—based on your data.',
+  'solution_2_desc':
+      'We tell you what to order, when, and how much—based on your data.',
   'solution_3_title': 'Optimize capital in stock',
-  'solution_3_desc': 'Reduce overstock and free up cash without risking availability.',
-  'problem_subtitle': 'The problems you face every day in warehouse management.',
-  'solution_subtitle': 'How StockGuard AI solves them.',
+  'solution_3_desc':
+      'Reduce overstock and free up cash without risking availability.',
+  'problem_subtitle':
+      'The problems you face every day in warehouse management.',
+  'solution_subtitle': 'How FabricOS solves them.',
   'final_cta_title': 'Ready to take control of your inventory?',
   'view_all': 'View all',
   'view_plans': 'View plans',

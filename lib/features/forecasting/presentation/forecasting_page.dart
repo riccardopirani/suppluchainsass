@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:stockguard_ai/localization/app_localizations.dart';
+import 'package:fabricos/localization/app_localizations.dart';
 
 class ForecastingPage extends StatelessWidget {
   const ForecastingPage({super.key});
@@ -27,7 +27,9 @@ class ForecastingPage extends StatelessWidget {
                       child: Icon(
                         Icons.trending_up_rounded,
                         size: 64,
-                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.primary.withValues(alpha: 0.5),
                       ),
                     ),
                   ),

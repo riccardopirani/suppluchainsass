@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stockguard_ai/localization/app_localizations.dart';
-import 'package:stockguard_ai/features/app_shell/providers/workspace_provider.dart';
+import 'package:fabricos/localization/app_localizations.dart';
+import 'package:fabricos/features/app_shell/providers/workspace_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class PurchaseOrdersPage extends ConsumerStatefulWidget {
@@ -18,7 +18,7 @@ class _PurchaseOrdersPageState extends ConsumerState<PurchaseOrdersPage> {
   final _supplierIdController = TextEditingController();
   final _expectedDeliveryController = TextEditingController();
   final _notesController = TextEditingController();
-  
+
   String _selectedStatus = 'draft';
   bool _isLoading = false;
   Map<String, dynamic>? _editingPO;
@@ -40,9 +40,9 @@ class _PurchaseOrdersPageState extends ConsumerState<PurchaseOrdersPage> {
       setState(() => _suppliers = List<Map<String, dynamic>>.from(suppliers));
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading suppliers: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error loading suppliers: $e')));
       }
     }
   }
@@ -89,19 +89,27 @@ class _PurchaseOrdersPageState extends ConsumerState<PurchaseOrdersPage> {
       final workspaceId = await ref.read(currentWorkspaceProvider.future);
 
       if (_editingPO != null) {
-        await supabase.from('purchase_orders').update({
-          'po_number': _poNumberController.text.trim(),
-          'supplier_id': _supplierIdController.text.trim(),
-          'expected_delivery_date': _expectedDeliveryController.text.isNotEmpty ? _expectedDeliveryController.text.trim() : null,
-          'notes': _notesController.text.trim(),
-          'status': _selectedStatus,
-        }).eq('id', _editingPO!['id']);
+        await supabase
+            .from('purchase_orders')
+            .update({
+              'po_number': _poNumberController.text.trim(),
+              'supplier_id': _supplierIdController.text.trim(),
+              'expected_delivery_date':
+                  _expectedDeliveryController.text.isNotEmpty
+                  ? _expectedDeliveryController.text.trim()
+                  : null,
+              'notes': _notesController.text.trim(),
+              'status': _selectedStatus,
+            })
+            .eq('id', _editingPO!['id']);
       } else {
         await supabase.from('purchase_orders').insert({
           'workspace_id': workspaceId,
           'po_number': _poNumberController.text.trim(),
           'supplier_id': _supplierIdController.text.trim(),
-          'expected_delivery_date': _expectedDeliveryController.text.isNotEmpty ? _expectedDeliveryController.text.trim() : null,
+          'expected_delivery_date': _expectedDeliveryController.text.isNotEmpty
+              ? _expectedDeliveryController.text.trim()
+              : null,
           'notes': _notesController.text.trim(),
           'status': _selectedStatus,
         });
@@ -113,7 +121,9 @@ class _PurchaseOrdersPageState extends ConsumerState<PurchaseOrdersPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              _editingPO != null ? 'Purchase order updated!' : 'Purchase order created!',
+              _editingPO != null
+                  ? 'Purchase order updated!'
+                  : 'Purchase order created!',
             ),
           ),
         );
@@ -121,9 +131,9 @@ class _PurchaseOrdersPageState extends ConsumerState<PurchaseOrdersPage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
       }
     } finally {
       setState(() => _isLoading = false);
@@ -137,7 +147,10 @@ class _PurchaseOrdersPageState extends ConsumerState<PurchaseOrdersPage> {
         title: const Text('Delete Purchase Order?'),
         content: const Text('This action cannot be undone.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
             child: const Text('Delete'),
@@ -149,25 +162,29 @@ class _PurchaseOrdersPageState extends ConsumerState<PurchaseOrdersPage> {
     if (confirm != true) return;
 
     try {
-      await Supabase.instance.client.from('purchase_orders').delete().eq('id', id);
+      await Supabase.instance.client
+          .from('purchase_orders')
+          .delete()
+          .eq('id', id);
       ref.refresh(purchaseOrdersProvider);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Purchase order deleted')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Purchase order deleted')));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
   }
 
   String _getSupplierName(String supplierId) {
     try {
-      return _suppliers.firstWhere((s) => s['id'] == supplierId)['name'] ?? 'Unknown';
+      return _suppliers.firstWhere((s) => s['id'] == supplierId)['name'] ??
+          'Unknown';
     } catch (e) {
       return 'Unknown';
     }
@@ -222,10 +239,9 @@ class _PurchaseOrdersPageState extends ConsumerState<PurchaseOrdersPage> {
               const SizedBox(height: 24),
               Expanded(
                 child: purchaseOrdersAsyncValue.when(
-                  loading: () => const Center(child: CircularProgressIndicator()),
-                  error: (err, stack) => Center(
-                    child: Text('Error: $err'),
-                  ),
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (err, stack) => Center(child: Text('Error: $err')),
                   data: (purchaseOrders) {
                     if (purchaseOrders.isEmpty) {
                       return Center(
@@ -235,7 +251,9 @@ class _PurchaseOrdersPageState extends ConsumerState<PurchaseOrdersPage> {
                             Icon(
                               Icons.shopping_cart_outlined,
                               size: 64,
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
                             ),
                             const SizedBox(height: 16),
                             Text(
@@ -252,7 +270,7 @@ class _PurchaseOrdersPageState extends ConsumerState<PurchaseOrdersPage> {
                       itemBuilder: (context, i) {
                         final po = purchaseOrders[i];
                         final status = po['status'] ?? 'draft';
-                        
+
                         return Card(
                           margin: const EdgeInsets.only(bottom: 12),
                           child: ListTile(
@@ -265,8 +283,12 @@ class _PurchaseOrdersPageState extends ConsumerState<PurchaseOrdersPage> {
                               children: [
                                 Chip(
                                   label: Text(status),
-                                  backgroundColor: _getStatusColor(status).withValues(alpha: 0.2),
-                                  labelStyle: TextStyle(color: _getStatusColor(status)),
+                                  backgroundColor: _getStatusColor(
+                                    status,
+                                  ).withValues(alpha: 0.2),
+                                  labelStyle: TextStyle(
+                                    color: _getStatusColor(status),
+                                  ),
                                 ),
                                 PopupMenuButton(
                                   itemBuilder: (context) => [
@@ -275,7 +297,10 @@ class _PurchaseOrdersPageState extends ConsumerState<PurchaseOrdersPage> {
                                       onTap: () => _openDrawerForEdit(po),
                                     ),
                                     PopupMenuItem(
-                                      child: const Text('Delete', style: TextStyle(color: Colors.red)),
+                                      child: const Text(
+                                        'Delete',
+                                        style: TextStyle(color: Colors.red),
+                                      ),
                                       onTap: () => _deletePO(po['id']),
                                     ),
                                   ],
@@ -300,9 +325,7 @@ class _PurchaseOrdersPageState extends ConsumerState<PurchaseOrdersPage> {
     return Drawer(
       width: 440,
       child: Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-        ),
+        decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface),
         child: SafeArea(
           child: Column(
             children: [
@@ -315,14 +338,19 @@ class _PurchaseOrdersPageState extends ConsumerState<PurchaseOrdersPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          _editingPO != null ? 'Edit Purchase Order' : 'New Purchase Order',
+                          _editingPO != null
+                              ? 'Edit Purchase Order'
+                              : 'New Purchase Order',
                           style: Theme.of(context).textTheme.titleLarge,
                         ),
                         const SizedBox(height: 4),
                         Text(
                           'Fill in the details below',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
                               ),
                         ),
                       ],
@@ -352,32 +380,43 @@ class _PurchaseOrdersPageState extends ConsumerState<PurchaseOrdersPage> {
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            prefixIcon: const Icon(Icons.shopping_cart_outlined),
+                            prefixIcon: const Icon(
+                              Icons.shopping_cart_outlined,
+                            ),
                           ),
-                          validator: (v) => (v?.isEmpty ?? true) ? 'PO Number required' : null,
+                          validator: (v) => (v?.isEmpty ?? true)
+                              ? 'PO Number required'
+                              : null,
                         ),
                         const SizedBox(height: 12),
                         DropdownButtonFormField<String>(
-                          value: _supplierIdController.text.isNotEmpty ? _supplierIdController.text : null,
+                          value: _supplierIdController.text.isNotEmpty
+                              ? _supplierIdController.text
+                              : null,
                           decoration: InputDecoration(
                             labelText: 'Supplier *',
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            prefixIcon: const Icon(Icons.local_shipping_outlined),
+                            prefixIcon: const Icon(
+                              Icons.local_shipping_outlined,
+                            ),
                           ),
                           items: _suppliers
-                              .map((s) => DropdownMenuItem<String>(
-                                    value: (s['id'] as String?) ?? '',
-                                    child: Text(s['name'] ?? 'Unknown'),
-                                  ))
+                              .map(
+                                (s) => DropdownMenuItem<String>(
+                                  value: (s['id'] as String?) ?? '',
+                                  child: Text(s['name'] ?? 'Unknown'),
+                                ),
+                              )
                               .toList(),
                           onChanged: (value) {
                             if (value != null) {
                               _supplierIdController.text = value;
                             }
                           },
-                          validator: (v) => (v?.isEmpty ?? true) ? 'Supplier required' : null,
+                          validator: (v) =>
+                              (v?.isEmpty ?? true) ? 'Supplier required' : null,
                         ),
                         const SizedBox(height: 12),
                         TextFormField(
@@ -388,7 +427,9 @@ class _PurchaseOrdersPageState extends ConsumerState<PurchaseOrdersPage> {
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            prefixIcon: const Icon(Icons.calendar_today_outlined),
+                            prefixIcon: const Icon(
+                              Icons.calendar_today_outlined,
+                            ),
                           ),
                         ),
                         const SizedBox(height: 12),
@@ -401,12 +442,21 @@ class _PurchaseOrdersPageState extends ConsumerState<PurchaseOrdersPage> {
                             ),
                             prefixIcon: const Icon(Icons.info_outlined),
                           ),
-                          items: ['draft', 'approved', 'sent', 'received', 'cancelled']
-                              .map((s) => DropdownMenuItem(
-                                    value: s,
-                                    child: Text(s.toUpperCase()),
-                                  ))
-                              .toList(),
+                          items:
+                              [
+                                    'draft',
+                                    'approved',
+                                    'sent',
+                                    'received',
+                                    'cancelled',
+                                  ]
+                                  .map(
+                                    (s) => DropdownMenuItem(
+                                      value: s,
+                                      child: Text(s.toUpperCase()),
+                                    ),
+                                  )
+                                  .toList(),
                           onChanged: (value) {
                             setState(() => _selectedStatus = value ?? 'draft');
                           },
@@ -453,7 +503,9 @@ class _PurchaseOrdersPageState extends ConsumerState<PurchaseOrdersPage> {
                                 height: 20,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white,
+                                  ),
                                 ),
                               )
                             : Text(_editingPO != null ? 'Update' : 'Create'),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stockguard_ai/localization/app_localizations.dart';
-import 'package:stockguard_ai/features/app_shell/providers/workspace_provider.dart';
+import 'package:fabricos/localization/app_localizations.dart';
+import 'package:fabricos/features/app_shell/providers/workspace_provider.dart';
 
 class AlertsPage extends ConsumerWidget {
   const AlertsPage({super.key});
@@ -24,10 +24,9 @@ class AlertsPage extends ConsumerWidget {
               const SizedBox(height: 24),
               Expanded(
                 child: alertsAsyncValue.when(
-                  loading: () => const Center(child: CircularProgressIndicator()),
-                  error: (err, stack) => Center(
-                    child: Text('Error: $err'),
-                  ),
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (err, stack) => Center(child: Text('Error: $err')),
                   data: (alerts) {
                     if (alerts.isEmpty) {
                       return Center(
@@ -37,7 +36,9 @@ class AlertsPage extends ConsumerWidget {
                             Icon(
                               Icons.notifications_outlined,
                               size: 64,
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
                             ),
                             const SizedBox(height: 16),
                             Text(
@@ -53,18 +54,21 @@ class AlertsPage extends ConsumerWidget {
                       itemCount: alerts.length,
                       itemBuilder: (context, i) {
                         final alert = alerts[i];
-                        final severity = (alert['severity'] ?? 'info').toString();
-                        
+                        final severity = (alert['severity'] ?? 'info')
+                            .toString();
+
                         return Card(
                           margin: const EdgeInsets.only(bottom: 12),
                           child: ListTile(
                             leading: Icon(
-                              severity == 'critical' ? Icons.warning_amber : Icons.info_outline,
+                              severity == 'critical'
+                                  ? Icons.warning_amber
+                                  : Icons.info_outline,
                               color: severity == 'critical'
                                   ? Colors.red
                                   : severity == 'warning'
-                                      ? Colors.orange
-                                      : Theme.of(context).colorScheme.primary,
+                                  ? Colors.orange
+                                  : Theme.of(context).colorScheme.primary,
                             ),
                             title: Text(alert['title'] ?? 'Alert'),
                             subtitle: Text(alert['message'] ?? ''),

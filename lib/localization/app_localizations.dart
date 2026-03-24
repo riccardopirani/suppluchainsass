@@ -39,8 +39,9 @@ class AppLocalizations {
   Future<bool> load() async {
     final langCode = locale.languageCode;
     try {
-      final json = await rootBundle
-          .loadString('assets/translations/$langCode.json');
+      final json = await rootBundle.loadString(
+        'assets/translations/$langCode.json',
+      );
       final Map<String, dynamic> map = jsonDecode(json) as Map<String, dynamic>;
       for (final e in map.entries) {
         _localizedStrings[e.key] = e.value?.toString() ?? '';
@@ -62,9 +63,9 @@ class _AppLocalizationsDelegate
   const _AppLocalizationsDelegate();
 
   @override
-  bool isSupported(Locale locale) =>
-      AppLocalizations.supportedLocales
-          .any((l) => l.languageCode == locale.languageCode);
+  bool isSupported(Locale locale) => AppLocalizations.supportedLocales.any(
+    (l) => l.languageCode == locale.languageCode,
+  );
 
   @override
   Future<AppLocalizations> load(Locale locale) async {

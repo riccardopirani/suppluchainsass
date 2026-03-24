@@ -1,13 +1,13 @@
+import 'package:fabricos/config/env.dart';
+import 'package:fabricos/core/theme/app_theme.dart';
+import 'package:fabricos/localization/app_localizations.dart';
+import 'package:fabricos/localization/locale_provider.dart';
+import 'package:fabricos/routing/app_router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stockguard_ai/config/env.dart';
-import 'package:stockguard_ai/core/theme/app_theme.dart';
-import 'package:stockguard_ai/localization/app_localizations.dart';
-import 'package:stockguard_ai/localization/locale_provider.dart';
-import 'package:stockguard_ai/routing/app_router.dart';
 
-class StockGuardApp extends ConsumerWidget {
-  const StockGuardApp({super.key});
+class FabricOSApp extends ConsumerWidget {
+  const FabricOSApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -15,7 +15,7 @@ class StockGuardApp extends ConsumerWidget {
     final env = ref.watch(envProvider);
 
     return MaterialApp.router(
-      title: 'StockGuard AI',
+      title: 'FabricOS',
       debugShowCheckedModeBanner: env.isDevelopment,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,

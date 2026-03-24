@@ -31,7 +31,8 @@ class WarehouseSelector extends ConsumerWidget {
             hint: const Text('Select Warehouse'),
             onChanged: (String? warehouseId) {
               if (warehouseId != null) {
-                ref.read(selectedWarehouseProvider.notifier).state = warehouseId;
+                ref.read(selectedWarehouseProvider.notifier).state =
+                    warehouseId;
               }
             },
             items: warehouses

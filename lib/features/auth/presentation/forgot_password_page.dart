@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:stockguard_ai/localization/app_localizations.dart';
+import 'package:fabricos/localization/app_localizations.dart';
 
 class ForgotPasswordPage extends StatefulWidget {
   const ForgotPasswordPage({super.key});
@@ -56,7 +56,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
             padding: const EdgeInsets.all(24),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 400),
-              child:                     _sent
+              child: _sent
                   ? Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -90,8 +90,11 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                         const SizedBox(height: 8),
                         Text(
                           l10n.t('forgot_subtitle'),
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
                               ),
                         ),
                         const SizedBox(height: 32),
@@ -99,7 +102,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                           Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.errorContainer,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.errorContainer,
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(_error!),
@@ -121,7 +126,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                               ? const SizedBox(
                                   height: 20,
                                   width: 20,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
                                 )
                               : Text(l10n.t('send_reset_link')),
                         ),

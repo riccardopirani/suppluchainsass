@@ -64,14 +64,6 @@ supabase secrets set --project-ref "$SUPABASE_PROJECT_REF_VALUE" \
   SUPABASE_SERVICE_ROLE_KEY="$SUPABASE_SERVICE_ROLE_VALUE" \
   SUPABASE_ANON_KEY="$SUPABASE_PUBLISHABLE_VALUE"
 
-if [[ -n "${STRIPE_SECRET_KEY:-}" ]]; then
-  supabase secrets set --project-ref "$SUPABASE_PROJECT_REF_VALUE" STRIPE_SECRET_KEY="$STRIPE_SECRET_KEY"
-fi
-
-if [[ -n "${STRIPE_WEBHOOK_SECRET:-}" ]]; then
-  supabase secrets set --project-ref "$SUPABASE_PROJECT_REF_VALUE" STRIPE_WEBHOOK_SECRET="$STRIPE_WEBHOOK_SECRET"
-fi
-
 if [[ -n "${APP_BASE_URL:-}" ]]; then
   supabase secrets set --project-ref "$SUPABASE_PROJECT_REF_VALUE" APP_BASE_URL="$APP_BASE_URL"
 fi
@@ -83,15 +75,10 @@ deploy_fn() {
   supabase functions deploy "$fn_name" --project-ref "$SUPABASE_PROJECT_REF_VALUE" --use-api "$@"
 }
 
-deploy_fn create-stripe-checkout-session --no-verify-jwt
-deploy_fn create-stripe-portal-session
-deploy_fn stripe-webhook --no-verify-jwt
+deploy_fn bootstrap-company
+deploy_fn predict-maintenance-risk
+deploy_fn analyze-order-risks
+deploy_fn generate-esg-report
 deploy_fn submit-contact-form --no-verify-jwt
-deploy_fn process-import
-deploy_fn generate-reorder-recommendations
-deploy_fn generate-forecast
-deploy_fn seed-demo-workspace
-deploy_fn accept-invitation
-deploy_fn send-alerts
 
 echo "Supabase deploy completed for project $SUPABASE_PROJECT_REF_VALUE."

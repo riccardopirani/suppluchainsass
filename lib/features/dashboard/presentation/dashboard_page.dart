@@ -1,278 +1,324 @@
+import 'package:fabricos/features/app_shell/providers/fabricos_provider.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:stockguard_ai/localization/app_localizations.dart';
-import 'package:stockguard_ai/core/theme/app_dimensions.dart';
-import 'package:flutter_animate/flutter_animate.dart';
-import 'package:stockguard_ai/features/app_shell/providers/workspace_provider.dart';
 
 class DashboardPage extends ConsumerWidget {
   const DashboardPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = context.l10n;
+    final snapshotAsync = ref.watch(dashboardSnapshotProvider);
+    final alertsAsync = ref.watch(alertsProvider);
 
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(AppDimensions.spacingLg),
+          padding: const EdgeInsets.all(24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                l10n.t('dashboard'),
+                'Operations Dashboard',
                 style: Theme.of(context).textTheme.headlineMedium,
               ),
+              const SizedBox(height: 6),
+              Text(
+                'Live overview for maintenance, orders, suppliers and compliance.',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
               const SizedBox(height: 24),
-              _SummaryCards(l10n: l10n, ref: ref),
-              const SizedBox(height: 32),
-              _ReorderTable(l10n: l10n, ref: ref),
+              snapshotAsync.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (err, _) => Text('Failed to load KPIs: $err'),
+                data: (snapshot) {
+                  return Column(
+                    children: [
+                      Wrap(
+                        spacing: 16,
+                        runSpacing: 16,
+                        children: [
+                          _KpiCard(
+                            label: 'Active orders',
+                            value: snapshot.activeOrders.toString(),
+                            icon: Icons.fact_check_outlined,
+                            color: const Color(0xFF0E7490),
+                          ),
+                          _KpiCard(
+                            label: 'Machines running',
+                            value: snapshot.runningMachines.toString(),
+                            icon: Icons.precision_manufacturing_outlined,
+                            color: const Color(0xFF15803D),
+                          ),
+                          _KpiCard(
+                            label: 'Supplier delays',
+                            value: snapshot.delayedSuppliers.toString(),
+                            icon: Icons.local_shipping_outlined,
+                            color: const Color(0xFFB45309),
+                          ),
+                          _KpiCard(
+                            label: 'Open alerts',
+                            value: snapshot.openAlerts.toString(),
+                            icon: Icons.warning_amber_rounded,
+                            color: const Color(0xFFB91C1C),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: SizedBox(
+                            height: 220,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Machine status breakdown',
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.titleMedium,
+                                ),
+                                const SizedBox(height: 12),
+                                Expanded(
+                                  child: BarChart(
+                                    BarChartData(
+                                      maxY:
+                                          [
+                                                snapshot.runningMachines,
+                                                snapshot.warningMachines,
+                                                snapshot.stoppedMachines,
+                                              ]
+                                              .reduce((a, b) => a > b ? a : b)
+                                              .toDouble() +
+                                          2,
+                                      borderData: FlBorderData(show: false),
+                                      gridData: const FlGridData(show: false),
+                                      titlesData: FlTitlesData(
+                                        leftTitles: const AxisTitles(
+                                          sideTitles: SideTitles(
+                                            showTitles: false,
+                                          ),
+                                        ),
+                                        rightTitles: const AxisTitles(
+                                          sideTitles: SideTitles(
+                                            showTitles: false,
+                                          ),
+                                        ),
+                                        topTitles: const AxisTitles(
+                                          sideTitles: SideTitles(
+                                            showTitles: false,
+                                          ),
+                                        ),
+                                        bottomTitles: AxisTitles(
+                                          sideTitles: SideTitles(
+                                            showTitles: true,
+                                            getTitlesWidget: (value, _) {
+                                              final labels = [
+                                                'Running',
+                                                'Warning',
+                                                'Stopped',
+                                              ];
+                                              final index = value.toInt();
+                                              if (index < 0 ||
+                                                  index >= labels.length) {
+                                                return const SizedBox.shrink();
+                                              }
+                                              return Padding(
+                                                padding: const EdgeInsets.only(
+                                                  top: 8,
+                                                ),
+                                                child: Text(
+                                                  labels[index],
+                                                  style: Theme.of(
+                                                    context,
+                                                  ).textTheme.bodySmall,
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                      ),
+                                      barGroups: [
+                                        _barGroup(
+                                          0,
+                                          snapshot.runningMachines,
+                                          const Color(0xFF15803D),
+                                        ),
+                                        _barGroup(
+                                          1,
+                                          snapshot.warningMachines,
+                                          const Color(0xFFF59E0B),
+                                        ),
+                                        _barGroup(
+                                          2,
+                                          snapshot.stoppedMachines,
+                                          const Color(0xFFDC2626),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+              const SizedBox(height: 20),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'AI alerts',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          IconButton(
+                            tooltip: 'Refresh alerts',
+                            onPressed: () => ref.invalidate(alertsProvider),
+                            icon: const Icon(Icons.refresh),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      alertsAsync.when(
+                        loading: () => const Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Center(child: CircularProgressIndicator()),
+                        ),
+                        error: (err, _) => Text('Failed to load alerts: $err'),
+                        data: (alerts) {
+                          if (alerts.isEmpty) {
+                            return const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 20),
+                              child: Text('No alerts right now.'),
+                            );
+                          }
+
+                          final visible = alerts.take(6).toList();
+                          return Column(
+                            children: visible.map((alert) {
+                              final severity = (alert['severity'] ?? 'info')
+                                  .toString();
+                              final color = _severityColor(severity);
+
+                              return ListTile(
+                                contentPadding: EdgeInsets.zero,
+                                leading: Icon(
+                                  Icons.notifications_active_outlined,
+                                  color: color,
+                                ),
+                                title: Text(
+                                  alert['title']?.toString() ?? 'Alert',
+                                ),
+                                subtitle: Text(
+                                  alert['message']?.toString() ?? '',
+                                ),
+                                trailing: Chip(
+                                  label: Text(severity.toUpperCase()),
+                                  backgroundColor: color.withValues(
+                                    alpha: 0.12,
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ],
           ),
         ),
       ),
     );
   }
-}
 
-class _SummaryCards extends ConsumerWidget {
-  const _SummaryCards({required this.l10n, required this.ref});
-  final AppLocalizations l10n;
-  final WidgetRef ref;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final productsAsync = ref.watch(productsProvider);
-    final reorderAsync = ref.watch(reorderRecommendationsProvider);
-
-    return productsAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, stack) => Text('Error: $err'),
-      data: (products) {
-        return reorderAsync.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (err, stack) => Text('Error: $err'),
-          data: (reorders) {
-            // Calculate metrics
-            final productsAtRisk = products
-                .where((p) => (p['current_stock'] ?? 0) <= (p['reorder_point'] ?? 0))
-                .length;
-            final overstocked = products
-                .where((p) => (p['current_stock'] ?? 0) > (p['reorder_point'] ?? 0) * 2)
-                .length;
-            final reorderToday = reorders
-                .where((r) => (r['status'] ?? '') == 'pending')
-                .length;
-            final totalInventoryValue = products.fold<double>(
-              0,
-              (sum, p) => sum + ((p['current_stock'] ?? 0) * (p['unit_cost'] as num? ?? 0)).toDouble(),
-            );
-
-            final cards = <({String label, String value, IconData icon, Color color})>[
-              (label: l10n.t('products_at_risk'), value: productsAtRisk.toString(), icon: Icons.warning_amber_rounded, color: Colors.orange),
-              (label: l10n.t('overstocked'), value: overstocked.toString(), icon: Icons.inventory_2_outlined, color: Colors.blue),
-              (label: l10n.t('reorder_today'), value: reorderToday.toString(), icon: Icons.reorder_rounded, color: Colors.teal),
-              (label: l10n.t('inventory_value'), value: '€${(totalInventoryValue / 1000).toStringAsFixed(1)}k', icon: Icons.euro_rounded, color: Colors.green),
-              (label: 'Total Products', value: products.length.toString(), icon: Icons.inventory_2_outlined, color: Colors.purple),
-              (label: 'Pending Orders', value: reorders.where((r) => r['status'] == 'pending').length.toString(), icon: Icons.local_shipping_outlined, color: Colors.red),
-            ];
-
-            return LayoutBuilder(
-              builder: (context, constraints) {
-                final crossCount = constraints.maxWidth > 900 ? 3 : (constraints.maxWidth > 500 ? 2 : 1);
-                return Wrap(
-                  spacing: 16,
-                  runSpacing: 16,
-                  children: List.generate(cards.length, (i) {
-                    final c = cards[i];
-                    return SizedBox(
-                      width: (constraints.maxWidth - 16 * (crossCount - 1)) / crossCount - 8,
-                      child: Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(20),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: c.color.withValues(alpha: 0.15),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Icon(c.icon, color: c.color, size: 28),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      c.label,
-                                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                          ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      c.value,
-                                      style: Theme.of(context).textTheme.headlineSmall,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ).animate().fadeIn(delay: (50 * i).ms).slideX(begin: 0.05, end: 0, curve: Curves.easeOut),
-                    );
-                  }),
-                );
-              },
-            );
-          },
-        );
-      },
+  static BarChartGroupData _barGroup(int x, int value, Color color) {
+    return BarChartGroupData(
+      x: x,
+      barRods: [
+        BarChartRodData(
+          toY: value.toDouble(),
+          width: 24,
+          borderRadius: BorderRadius.circular(6),
+          color: color,
+        ),
+      ],
     );
+  }
+
+  static Color _severityColor(String severity) {
+    switch (severity) {
+      case 'critical':
+        return const Color(0xFFDC2626);
+      case 'warning':
+        return const Color(0xFFD97706);
+      default:
+        return const Color(0xFF0E7490);
+    }
   }
 }
 
-class _ReorderTable extends ConsumerWidget {
-  const _ReorderTable({required this.l10n, required this.ref});
-  final AppLocalizations l10n;
-  final WidgetRef ref;
+class _KpiCard extends StatelessWidget {
+  const _KpiCard({
+    required this.label,
+    required this.value,
+    required this.icon,
+    required this.color,
+  });
+
+  final String label;
+  final String value;
+  final IconData icon;
+  final Color color;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final reorderAsync = ref.watch(reorderRecommendationsProvider);
-    final productsAsync = ref.watch(productsProvider);
+  Widget build(BuildContext context) {
+    final width = MediaQuery.sizeOf(context).width;
+    final cardWidth = width > 1200
+        ? 250.0
+        : (width > 850 ? (width - 120) / 2 : width - 64);
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  l10n.t('reorder_suggestions'),
-                  style: Theme.of(context).textTheme.titleLarge,
+    return SizedBox(
+      width: cardWidth,
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                TextButton(
-                  onPressed: () => context.push('/app/reorder'),
-                  child: Text(l10n.t('view_all')),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            reorderAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (err, stack) => Text('Error: $err'),
-              data: (reorders) {
-                return productsAsync.when(
-                  loading: () => const Center(child: CircularProgressIndicator()),
-                  error: (err, stack) => Text('Error: $err'),
-                  data: (products) {
-                    final topReorders = reorders.take(5).toList();
-
-                    if (topReorders.isEmpty) {
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 32),
-                        child: Center(
-                          child: Text(
-                            'No reorder suggestions at the moment',
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                ),
-                          ),
-                        ),
-                      );
-                    }
-
-                    return Table(
-                      columnWidths: const {
-                        0: FlexColumnWidth(2),
-                        1: FlexColumnWidth(1),
-                        2: FlexColumnWidth(1),
-                        3: FlexColumnWidth(1),
-                      },
-                      children: [
-                        TableRow(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 12),
-                              child: Text(
-                                l10n.t('sku'),
-                                style: Theme.of(context).textTheme.labelLarge,
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 12),
-                              child: Text(
-                                l10n.t('current_stock'),
-                                style: Theme.of(context).textTheme.labelLarge,
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 12),
-                              child: Text(
-                                l10n.t('recommended'),
-                                style: Theme.of(context).textTheme.labelLarge,
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 12),
-                              child: Text(
-                                l10n.t('status'),
-                                style: Theme.of(context).textTheme.labelLarge,
-                              ),
-                            ),
-                          ],
-                        ),
-                        ...topReorders.map((reorder) {
-                          final product = products.firstWhere(
-                            (p) => p['id'] == reorder['product_id'],
-                            orElse: () => {'sku': 'Unknown', 'current_stock': 0},
-                          );
-                          final status = reorder['status'] ?? 'pending';
-
-                          return TableRow(
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 8),
-                                child: InkWell(
-                                  onTap: () => context.push('/app/products/${reorder['product_id']}'),
-                                  child: Text(product['sku'] ?? 'Unknown'),
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 8),
-                                child: Text((product['current_stock'] ?? 0).toString()),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 8),
-                                child: Text((reorder['recommended_quantity'] ?? 0).toString()),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 8),
-                                child: Chip(
-                                  label: Text(status),
-                                  backgroundColor: status == 'pending'
-                                      ? Colors.orange.withValues(alpha: 0.15)
-                                      : Colors.green.withValues(alpha: 0.15),
-                                ),
-                              ),
-                            ],
-                          );
-                        }).toList(),
-                      ],
-                    );
-                  },
-                );
-              },
-            ),
-          ],
+                child: Icon(icon, color: color),
+              ),
+              const SizedBox(width: 14),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label, style: Theme.of(context).textTheme.bodyMedium),
+                  const SizedBox(height: 2),
+                  Text(value, style: Theme.of(context).textTheme.headlineSmall),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

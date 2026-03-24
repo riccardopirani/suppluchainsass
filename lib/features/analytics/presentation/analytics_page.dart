@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stockguard_ai/localization/app_localizations.dart';
+import 'package:fabricos/localization/app_localizations.dart';
 import '../../../features/app_shell/providers/workspace_provider.dart';
 
 class AnalyticsPage extends ConsumerWidget {
@@ -29,18 +29,22 @@ class AnalyticsPage extends ConsumerWidget {
                 error: (err, stack) => Text('Error: $err'),
                 data: (products) {
                   return purchaseOrdersAsync.when(
-                    loading: () => const Center(child: CircularProgressIndicator()),
+                    loading: () =>
+                        const Center(child: CircularProgressIndicator()),
                     error: (err, stack) => Text('Error: $err'),
                     data: (purchaseOrders) {
                       return reorderAsync.when(
-                        loading: () => const Center(child: CircularProgressIndicator()),
+                        loading: () =>
+                            const Center(child: CircularProgressIndicator()),
                         error: (err, stack) => Text('Error: $err'),
                         data: (reorderRecommendations) {
                           // Calculate inventory value
                           double inventoryValue = 0;
                           for (var p in products) {
-                            final quantity = (p['quantity'] as num?)?.toDouble() ?? 0;
-                            final unitPrice = (p['unit_price'] as num?)?.toDouble() ?? 0;
+                            final quantity =
+                                (p['quantity'] as num?)?.toDouble() ?? 0;
+                            final unitPrice =
+                                (p['unit_price'] as num?)?.toDouble() ?? 0;
                             inventoryValue += quantity * unitPrice;
                           }
 
@@ -48,9 +52,12 @@ class AnalyticsPage extends ConsumerWidget {
                           double capitalLocked = 0;
                           for (var po in purchaseOrders) {
                             final status = po['status'] as String? ?? '';
-                            if (status != 'delivered' && status != 'cancelled') {
-                              final quantity = (po['quantity'] as num?)?.toDouble() ?? 0;
-                              final unitPrice = (po['unit_price'] as num?)?.toDouble() ?? 0;
+                            if (status != 'delivered' &&
+                                status != 'cancelled') {
+                              final quantity =
+                                  (po['quantity'] as num?)?.toDouble() ?? 0;
+                              final unitPrice =
+                                  (po['unit_price'] as num?)?.toDouble() ?? 0;
                               capitalLocked += quantity * unitPrice;
                             }
                           }
@@ -64,11 +71,13 @@ class AnalyticsPage extends ConsumerWidget {
                             children: [
                               _StatCard(
                                 title: context.l10n.t('inventory_value'),
-                                value: '€${(inventoryValue / 1000).toStringAsFixed(1)}k',
+                                value:
+                                    '€${(inventoryValue / 1000).toStringAsFixed(1)}k',
                               ),
                               _StatCard(
                                 title: context.l10n.t('capital_locked'),
-                                value: '€${(capitalLocked / 1000).toStringAsFixed(1)}k',
+                                value:
+                                    '€${(capitalLocked / 1000).toStringAsFixed(1)}k',
                               ),
                               _StatCard(
                                 title: 'Top risky SKUs',

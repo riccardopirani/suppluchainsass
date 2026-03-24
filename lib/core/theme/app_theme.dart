@@ -29,7 +29,7 @@ class AppTheme {
         scrolledUnderElevation: 1,
         backgroundColor: AppColorsLight.surface,
         foregroundColor: AppColorsLight.onSurface,
-        titleTextStyle: GoogleFonts.inter(
+        titleTextStyle: GoogleFonts.ibmPlexSans(
           fontSize: 18,
           fontWeight: FontWeight.w600,
           color: AppColorsLight.onSurface,
@@ -51,7 +51,9 @@ class AppTheme {
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-          borderSide: BorderSide(color: AppColorsLight.outline.withValues(alpha: 0.5)),
+          borderSide: BorderSide(
+            color: AppColorsLight.outline.withValues(alpha: 0.5),
+          ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
@@ -119,7 +121,7 @@ class AppTheme {
         scrolledUnderElevation: 1,
         backgroundColor: AppColorsDark.surface,
         foregroundColor: AppColorsDark.onSurface,
-        titleTextStyle: GoogleFonts.inter(
+        titleTextStyle: GoogleFonts.ibmPlexSans(
           fontSize: 18,
           fontWeight: FontWeight.w600,
           color: AppColorsDark.onSurface,
@@ -141,7 +143,9 @@ class AppTheme {
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-          borderSide: BorderSide(color: AppColorsDark.outline.withValues(alpha: 0.5)),
+          borderSide: BorderSide(
+            color: AppColorsDark.outline.withValues(alpha: 0.5),
+          ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
@@ -188,52 +192,52 @@ class AppTheme {
 
   static TextTheme _textTheme(Color onSurface) {
     return TextTheme(
-      displayLarge: GoogleFonts.inter(
+      displayLarge: GoogleFonts.ibmPlexSans(
         fontSize: 32,
         fontWeight: FontWeight.w700,
         color: onSurface,
       ),
-      displayMedium: GoogleFonts.inter(
+      displayMedium: GoogleFonts.ibmPlexSans(
         fontSize: 28,
         fontWeight: FontWeight.w600,
         color: onSurface,
       ),
-      displaySmall: GoogleFonts.inter(
+      displaySmall: GoogleFonts.ibmPlexSans(
         fontSize: 24,
         fontWeight: FontWeight.w600,
         color: onSurface,
       ),
-      headlineMedium: GoogleFonts.inter(
+      headlineMedium: GoogleFonts.ibmPlexSans(
         fontSize: 20,
         fontWeight: FontWeight.w600,
         color: onSurface,
       ),
-      titleLarge: GoogleFonts.inter(
+      titleLarge: GoogleFonts.ibmPlexSans(
         fontSize: 18,
         fontWeight: FontWeight.w600,
         color: onSurface,
       ),
-      titleMedium: GoogleFonts.inter(
+      titleMedium: GoogleFonts.ibmPlexSans(
         fontSize: 16,
         fontWeight: FontWeight.w500,
         color: onSurface,
       ),
-      bodyLarge: GoogleFonts.inter(
+      bodyLarge: GoogleFonts.ibmPlexSans(
         fontSize: 16,
         fontWeight: FontWeight.w400,
         color: onSurface,
       ),
-      bodyMedium: GoogleFonts.inter(
+      bodyMedium: GoogleFonts.ibmPlexSans(
         fontSize: 14,
         fontWeight: FontWeight.w400,
         color: onSurface,
       ),
-      bodySmall: GoogleFonts.inter(
+      bodySmall: GoogleFonts.ibmPlexSans(
         fontSize: 12,
         fontWeight: FontWeight.w400,
         color: onSurface,
       ),
-      labelLarge: GoogleFonts.inter(
+      labelLarge: GoogleFonts.ibmPlexSans(
         fontSize: 14,
         fontWeight: FontWeight.w500,
         color: onSurface,

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stockguard_ai/localization/app_localizations.dart';
-import 'package:stockguard_ai/features/app_shell/providers/workspace_provider.dart';
+import 'package:fabricos/localization/app_localizations.dart';
+import 'package:fabricos/features/app_shell/providers/workspace_provider.dart';
 
 class ReorderSuggestionsPage extends ConsumerWidget {
   const ReorderSuggestionsPage({super.key});
@@ -24,10 +24,9 @@ class ReorderSuggestionsPage extends ConsumerWidget {
               const SizedBox(height: 24),
               Expanded(
                 child: reorderAsyncValue.when(
-                  loading: () => const Center(child: CircularProgressIndicator()),
-                  error: (err, stack) => Center(
-                    child: Text('Error: $err'),
-                  ),
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (err, stack) => Center(child: Text('Error: $err')),
                   data: (reorders) {
                     if (reorders.isEmpty) {
                       return Center(
@@ -37,7 +36,9 @@ class ReorderSuggestionsPage extends ConsumerWidget {
                             Icon(
                               Icons.reorder_rounded,
                               size: 64,
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
                             ),
                             const SizedBox(height: 16),
                             Text(
@@ -53,12 +54,15 @@ class ReorderSuggestionsPage extends ConsumerWidget {
                       itemCount: reorders.length,
                       itemBuilder: (context, i) {
                         final reorder = reorders[i];
-                        final status = (reorder['status'] ?? 'pending').toString();
-                        
+                        final status = (reorder['status'] ?? 'pending')
+                            .toString();
+
                         return Card(
                           margin: const EdgeInsets.only(bottom: 12),
                           child: ListTile(
-                            title: Text('Product ${reorder['product_id'] ?? 'Unknown'}'),
+                            title: Text(
+                              'Product ${reorder['product_id'] ?? 'Unknown'}',
+                            ),
                             subtitle: Text(
                               'Recommend: ${reorder['recommended_quantity'] ?? 0} units',
                             ),

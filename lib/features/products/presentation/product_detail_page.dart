@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:stockguard_ai/localization/app_localizations.dart';
+import 'package:fabricos/localization/app_localizations.dart';
 
 class ProductDetailPage extends StatelessWidget {
   const ProductDetailPage({super.key, required this.productId});
@@ -26,13 +26,25 @@ class ProductDetailPage extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _Row(label: context.l10n.t('sku'), value: 'SKU-$productId'),
+                      _Row(
+                        label: context.l10n.t('sku'),
+                        value: 'SKU-$productId',
+                      ),
                       _Row(label: context.l10n.t('current_stock'), value: '85'),
                       _Row(label: context.l10n.t('reorder_point'), value: '30'),
-                      _Row(label: context.l10n.t('lead_time_days'), value: '14'),
+                      _Row(
+                        label: context.l10n.t('lead_time_days'),
+                        value: '14',
+                      ),
                       _Row(label: context.l10n.t('unit_cost'), value: '€12.50'),
-                      _Row(label: context.l10n.t('selling_price'), value: '€24.00'),
-                      _Row(label: context.l10n.t('stock_coverage_days'), value: '12 days'),
+                      _Row(
+                        label: context.l10n.t('selling_price'),
+                        value: '€24.00',
+                      ),
+                      _Row(
+                        label: context.l10n.t('stock_coverage_days'),
+                        value: '12 days',
+                      ),
                     ],
                   ),
                 ),

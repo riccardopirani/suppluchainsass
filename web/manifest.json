@@ -1,11 +1,11 @@
 {
-    "name": "sass_supply_chain",
-    "short_name": "sass_supply_chain",
+    "name": "FabricOS",
+    "short_name": "FabricOS",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "FabricOS - AI-powered operations platform for manufacturing teams.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

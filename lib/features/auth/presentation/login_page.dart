@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:stockguard_ai/localization/app_localizations.dart';
-import 'package:stockguard_ai/core/theme/app_colors.dart';
+import 'package:fabricos/localization/app_localizations.dart';
+import 'package:fabricos/core/theme/app_colors.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -95,9 +95,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     ),
                   ),
                 ),
-                Expanded(
-                  child: _buildForm(context, l10n),
-                ),
+                Expanded(child: _buildForm(context, l10n)),
               ],
             )
           : _buildForm(context, l10n),
@@ -125,8 +123,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   Text(
                     l10n.t('login_subtitle'),
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
                   const SizedBox(height: 32),
                   if (_error != null) ...[

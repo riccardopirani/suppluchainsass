@@ -1,85 +1,110 @@
-# StockGuard AI
+# FabricOS
 
-**Il pilota automatico del magazzino.**
+AI-powered operations platform for small-to-mid manufacturing companies (10-500 employees).
 
-Evita rotture di stock e capitale fermo in magazzino. Ti diciamo cosa riordinare, quando riordinarlo e quanto comprarne.
+FabricOS MVP includes:
+- Predictive maintenance
+- Orders & supply chain tracking
+- Supplier monitoring
+- ESG/compliance reporting with PDF export
 
-- **Flutter** app (Web, iOS, Android)
-- **Supabase** (Postgres, Auth, Storage, Edge Functions)
-- **Stripe** for billing and subscriptions
-- **Multilingual**: EN, IT, ES, FR, DE
+## Tech Stack
+- Frontend: Flutter (web-first, responsive)
+- Backend: Supabase (Postgres, Auth, Realtime, Storage, Edge Functions)
+- State management: Riverpod
+- Charts: fl_chart
+- PDF export: pdf + printing
 
----
+## MVP Modules
+1. Dashboard
+- Active orders KPI
+- Machine status KPI
+- Supplier delays KPI
+- Realtime AI alerts panel
 
-## Quick start
+2. Predictive Maintenance
+- Machines registry
+- Maintenance logs
+- Simulated IoT telemetry
+- AI placeholder failure-risk scoring
 
-### Prerequisites
+3. Orders & Supply Chain
+- Orders CRUD (pending, in_progress, completed)
+- Delivery date tracking and delay detection
+- AI risk scan for delayed orders
 
-- Flutter 3.19+
-- Dart 3.3+
-- Supabase CLI (optional, for local Supabase)
-- Node/Deno for Edge Functions
+4. Suppliers
+- Supplier database
+- Performance score (reliability and delays)
+- Risk indicator
 
-### 1. Clone and install
+5. ESG / Compliance
+- Monthly ESG snapshots (mock data)
+- Emissions and supplier compliance metrics
+- PDF report export
 
+## Auth, Multi-Tenant, Roles
+- Supabase Auth (email/password)
+- `companies` workspace model
+- `users` profile table linked to `auth.users`
+- Roles: `admin`, `manager`, `operator`
+
+## Supabase Schema (Public)
+Core tables:
+- `companies`
+- `users`
+- `machines`
+- `machine_telemetry`
+- `maintenance_logs`
+- `orders`
+- `suppliers`
+- `alerts`
+- `esg_reports`
+
+All tenant tables are protected by RLS using `current_company_id()`.
+Realtime publication is enabled for:
+- `alerts`
+- `machines`
+
+## Seed Data
+`supabase/seed.sql` inserts:
+- 1 company
+- 5 machines
+- 10 orders
+- 5 suppliers
+- sample alerts, maintenance logs and ESG reports
+
+## Edge Functions (Examples)
+- `bootstrap-company`: create company workspace and starter data
+- `predict-maintenance-risk`: mock AI risk prediction from telemetry
+- `analyze-order-risks`: detect delayed orders and create AI alerts
+- `generate-esg-report`: build monthly ESG/compliance report row
+
+## Quick Start
+### 1) Install dependencies
 ```bash
-cd sass_supply_chain
 flutter pub get
 ```
 
-### 2. Environment
+### 2) Configure environment
+Copy `.env.example` to `.env` and set at least:
+- `SUPABASE_URL`
+- `SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `SUPABASE_ACCESS_TOKEN`
+- `SUPABASE_DB_PASSWORD`
 
-Copy `.env.example` to `.env` and set:
-
-- `SUPABASE_URL` – your Supabase project URL
-- `SUPABASE_ANON_KEY` – anon/publishable key
-- `SUPABASE_SERVICE_ROLE_KEY` – service role (or `sb_secret_...`) for Edge Functions
-- `SUPABASE_ACCESS_TOKEN` – Supabase CLI personal access token
-- `SUPABASE_DB_PASSWORD` – remote Postgres password
-- `STRIPE_PUBLISHABLE_KEY` – Stripe publishable key (Flutter)
-- Price IDs for Starter/Growth/Pro (monthly/yearly) if using billing
-
-For local runs without Supabase, the app uses placeholder values and will still load (auth and data will fail until configured).
-
-### 3. Run the app
-
-**Web**
-
+### 3) Run Flutter web
 ```bash
 flutter run -d chrome
 ```
 
-Or load Supabase values from `.env` automatically:
-
+Or with env helper:
 ```bash
 ./scripts/flutter_with_env.sh run -d chrome
 ```
 
-**iOS**
-
-```bash
-flutter run -d ios
-```
-
-**Android**
-
-```bash
-flutter run -d android
-```
-
-Pass env vars when needed:
-
-```bash
-flutter run -d chrome --dart-define=SUPABASE_URL=https://xxx.supabase.co --dart-define=SUPABASE_ANON_KEY=xxx
-```
-
----
-
-## Supabase setup
-
-1. Create a project at [supabase.com](https://supabase.com).
-2. Deploy all (migrations + function secrets + all edge functions):
-
+### 4) Push DB + deploy edge functions
 ```bash
 set -a
 source .env
@@ -87,121 +112,33 @@ set +a
 ./scripts/deploy_supabase_all.sh
 ```
 
-3. Or run manually:
+### 5) Seed demo data
+Run `supabase/seed.sql` in Supabase SQL Editor (or via CLI SQL execution).
 
-```bash
-supabase link --project-ref YOUR_REF
-supabase db push
-```
-
-Or run the SQL in `supabase/migrations/` manually in the SQL Editor (in order: `20260101000001_initial_schema.sql`, then `20260101000002_rls.sql`).
-
-4. (Optional) Seed:
-
-Run `supabase/seed.sql` in the Supabase SQL Editor.
-
-5. Enable Email auth in Authentication → Providers.
-6. In Storage, create a bucket for imports if you use file uploads.
-
----
-
-## Edge Functions
-
-Deploy:
-
-```bash
-supabase functions deploy create-stripe-checkout-session --no-verify-jwt
-supabase functions deploy create-stripe-portal-session
-supabase functions deploy stripe-webhook --no-verify-jwt
-supabase functions deploy submit-contact-form --no-verify-jwt
-supabase functions deploy process-import
-supabase functions deploy generate-reorder-recommendations
-supabase functions deploy generate-forecast
-supabase functions deploy seed-demo-workspace
-supabase functions deploy accept-invitation
-supabase functions deploy send-alerts
-```
-
-Set secrets:
-
-```bash
-supabase secrets set STRIPE_SECRET_KEY=sk_xxx
-supabase secrets set STRIPE_WEBHOOK_SECRET=whsec_xxx
-supabase secrets set APP_BASE_URL=https://your-app.com
-```
-
-**Stripe webhook**: In Stripe Dashboard → Developers → Webhooks, add endpoint  
-`https://YOUR_REF.supabase.co/functions/v1/stripe-webhook`  
-and subscribe to: `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`. Use the signing secret as `STRIPE_WEBHOOK_SECRET`.
-
----
-
-## Stripe setup
-
-1. Create Products and Prices in Stripe for Starter, Growth, Pro (monthly and yearly).
-2. Put the Price IDs in your env / dart-defines:
-   - `STRIPE_STARTER_MONTHLY_PRICE_ID`, `STRIPE_STARTER_YEARLY_PRICE_ID`
-   - `STRIPE_GROWTH_*`, `STRIPE_PRO_*`
-3. Configure the Customer Portal in Stripe for self-service subscription management.
-4. Webhook: see Edge Functions section above.
-
----
-
-## Project structure
-
-```
+## Project Structure
+```text
 lib/
-  app/                 # App widget
-  config/               # Env / config
-  core/theme/           # Theme, colors, dimensions
-  localization/         # i18n (EN, IT, ES, FR, DE)
-  routing/              # GoRouter
+  app/
+  config/
+  core/theme/
+  routing/
   features/
-    auth/               # Login, register, forgot password
-    website/            # Marketing: home, pricing, contact, legal
-    app_shell/          # Sidebar, bottom nav
-    dashboard/          # Main dashboard
-    onboarding/         # Post-signup onboarding
-    products/           # Products list & detail
-    reorder/            # Reorder suggestions
-    forecasting/        # Demand forecast
-    suppliers/          # Suppliers
-    alerts/             # Alerts center
-    purchase_orders/    # POs
-    analytics/          # Analytics
-    billing/            # Billing & subscription
-    settings/           # Settings, profile, language
+    auth/
+    onboarding/
+    app_shell/
+    dashboard/
+    machines/
+    orders/
+    suppliers/
+    reports/
+    website/
 supabase/
-  migrations/           # Postgres schema + RLS
-  functions/            # Edge Functions (Deno)
-  seed.sql              # Demo seed
+  migrations/
+  functions/
+  seed.sql
 ```
 
----
-
-## Deployment
-
-### Flutter Web
-
-Build:
-
-```bash
-flutter build web --dart-define=SUPABASE_URL=xxx --dart-define=SUPABASE_ANON_KEY=xxx
-```
-
-Deploy the `build/web` folder to Vercel, Netlify, Firebase Hosting, or any static host. Set base href if needed:
-
-```bash
-flutter build web --base-href /app/ --dart-define=...
-```
-
-### iOS / Android
-
-Use standard Flutter build and submit to App Store / Play Store. Configure env through your CI or `--dart-define` in the build step.
-
----
-
-## License
-
-Proprietary. All rights reserved.
-# suppluchainsass
+## Notes
+- This MVP uses deterministic AI placeholders (OpenAI-style integration points are prepared in edge functions).
+- Dark mode is supported via system theme.
+- Architecture is modular and ready to extend with real IoT ingestion, external ERP connectors, and advanced ML models.
