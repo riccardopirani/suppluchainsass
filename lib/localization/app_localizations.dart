@@ -38,19 +38,31 @@ class AppLocalizations {
     GlobalCupertinoLocalizations.delegate,
   ];
 
+  Future<void> _mergeJsonAsset(String assetPath) async {
+    final raw = await rootBundle.loadString(assetPath);
+    final Map<String, dynamic> map = jsonDecode(raw) as Map<String, dynamic>;
+    for (final e in map.entries) {
+      _localizedStrings[e.key] = e.value?.toString() ?? '';
+    }
+  }
+
   Future<bool> load() async {
     final langCode = locale.languageCode;
     try {
-      final json = await rootBundle.loadString(
-        'assets/translations/$langCode.json',
-      );
-      final Map<String, dynamic> map = jsonDecode(json) as Map<String, dynamic>;
-      for (final e in map.entries) {
-        _localizedStrings[e.key] = e.value?.toString() ?? '';
-      }
+      await _mergeJsonAsset('assets/translations/$langCode.json');
     } catch (_) {
       for (final e in appLocalizationsEn.entries) {
         _localizedStrings[e.key] ??= e.value;
+      }
+    }
+    // Public marketing site (home, pricing, contact, …) — overlay per locale
+    try {
+      await _mergeJsonAsset('assets/translations/pub_$langCode.json');
+    } catch (_) {
+      try {
+        await _mergeJsonAsset('assets/translations/pub_en.json');
+      } catch (_) {
+        // pub overlay optional
       }
     }
     return true;

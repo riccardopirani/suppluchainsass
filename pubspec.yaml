@@ -70,3 +70,10 @@ flutter:
     - assets/translations/de.json
     - assets/translations/ru.json
     - assets/translations/zh.json
+    - assets/translations/pub_en.json
+    - assets/translations/pub_it.json
+    - assets/translations/pub_es.json
+    - assets/translations/pub_fr.json
+    - assets/translations/pub_de.json
+    - assets/translations/pub_ru.json
+    - assets/translations/pub_zh.json

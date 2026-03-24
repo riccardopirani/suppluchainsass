@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FabricOS Globe</title>
+    <link
+      rel="stylesheet"
+      href="https://cesium.com/downloads/cesiumjs/releases/1.118/Build/Cesium/Widgets/widgets.css"
+    />
+    <style>
+      html,
+      body,
+      #cesiumContainer {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background: radial-gradient(circle at 30% 20%, #10243a, #050b14 60%);
+      }
+
+      #emptyState {
+        position: absolute;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        color: #dbeafe;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        font-size: 14px;
+        text-align: center;
+        padding: 24px;
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="cesiumContainer"></div>
+    <div id="emptyState">No machine geolocation data available yet.</div>
+
+    <script src="https://cesium.com/downloads/cesiumjs/releases/1.118/Build/Cesium/Cesium.js"></script>
+    <script>
+      function parseMarkers() {
+        const params = new URLSearchParams(window.location.search);
+        const raw = params.get('markers');
+        if (!raw) return [];
+        try {
+          const decoded = decodeURIComponent(raw);
+          const parsed = JSON.parse(decoded);
+          return Array.isArray(parsed) ? parsed : [];
+        } catch (_) {
+          return [];
+        }
+      }
+
+      const viewer = new Cesium.Viewer('cesiumContainer', {
+        geocoder: false,
+        homeButton: false,
+        sceneModePicker: false,
+        baseLayerPicker: false,
+        navigationHelpButton: false,
+        animation: false,
+        timeline: false,
+        fullscreenButton: false,
+        infoBox: true,
+        selectionIndicator: true,
+        shouldAnimate: false,
+      });
+
+      viewer.scene.globe.enableLighting = true;
+      viewer.scene.skyAtmosphere.show = true;
+      viewer.scene.backgroundColor = Cesium.Color.fromCssColorString('#020712');
+      viewer._cesiumWidget._creditContainer.style.display = 'none';
+
+      const markers = parseMarkers();
+
+      if (!markers.length) {
+        document.getElementById('emptyState').style.display = 'flex';
+      }
+
+      markers.forEach((marker) => {
+        if (typeof marker.latitude !== 'number' || typeof marker.longitude !== 'number') {
+          return;
+        }
+
+        const title = marker.name || 'Machine';
+        const city = marker.city || '';
+        const country = marker.country || '';
+        const address = marker.address || '';
+
+        viewer.entities.add({
+          name: title,
+          position: Cesium.Cartesian3.fromDegrees(marker.longitude, marker.latitude),
+          point: {
+            pixelSize: 10,
+            color: Cesium.Color.fromCssColorString('#22d3ee'),
+            outlineColor: Cesium.Color.fromCssColorString('#082f49'),
+            outlineWidth: 2,
+          },
+          label: {
+            text: title,
+            showBackground: true,
+            backgroundColor: Cesium.Color.fromCssColorString('#082f49').withAlpha(0.7),
+            fillColor: Cesium.Color.fromCssColorString('#e2e8f0'),
+            font: '12px Segoe UI',
+            pixelOffset: new Cesium.Cartesian2(0, -18),
+            horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
+          },
+          description:
+            `<b>${title}</b><br/>` +
+            `${city}${city && country ? ', ' : ''}${country}<br/>` +
+            `${address}`,
+        });
+      });
+
+      if (markers.length) {
+        viewer.flyTo(viewer.entities, { duration: 1.6 });
+      } else {
+        viewer.camera.flyHome(0);
+      }
+    </script>
+  </body>
+</html>

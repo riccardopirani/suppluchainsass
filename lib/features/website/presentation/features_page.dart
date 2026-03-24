@@ -1,3 +1,5 @@
+import 'package:fabricos/features/website/presentation/widgets/marketing_page_widgets.dart';
+import 'package:fabricos/localization/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class FeaturesPage extends StatelessWidget {
@@ -5,65 +7,61 @@ class FeaturesPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final features = <({String title, String description})>[
+    final l10n = context.l10n;
+    final features = <({IconData icon, String title, String description})>[
       (
-        title: 'Predictive Maintenance',
-        description:
-            'Machine registry, maintenance logs, IoT telemetry simulation and AI risk scoring.',
+        icon: Icons.memory_rounded,
+        title: l10n.t('pub_feat_pm_title'),
+        description: l10n.t('pub_feat_pm_desc'),
       ),
       (
-        title: 'Orders & Supply Chain',
-        description:
-            'CRUD orders with lifecycle states, delay detection and proactive risk alerts.',
+        icon: Icons.inventory_2_rounded,
+        title: l10n.t('pub_feat_ord_title'),
+        description: l10n.t('pub_feat_ord_desc'),
       ),
       (
-        title: 'Supplier Monitoring',
-        description:
-            'Reliability and compliance dashboards with supplier-level risk indicators.',
+        icon: Icons.groups_rounded,
+        title: l10n.t('pub_feat_sup_title'),
+        description: l10n.t('pub_feat_sup_desc'),
       ),
       (
-        title: 'ESG / Compliance',
-        description:
-            'Monthly report generation for emissions and supplier compliance with PDF export.',
+        icon: Icons.eco_rounded,
+        title: l10n.t('pub_feat_esg_title'),
+        description: l10n.t('pub_feat_esg_desc'),
       ),
       (
-        title: 'Realtime Operations',
-        description:
-            'Live updates for machine status and AI alerts with Supabase Realtime.',
+        icon: Icons.bolt_rounded,
+        title: l10n.t('pub_feat_rt_title'),
+        description: l10n.t('pub_feat_rt_desc'),
       ),
     ];
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 24),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 980),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'FabricOS Features',
-                style: Theme.of(context).textTheme.displaySmall,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'A modular operations platform for manufacturing teams, designed to scale from first rollout to full production.',
-                style: Theme.of(context).textTheme.bodyLarge,
-              ),
-              const SizedBox(height: 28),
-              ...features.map(
-                (feature) => Card(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  child: ListTile(
-                    title: Text(feature.title),
-                    subtitle: Text(feature.description),
-                    leading: const Icon(Icons.check_circle_outline),
-                  ),
-                ),
-              ),
-            ],
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          MarketingPageIntro(
+            eyebrow: l10n.t('pub_feat_eyebrow'),
+            title: l10n.t('pub_feat_title'),
+            subtitle: l10n.t('pub_feat_subtitle'),
           ),
-        ),
+          MarketingBody(
+            maxWidth: 900,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (var i = 0; i < features.length; i++) ...[
+                  MarketingBentoTile(
+                    icon: features[i].icon,
+                    title: features[i].title,
+                    description: features[i].description,
+                  ),
+                  if (i < features.length - 1) const SizedBox(height: 16),
+                ],
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

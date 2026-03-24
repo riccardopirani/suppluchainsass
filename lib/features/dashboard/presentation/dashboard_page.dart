@@ -1,4 +1,7 @@
 import 'package:fabricos/features/app_shell/providers/fabricos_provider.dart';
+import 'package:fabricos/features/dashboard/presentation/widgets/world_globe_view_stub.dart'
+    if (dart.library.html)
+    'package:fabricos/features/dashboard/presentation/widgets/world_globe_view_web.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,6 +13,7 @@ class DashboardPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final snapshotAsync = ref.watch(dashboardSnapshotProvider);
     final alertsAsync = ref.watch(alertsProvider);
+    final machinesAsync = ref.watch(machinesProvider);
 
     return Scaffold(
       body: SafeArea(
@@ -177,6 +181,43 @@ class DashboardPage extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Text(
+                        'Global Machine Network (3D)',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Real-time machine positioning by country, city and address.',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      SizedBox(
+                        height: 460,
+                        child: machinesAsync.when(
+                          loading: () => const Center(
+                            child: CircularProgressIndicator(),
+                          ),
+                          error: (err, _) =>
+                              Center(child: Text('Failed to load map: $err')),
+                          data: (machines) {
+                            final points = _globePointsFromMachines(machines);
+                            return WorldGlobeView(points: points);
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -270,6 +311,28 @@ class DashboardPage extends ConsumerWidget {
       default:
         return const Color(0xFF0E7490);
     }
+  }
+
+  static List<Map<String, dynamic>> _globePointsFromMachines(
+    List<Map<String, dynamic>> machines,
+  ) {
+    return machines
+        .where(
+          (machine) =>
+              (machine['latitude'] as num?) != null &&
+              (machine['longitude'] as num?) != null,
+        )
+        .map(
+          (machine) => {
+            'name': machine['name']?.toString() ?? 'Machine',
+            'city': machine['city']?.toString() ?? '',
+            'country': machine['country']?.toString() ?? '',
+            'address': machine['address']?.toString() ?? '',
+            'latitude': ((machine['latitude'] as num?) ?? 0).toDouble(),
+            'longitude': ((machine['longitude'] as num?) ?? 0).toDouble(),
+          },
+        )
+        .toList();
   }
 }
 
