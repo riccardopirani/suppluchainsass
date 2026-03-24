@@ -12,6 +12,8 @@ class LanguageSelector extends ConsumerWidget {
     'es': '🇪🇸',
     'fr': '🇫🇷',
     'de': '🇩🇪',
+    'ru': '🇷🇺',
+    'zh': '🇨🇳',
   };
 
   @override
