@@ -695,24 +695,36 @@ class FabricOSRepository {
     required String companyId,
     required String priceId,
     int trialDays = 0,
+    String? successUrl,
+    String? cancelUrl,
   }) async {
+    final body = <String, dynamic>{
+      'companyId': companyId,
+      'priceId': priceId,
+      'trialDays': trialDays,
+    };
+    if (successUrl != null) body['successUrl'] = successUrl;
+    if (cancelUrl != null) body['cancelUrl'] = cancelUrl;
+
     final response = await _client.functions.invoke(
       'create-stripe-checkout-session',
-      body: {
-        'companyId': companyId,
-        'priceId': priceId,
-        'trialDays': trialDays,
-      },
+      body: body,
     );
     final data = response.data;
     if (data is Map<String, dynamic>) return data['url']?.toString();
     return null;
   }
 
-  Future<String?> createPortalSession({required String companyId}) async {
+  Future<String?> createPortalSession({
+    required String companyId,
+    String? returnUrl,
+  }) async {
+    final body = <String, dynamic>{'companyId': companyId};
+    if (returnUrl != null) body['returnUrl'] = returnUrl;
+
     final response = await _client.functions.invoke(
       'create-stripe-portal-session',
-      body: {'companyId': companyId},
+      body: body,
     );
     final data = response.data;
     if (data is Map<String, dynamic>) return data['url']?.toString();

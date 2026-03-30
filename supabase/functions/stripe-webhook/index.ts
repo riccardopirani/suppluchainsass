@@ -30,29 +30,39 @@ serve(async (req) => {
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
-        const companyId = session.metadata?.company_id ?? session.client_reference_id;
-        if (companyId && session.customer) {
+        let companyId =
+          session.metadata?.company_id ?? session.client_reference_id ?? undefined;
+        if (session.subscription) {
+          const sub = await stripe.subscriptions.retrieve(
+            typeof session.subscription === 'string' ? session.subscription : session.subscription.id
+          );
+          companyId = companyId ?? sub.metadata?.company_id;
+          if (companyId && session.customer) {
+            await supabase.from('customers').upsert({
+              company_id: companyId,
+              stripe_customer_id: typeof session.customer === 'string' ? session.customer : session.customer.id,
+              updated_at: new Date().toISOString(),
+            }, { onConflict: 'company_id' });
+          }
+          if (companyId) {
+            await supabase.from('subscriptions').upsert({
+              company_id: companyId,
+              stripe_customer_id: sub.customer as string,
+              stripe_subscription_id: sub.id,
+              stripe_price_id: sub.items.data[0]?.price.id,
+              status: sub.status as string,
+              current_period_start: new Date(sub.current_period_start * 1000).toISOString(),
+              current_period_end: new Date(sub.current_period_end * 1000).toISOString(),
+              cancel_at_period_end: sub.cancel_at_period_end,
+              updated_at: new Date().toISOString(),
+            }, { onConflict: 'stripe_subscription_id' });
+          }
+        } else if (companyId && session.customer) {
           await supabase.from('customers').upsert({
             company_id: companyId,
             stripe_customer_id: typeof session.customer === 'string' ? session.customer : session.customer.id,
             updated_at: new Date().toISOString(),
           }, { onConflict: 'company_id' });
-        }
-        if (session.subscription) {
-          const sub = await stripe.subscriptions.retrieve(
-            typeof session.subscription === 'string' ? session.subscription : session.subscription.id
-          );
-          await supabase.from('subscriptions').upsert({
-            company_id: companyId,
-            stripe_customer_id: sub.customer as string,
-            stripe_subscription_id: sub.id,
-            stripe_price_id: sub.items.data[0]?.price.id,
-            status: sub.status as string,
-            current_period_start: new Date(sub.current_period_start * 1000).toISOString(),
-            current_period_end: new Date(sub.current_period_end * 1000).toISOString(),
-            cancel_at_period_end: sub.cancel_at_period_end,
-            updated_at: new Date().toISOString(),
-          }, { onConflict: 'stripe_subscription_id' });
         }
         break;
       }
@@ -77,7 +87,21 @@ serve(async (req) => {
       }
       case 'invoice.paid': {
         const invoice = event.data.object as Stripe.Invoice;
-        const companyId = invoice.subscription_details?.metadata?.company_id;
+        let companyId: string | undefined = invoice.subscription_details?.metadata?.company_id;
+        const subRef = invoice.subscription;
+        const subId = typeof subRef === 'string' ? subRef : subRef?.id;
+        if (!companyId && subId) {
+          const sub = await stripe.subscriptions.retrieve(subId);
+          companyId = sub.metadata?.company_id;
+        }
+        if (!companyId && subId) {
+          const { data: row } = await supabase
+            .from('subscriptions')
+            .select('company_id')
+            .eq('stripe_subscription_id', subId)
+            .maybeSingle();
+          companyId = row?.company_id ?? undefined;
+        }
         if (companyId && invoice.id) {
           await supabase.from('payment_history').upsert({
             company_id: companyId,

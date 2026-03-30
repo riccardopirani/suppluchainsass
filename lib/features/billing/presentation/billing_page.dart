@@ -1,6 +1,7 @@
 import 'package:fabricos/config/env.dart';
 import 'package:fabricos/features/app_shell/providers/fabricos_provider.dart';
 import 'package:fabricos/localization/app_localizations.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -15,6 +16,19 @@ class BillingPage extends ConsumerStatefulWidget {
 class _BillingPageState extends ConsumerState<BillingPage> {
   bool _busy = false;
 
+  /// Origin for Stripe return URLs — matches deployed app (web) or `APP_BASE_URL` compile flag.
+  String _appOrigin() {
+    final env = ref.read(envProvider);
+    if (kIsWeb) {
+      final u = Uri.base;
+      if (u.hasScheme && u.host.isNotEmpty) {
+        final port = u.hasPort ? ':${u.port}' : '';
+        return '${u.scheme}://${u.host}$port';
+      }
+    }
+    return env.appBaseUrl.replaceAll(RegExp(r'/$'), '');
+  }
+
   Future<void> _openCheckout(String companyId, String priceId, {int trialDays = 0}) async {
     if (priceId.isEmpty) {
       if (!mounted) return;
@@ -25,9 +39,14 @@ class _BillingPageState extends ConsumerState<BillingPage> {
     }
     setState(() => _busy = true);
     try {
-      final url = await ref
-          .read(fabricosRepositoryProvider)
-          .createCheckoutSession(companyId: companyId, priceId: priceId, trialDays: trialDays);
+      final origin = _appOrigin();
+      final url = await ref.read(fabricosRepositoryProvider).createCheckoutSession(
+            companyId: companyId,
+            priceId: priceId,
+            trialDays: trialDays,
+            successUrl: '$origin/app/billing?success=true',
+            cancelUrl: '$origin/app/billing?canceled=true',
+          );
       if (url != null) {
         await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
       }
@@ -39,7 +58,11 @@ class _BillingPageState extends ConsumerState<BillingPage> {
   Future<void> _openPortal(String companyId) async {
     setState(() => _busy = true);
     try {
-      final url = await ref.read(fabricosRepositoryProvider).createPortalSession(companyId: companyId);
+      final origin = _appOrigin();
+      final url = await ref.read(fabricosRepositoryProvider).createPortalSession(
+            companyId: companyId,
+            returnUrl: '$origin/app/billing',
+          );
       if (url != null) {
         await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
       }
