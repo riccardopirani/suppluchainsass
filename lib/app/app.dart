@@ -1,4 +1,3 @@
-import 'package:fabricos/config/env.dart';
 import 'package:fabricos/core/theme/app_theme.dart';
 import 'package:fabricos/localization/app_localizations.dart';
 import 'package:fabricos/localization/locale_provider.dart';
@@ -12,11 +11,9 @@ class FabricOSApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(appRouterProvider);
-    final env = ref.watch(envProvider);
-
     return MaterialApp.router(
       title: 'FabricOS',
-      debugShowCheckedModeBanner: env.isDevelopment,
+      debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: ThemeMode.system,

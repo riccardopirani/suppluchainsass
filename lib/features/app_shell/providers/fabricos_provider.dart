@@ -253,31 +253,15 @@ class FabricOSRepository {
     required String companyName,
     required String sizeBand,
   }) async {
-    final user = _client.auth.currentUser;
-    if (user == null) {
-      throw Exception('User not authenticated');
-    }
-
-    try {
-      await _client.functions.invoke(
-        'bootstrap-company',
-        body: {'name': companyName, 'sizeBand': sizeBand},
+    final response = await _client.functions.invoke(
+      'bootstrap-company',
+      body: {'name': companyName, 'sizeBand': sizeBand},
+    );
+    if (response.status >= 400) {
+      throw Exception(
+        'Bootstrap company failed (${response.status}): ${response.data}',
       );
-      return;
-    } catch (_) {
-      // Fallback to direct SQL operations if edge function isn't available yet.
     }
-
-    final company = await _client
-        .from('companies')
-        .insert({'name': companyName, 'size_band': sizeBand})
-        .select('id')
-        .single();
-
-    await _client
-        .from('users')
-        .update({'company_id': company['id'], 'role': 'admin'})
-        .eq('id', user.id);
   }
 
   Future<void> createMachine({
@@ -479,6 +463,50 @@ class FabricOSRepository {
           'updated_at': now.toIso8601String(),
         })
         .eq('id', orderId);
+  }
+
+  Future<void> deleteMachine({
+    required String companyId,
+    required String machineId,
+  }) async {
+    await _client
+        .from('machines')
+        .delete()
+        .eq('id', machineId)
+        .eq('company_id', companyId);
+  }
+
+  Future<void> deleteOrder({
+    required String companyId,
+    required String orderId,
+  }) async {
+    await _client
+        .from('orders')
+        .delete()
+        .eq('id', orderId)
+        .eq('company_id', companyId);
+  }
+
+  Future<void> deleteSupplier({
+    required String companyId,
+    required String supplierId,
+  }) async {
+    await _client
+        .from('suppliers')
+        .delete()
+        .eq('id', supplierId)
+        .eq('company_id', companyId);
+  }
+
+  Future<void> deleteEsgReport({
+    required String companyId,
+    required String reportId,
+  }) async {
+    await _client
+        .from('esg_reports')
+        .delete()
+        .eq('id', reportId)
+        .eq('company_id', companyId);
   }
 
   Future<int> analyzeOrderRisks({required String companyId}) async {

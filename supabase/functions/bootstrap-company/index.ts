@@ -18,15 +18,21 @@ serve(async (req) => {
   const authHeader = req.headers.get('Authorization');
   if (!authHeader) return json({ error: 'Unauthorized' }, 401);
 
-  const supabase = createClient(
+  const authClient = createClient(
+    Deno.env.get('SUPABASE_URL') ?? '',
+    Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+    { global: { headers: { Authorization: authHeader } } }
+  );
+
+  const admin = createClient(
     Deno.env.get('SUPABASE_URL') ?? '',
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-    { global: { headers: { Authorization: authHeader } } }
+    { auth: { persistSession: false } }
   );
 
   const {
     data: { user },
-  } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''));
+  } = await authClient.auth.getUser(authHeader.replace('Bearer ', ''));
   if (!user) return json({ error: 'Unauthorized' }, 401);
 
   try {
@@ -34,7 +40,7 @@ serve(async (req) => {
     const companyName = (payload.name as string | undefined)?.trim() || 'New Manufacturing Company';
     const sizeBand = (payload.sizeBand as string | undefined)?.trim() || '10-50';
 
-    const { data: profile } = await supabase
+    const { data: profile } = await admin
       .from('users')
       .select('company_id')
       .eq('id', user.id)
@@ -44,7 +50,7 @@ serve(async (req) => {
       return json({ companyId: profile.company_id, alreadyConfigured: true });
     }
 
-    const { data: company, error: companyError } = await supabase
+    const { data: company, error: companyError } = await admin
       .from('companies')
       .insert({ name: companyName, size_band: sizeBand })
       .select('id')
@@ -54,7 +60,7 @@ serve(async (req) => {
       return json({ error: companyError?.message ?? 'Failed to create company' }, 500);
     }
 
-    await supabase
+    await admin
       .from('users')
       .update({ company_id: company.id, role: 'admin' })
       .eq('id', user.id);
@@ -64,7 +70,7 @@ serve(async (req) => {
       { name: 'North Forge Metals', reliability_score: 81, compliance_status: 'under_review', risk_level: 'medium' },
     ];
 
-    const { data: insertedSuppliers } = await supabase
+    const { data: insertedSuppliers } = await admin
       .from('suppliers')
       .insert(
         suppliers.map((s) => ({
@@ -77,7 +83,7 @@ serve(async (req) => {
 
     const primarySupplierId = insertedSuppliers?.[0]?.id ?? null;
 
-    await supabase.from('machines').insert([
+    await admin.from('machines').insert([
       {
         company_id: company.id,
         supplier_id: primarySupplierId,
@@ -108,7 +114,7 @@ serve(async (req) => {
       },
     ]);
 
-    await supabase.from('orders').insert([
+    await admin.from('orders').insert([
       {
         company_id: company.id,
         supplier_id: insertedSuppliers?.[0]?.id,
@@ -127,7 +133,7 @@ serve(async (req) => {
       },
     ]);
 
-    await supabase.from('alerts').insert({
+    await admin.from('alerts').insert({
       company_id: company.id,
       type: 'onboarding',
       severity: 'info',
