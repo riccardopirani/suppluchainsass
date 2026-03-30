@@ -36,10 +36,10 @@ serve(async (req) => {
     }
 
     const body = await req.json();
-    const { workspaceId, returnUrl } = body as { workspaceId: string; returnUrl?: string };
+    const { companyId, returnUrl } = body as { companyId: string; returnUrl?: string };
 
-    if (!workspaceId) {
-      return new Response(JSON.stringify({ error: 'workspaceId required' }), {
+    if (!companyId) {
+      return new Response(JSON.stringify({ error: 'companyId required' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -48,7 +48,7 @@ serve(async (req) => {
     const { data: customer } = await supabase
       .from('customers')
       .select('stripe_customer_id')
-      .eq('workspace_id', workspaceId)
+      .eq('company_id', companyId)
       .single();
 
     if (!customer?.stripe_customer_id) {

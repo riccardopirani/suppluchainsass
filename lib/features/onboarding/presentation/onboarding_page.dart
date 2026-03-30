@@ -1,4 +1,5 @@
 import 'package:fabricos/features/app_shell/providers/fabricos_provider.dart';
+import 'package:fabricos/localization/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -13,6 +14,8 @@ class OnboardingPage extends ConsumerStatefulWidget {
 class _OnboardingPageState extends ConsumerState<OnboardingPage> {
   final _companyController = TextEditingController();
   String _sizeBand = '10-50';
+  String _selectedPlan = 'starter';
+  bool _startTrial = true;
   bool _loading = false;
   String? _error;
 
@@ -40,6 +43,8 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
           .createCompanyAndAssignUser(
             companyName: companyName,
             sizeBand: _sizeBand,
+            plan: _selectedPlan,
+            startTrial: _startTrial,
           );
       ref.invalidate(fabricUserContextProvider);
       if (mounted) context.go('/app');
@@ -52,6 +57,10 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
 
   @override
   Widget build(BuildContext context) {
+    final uri = GoRouterState.of(context).uri;
+    _selectedPlan = uri.queryParameters['plan'] ?? _selectedPlan;
+    _startTrial = (uri.queryParameters['trial'] ?? (_startTrial ? '1' : '0')) == '1';
+
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -66,12 +75,12 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Welcome to FabricOS',
+                        context.l10n.t('onboarding_welcome'),
                         style: Theme.of(context).textTheme.headlineSmall,
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Create your company workspace to start using predictive maintenance, orders and ESG reporting.',
+                        context.l10n.t('onboarding_company_setup_subtitle'),
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
@@ -79,8 +88,8 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                       const SizedBox(height: 20),
                       TextField(
                         controller: _companyController,
-                        decoration: const InputDecoration(
-                          labelText: 'Company name',
+                        decoration: InputDecoration(
+                          labelText: context.l10n.t('company_name'),
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -104,8 +113,16 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                           if (value == null) return;
                           setState(() => _sizeBand = value);
                         },
-                        decoration: const InputDecoration(
-                          labelText: 'Company size',
+                        decoration: InputDecoration(
+                          labelText: context.l10n.t('company_size'),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(context.l10n.t('billing_selected_plan')),
+                        subtitle: Text(
+                          '$_selectedPlan · ${_startTrial ? context.l10n.t('billing_trial_30_days') : context.l10n.t('billing_no_trial')}',
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -139,7 +156,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                                     strokeWidth: 2,
                                   ),
                                 )
-                              : const Text('Create workspace and continue'),
+                              : Text(context.l10n.t('create_workspace_continue')),
                         ),
                       ),
                     ],

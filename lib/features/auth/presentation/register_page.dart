@@ -18,6 +18,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   final _nameController = TextEditingController();
   bool _loading = false;
   String? _error;
+  String _selectedPlan = 'starter';
+  bool _startWithTrial = true;
 
   @override
   void dispose() {
@@ -36,11 +38,19 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       await Supabase.instance.client.auth.signUp(
         email: _emailController.text.trim(),
         password: _passwordController.text,
-        data: {'full_name': _nameController.text.trim()},
+        data: {
+          'full_name': _nameController.text.trim(),
+          'selected_plan': _selectedPlan,
+          'start_trial': _startWithTrial,
+        },
       );
       // Refresh session to ensure persistence
       await Supabase.instance.client.auth.refreshSession();
-      if (mounted) context.go('/onboarding');
+      if (mounted) {
+        context.go(
+          '/onboarding?plan=$_selectedPlan&trial=${_startWithTrial ? '1' : '0'}',
+        );
+      }
     } on AuthException catch (e) {
       setState(() {
         _error = e.message;
@@ -109,7 +119,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                       ),
                       textInputAction: TextInputAction.next,
                       validator: (v) =>
-                          (v == null || v.isEmpty) ? 'Name required' : null,
+                          (v == null || v.isEmpty) ? l10n.t('validation_name_required') : null,
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
@@ -121,7 +131,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                       keyboardType: TextInputType.emailAddress,
                       textInputAction: TextInputAction.next,
                       validator: (v) =>
-                          (v == null || v.isEmpty) ? 'Email required' : null,
+                          (v == null || v.isEmpty) ? l10n.t('validation_email_required') : null,
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
@@ -132,8 +142,33 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                       ),
                       obscureText: true,
                       validator: (v) => (v == null || v.length < 6)
-                          ? 'Min 6 characters'
+                          ? l10n.t('validation_password_min')
                           : null,
+                    ),
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<String>(
+                      initialValue: _selectedPlan,
+                      items: const [
+                        DropdownMenuItem(value: 'starter', child: Text('Starter €49')),
+                        DropdownMenuItem(value: 'pro', child: Text('Pro €149')),
+                        DropdownMenuItem(value: 'business', child: Text('Business €1200')),
+                      ],
+                      onChanged: (value) {
+                        if (value == null) return;
+                        setState(() => _selectedPlan = value);
+                      },
+                      decoration: InputDecoration(
+                        labelText: l10n.t('billing_choose_plan'),
+                        border: const OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    SwitchListTile(
+                      value: _startWithTrial,
+                      onChanged: (v) => setState(() => _startWithTrial = v),
+                      title: Text(l10n.t('billing_trial_toggle_title')),
+                      subtitle: Text(l10n.t('billing_trial_toggle_subtitle')),
+                      contentPadding: EdgeInsets.zero,
                     ),
                     const SizedBox(height: 24),
                     FilledButton(

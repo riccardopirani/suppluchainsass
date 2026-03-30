@@ -1,6 +1,7 @@
 import 'package:fabricos/features/app_shell/providers/fabricos_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 class SuppliersPage extends ConsumerStatefulWidget {
   const SuppliersPage({super.key});
@@ -311,6 +312,9 @@ class _SuppliersPageState extends ConsumerState<SuppliersPage> {
                                     contentPadding: const EdgeInsets.symmetric(
                                       vertical: 8,
                                       horizontal: 6,
+                                    ),
+                                    onTap: () => context.go(
+                                      '/app/suppliers/${supplier['id']}',
                                     ),
                                     leading: CircleAvatar(
                                       backgroundColor: _riskColor(

@@ -36,15 +36,16 @@ serve(async (req) => {
     }
 
     const body = await req.json();
-    const { priceId, workspaceId, successUrl, cancelUrl } = body as {
+    const { priceId, companyId, successUrl, cancelUrl, trialDays } = body as {
       priceId: string;
-      workspaceId: string;
+      companyId: string;
       successUrl?: string;
       cancelUrl?: string;
+      trialDays?: number;
     };
 
-    if (!priceId || !workspaceId) {
-      return new Response(JSON.stringify({ error: 'priceId and workspaceId required' }), {
+    if (!priceId || !companyId) {
+      return new Response(JSON.stringify({ error: 'priceId and companyId required' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -59,9 +60,12 @@ serve(async (req) => {
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: successUrl ?? `${appUrl}/app/billing?success=true`,
       cancel_url: cancelUrl ?? `${appUrl}/app/billing?canceled=true`,
-      client_reference_id: workspaceId,
-      metadata: { workspace_id: workspaceId, user_id: user.id },
-      subscription_data: { metadata: { workspace_id: workspaceId } },
+      client_reference_id: companyId,
+      metadata: { company_id: companyId, user_id: user.id },
+      subscription_data: {
+        metadata: { company_id: companyId },
+        ...(trialDays != null && trialDays > 0 ? { trial_period_days: trialDays } : {}),
+      },
     });
 
     return new Response(JSON.stringify({ url: session.url }), {

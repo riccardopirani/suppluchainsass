@@ -3,13 +3,19 @@ import 'package:fabricos/features/auth/presentation/forgot_password_page.dart';
 import 'package:fabricos/features/auth/presentation/login_page.dart';
 import 'package:fabricos/features/auth/presentation/register_page.dart';
 import 'package:fabricos/features/auth/providers/auth_provider.dart';
+import 'package:fabricos/features/billing/presentation/billing_page.dart';
 import 'package:fabricos/features/dashboard/presentation/dashboard_page.dart';
 import 'package:fabricos/features/machines/presentation/machines_page.dart';
 import 'package:fabricos/features/onboarding/presentation/onboarding_page.dart';
 import 'package:fabricos/features/orders/presentation/orders_page.dart';
 import 'package:fabricos/features/reports/presentation/reports_page.dart';
 import 'package:fabricos/features/settings/presentation/settings_page.dart';
+import 'package:fabricos/features/supply_chain/presentation/inventory_page.dart';
+import 'package:fabricos/features/supply_chain/presentation/shipments_page.dart';
+import 'package:fabricos/features/supply_chain/presentation/simulation_page.dart';
+import 'package:fabricos/features/supply_chain/presentation/supply_dashboard_page.dart';
 import 'package:fabricos/features/suppliers/presentation/suppliers_page.dart';
+import 'package:fabricos/features/suppliers/presentation/supplier_detail_page.dart';
 import 'package:fabricos/features/website/presentation/contact_page.dart';
 import 'package:fabricos/features/website/presentation/faq_page.dart';
 import 'package:fabricos/features/website/presentation/features_page.dart';
@@ -139,11 +145,46 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'suppliers',
                 pageBuilder: (context, state) =>
                     const NoTransitionPage(child: SuppliersPage()),
+                routes: [
+                  GoRoute(
+                    path: ':supplierId',
+                    pageBuilder: (context, state) => NoTransitionPage(
+                      child: SupplierDetailPage(
+                        supplierId: state.pathParameters['supplierId'] ?? '',
+                      ),
+                    ),
+                  ),
+                ],
               ),
               GoRoute(
                 path: 'reports',
                 pageBuilder: (context, state) =>
                     const NoTransitionPage(child: ReportsPage()),
+              ),
+              GoRoute(
+                path: 'billing',
+                pageBuilder: (context, state) =>
+                    const NoTransitionPage(child: BillingPage()),
+              ),
+              GoRoute(
+                path: 'supply',
+                pageBuilder: (context, state) =>
+                    const NoTransitionPage(child: SupplyDashboardPage()),
+              ),
+              GoRoute(
+                path: 'inventory',
+                pageBuilder: (context, state) =>
+                    const NoTransitionPage(child: InventoryPage()),
+              ),
+              GoRoute(
+                path: 'shipments',
+                pageBuilder: (context, state) =>
+                    const NoTransitionPage(child: ShipmentsPage()),
+              ),
+              GoRoute(
+                path: 'simulation',
+                pageBuilder: (context, state) =>
+                    const NoTransitionPage(child: SimulationPage()),
               ),
               GoRoute(
                 path: 'settings',

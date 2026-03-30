@@ -244,6 +244,64 @@ final dashboardSnapshotProvider = FutureProvider<DashboardSnapshot>((
   );
 });
 
+class BillingStatus {
+  const BillingStatus({
+    required this.hasActiveSubscription,
+    required this.inTrial,
+    this.trialEndsAt,
+    this.subscription,
+  });
+
+  final bool hasActiveSubscription;
+  final bool inTrial;
+  final DateTime? trialEndsAt;
+  final Map<String, dynamic>? subscription;
+
+  bool get canAccessApp => hasActiveSubscription || inTrial;
+}
+
+final billingStatusProvider = FutureProvider<BillingStatus>((ref) async {
+  final client = ref.watch(fabricSupabaseClientProvider);
+  final companyId = await ref.watch(currentCompanyIdProvider.future);
+
+  final company = await client
+      .from('companies')
+      .select('trial_ends_at')
+      .eq('id', companyId)
+      .maybeSingle();
+
+  final sub = await client
+      .from('subscriptions')
+      .select()
+      .eq('company_id', companyId)
+      .order('updated_at', ascending: false)
+      .limit(1)
+      .maybeSingle();
+
+  final trialEndsAt = DateTime.tryParse(company?['trial_ends_at']?.toString() ?? '');
+  final inTrial = trialEndsAt != null && trialEndsAt.isAfter(DateTime.now());
+  final status = (sub?['status'] ?? '').toString();
+  final active = status == 'active' || status == 'trialing' || status == 'past_due';
+
+  return BillingStatus(
+    hasActiveSubscription: active,
+    inTrial: inTrial,
+    trialEndsAt: trialEndsAt,
+    subscription: sub,
+  );
+});
+
+final paymentHistoryProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  final client = ref.watch(fabricSupabaseClientProvider);
+  final companyId = await ref.watch(currentCompanyIdProvider.future);
+  return client
+      .from('payment_history')
+      .select()
+      .eq('company_id', companyId)
+      .order('paid_at', ascending: false)
+      .limit(50);
+});
+
 class FabricOSRepository {
   FabricOSRepository(this._client);
 
@@ -252,10 +310,17 @@ class FabricOSRepository {
   Future<void> createCompanyAndAssignUser({
     required String companyName,
     required String sizeBand,
+    String? plan,
+    bool startTrial = true,
   }) async {
     final response = await _client.functions.invoke(
       'bootstrap-company',
-      body: {'name': companyName, 'sizeBand': sizeBand},
+      body: {
+        'name': companyName,
+        'sizeBand': sizeBand,
+        'plan': plan,
+        'trialDays': startTrial ? 30 : 0,
+      },
     );
     if (response.status >= 400) {
       throw Exception(
@@ -624,5 +689,33 @@ class FabricOSRepository {
         .single();
 
     return row;
+  }
+
+  Future<String?> createCheckoutSession({
+    required String companyId,
+    required String priceId,
+    int trialDays = 0,
+  }) async {
+    final response = await _client.functions.invoke(
+      'create-stripe-checkout-session',
+      body: {
+        'companyId': companyId,
+        'priceId': priceId,
+        'trialDays': trialDays,
+      },
+    );
+    final data = response.data;
+    if (data is Map<String, dynamic>) return data['url']?.toString();
+    return null;
+  }
+
+  Future<String?> createPortalSession({required String companyId}) async {
+    final response = await _client.functions.invoke(
+      'create-stripe-portal-session',
+      body: {'companyId': companyId},
+    );
+    final data = response.data;
+    if (data is Map<String, dynamic>) return data['url']?.toString();
+    return null;
   }
 }

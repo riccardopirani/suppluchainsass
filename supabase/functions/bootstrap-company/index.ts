@@ -39,6 +39,8 @@ serve(async (req) => {
     const payload = await req.json().catch(() => ({}));
     const companyName = (payload.name as string | undefined)?.trim() || 'New Manufacturing Company';
     const sizeBand = (payload.sizeBand as string | undefined)?.trim() || '10-50';
+    const plan = (payload.plan as string | undefined)?.trim() || 'starter';
+    const trialDays = Number(payload.trialDays ?? 30);
 
     const { data: profile } = await admin
       .from('users')
@@ -52,7 +54,15 @@ serve(async (req) => {
 
     const { data: company, error: companyError } = await admin
       .from('companies')
-      .insert({ name: companyName, size_band: sizeBand })
+      .insert({
+        name: companyName,
+        size_band: sizeBand,
+        selected_plan: plan,
+        trial_ends_at:
+          trialDays > 0
+            ? new Date(Date.now() + trialDays * 24 * 60 * 60 * 1000).toISOString()
+            : null,
+      })
       .select('id')
       .single();
 

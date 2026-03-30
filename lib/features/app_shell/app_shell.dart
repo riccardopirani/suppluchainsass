@@ -1,4 +1,5 @@
 import 'package:fabricos/features/app_shell/providers/fabricos_provider.dart';
+import 'package:fabricos/features/billing/presentation/subscription_gate_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -59,22 +60,43 @@ class AppShell extends ConsumerWidget {
           );
         }
 
-        final isWide = MediaQuery.sizeOf(context).width >= 1024;
+        final billing = ref.watch(billingStatusProvider);
+        final path = GoRouterState.of(context).uri.path;
+        final isBillingRoute = path.startsWith('/app/billing');
 
-        if (isWide) {
-          return Scaffold(
-            body: Row(
-              children: [
-                _Sidebar(companyName: ctx.companyName ?? 'FabricOS Workspace'),
-                Expanded(child: child),
-              ],
+        if (!isBillingRoute) {
+          return billing.when(
+            loading: () =>
+                const Scaffold(body: Center(child: CircularProgressIndicator())),
+            error: (error, _) => Scaffold(
+              body: Center(
+                child: Text('Unable to load billing status: $error'),
+              ),
             ),
+            data: (b) => b.canAccessApp
+                ? _buildShell(context, child, ctx.companyName ?? 'FabricOS Workspace')
+                : const SubscriptionGatePage(),
           );
         }
 
-        return Scaffold(body: child, bottomNavigationBar: const _BottomNav());
+        return _buildShell(context, child, ctx.companyName ?? 'FabricOS Workspace');
       },
     );
+  }
+
+  Widget _buildShell(BuildContext context, Widget child, String companyName) {
+    final isWide = MediaQuery.sizeOf(context).width >= 1024;
+    if (isWide) {
+      return Scaffold(
+        body: Row(
+          children: [
+            _Sidebar(companyName: companyName),
+            Expanded(child: child),
+          ],
+        ),
+      );
+    }
+    return Scaffold(body: child, bottomNavigationBar: const _BottomNav());
   }
 }
 
@@ -119,6 +141,16 @@ class _Sidebar extends StatelessWidget {
             onTap: () => context.go('/app'),
           ),
           ListTile(
+            leading: const Icon(Icons.visibility_outlined),
+            title: const Text('Supply Dashboard'),
+            onTap: () => context.go('/app/supply'),
+          ),
+          ListTile(
+            leading: const Icon(Icons.inventory_2_outlined),
+            title: const Text('Inventory'),
+            onTap: () => context.go('/app/inventory'),
+          ),
+          ListTile(
             leading: const Icon(Icons.precision_manufacturing_outlined),
             title: const Text('Machines'),
             onTap: () => context.go('/app/machines'),
@@ -137,6 +169,21 @@ class _Sidebar extends StatelessWidget {
             leading: const Icon(Icons.description_outlined),
             title: const Text('Reports'),
             onTap: () => context.go('/app/reports'),
+          ),
+          ListTile(
+            leading: const Icon(Icons.credit_card_outlined),
+            title: const Text('Billing'),
+            onTap: () => context.go('/app/billing'),
+          ),
+          ListTile(
+            leading: const Icon(Icons.local_shipping_outlined),
+            title: const Text('Shipments'),
+            onTap: () => context.go('/app/shipments'),
+          ),
+          ListTile(
+            leading: const Icon(Icons.science_outlined),
+            title: const Text('Simulation'),
+            onTap: () => context.go('/app/simulation'),
           ),
           const Divider(),
           ListTile(

@@ -36,20 +36,20 @@ class Env {
     'STRIPE_STARTER_YEARLY_PRICE_ID',
     defaultValue: '',
   );
-  String get stripeGrowthMonthlyPriceId => const String.fromEnvironment(
-    'STRIPE_GROWTH_MONTHLY_PRICE_ID',
-    defaultValue: '',
-  );
-  String get stripeGrowthYearlyPriceId => const String.fromEnvironment(
-    'STRIPE_GROWTH_YEARLY_PRICE_ID',
-    defaultValue: '',
-  );
   String get stripeProMonthlyPriceId => const String.fromEnvironment(
     'STRIPE_PRO_MONTHLY_PRICE_ID',
     defaultValue: '',
   );
   String get stripeProYearlyPriceId => const String.fromEnvironment(
     'STRIPE_PRO_YEARLY_PRICE_ID',
+    defaultValue: '',
+  );
+  String get stripeBusinessMonthlyPriceId => const String.fromEnvironment(
+    'STRIPE_BUSINESS_MONTHLY_PRICE_ID',
+    defaultValue: '',
+  );
+  String get stripeBusinessYearlyPriceId => const String.fromEnvironment(
+    'STRIPE_BUSINESS_YEARLY_PRICE_ID',
     defaultValue: '',
   );
 

@@ -30,20 +30,20 @@ serve(async (req) => {
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
-        const workspaceId = session.metadata?.workspace_id ?? session.client_reference_id;
-        if (workspaceId && session.customer) {
+        const companyId = session.metadata?.company_id ?? session.client_reference_id;
+        if (companyId && session.customer) {
           await supabase.from('customers').upsert({
-            workspace_id: workspaceId,
+            company_id: companyId,
             stripe_customer_id: typeof session.customer === 'string' ? session.customer : session.customer.id,
             updated_at: new Date().toISOString(),
-          }, { onConflict: 'workspace_id' });
+          }, { onConflict: 'company_id' });
         }
         if (session.subscription) {
           const sub = await stripe.subscriptions.retrieve(
             typeof session.subscription === 'string' ? session.subscription : session.subscription.id
           );
           await supabase.from('subscriptions').upsert({
-            workspace_id: workspaceId,
+            company_id: companyId,
             stripe_customer_id: sub.customer as string,
             stripe_subscription_id: sub.id,
             stripe_price_id: sub.items.data[0]?.price.id,
@@ -59,10 +59,10 @@ serve(async (req) => {
       case 'customer.subscription.created':
       case 'customer.subscription.updated': {
         const sub = event.data.object as Stripe.Subscription;
-        const workspaceId = sub.metadata?.workspace_id;
-        if (workspaceId) {
+        const companyId = sub.metadata?.company_id;
+        if (companyId) {
           await supabase.from('subscriptions').upsert({
-            workspace_id: workspaceId,
+            company_id: companyId,
             stripe_customer_id: sub.customer as string,
             stripe_subscription_id: sub.id,
             stripe_price_id: sub.items.data[0]?.price.id,
@@ -72,6 +72,22 @@ serve(async (req) => {
             cancel_at_period_end: sub.cancel_at_period_end,
             updated_at: new Date().toISOString(),
           }, { onConflict: 'stripe_subscription_id' });
+        }
+        break;
+      }
+      case 'invoice.paid': {
+        const invoice = event.data.object as Stripe.Invoice;
+        const companyId = invoice.subscription_details?.metadata?.company_id;
+        if (companyId && invoice.id) {
+          await supabase.from('payment_history').upsert({
+            company_id: companyId,
+            stripe_invoice_id: invoice.id,
+            amount_paid: (invoice.amount_paid ?? 0) / 100,
+            currency: invoice.currency ?? 'eur',
+            paid_at: invoice.status_transitions?.paid_at
+              ? new Date(invoice.status_transitions.paid_at * 1000).toISOString()
+              : new Date().toISOString(),
+          }, { onConflict: 'stripe_invoice_id' });
         }
         break;
       }
@@ -88,6 +104,7 @@ serve(async (req) => {
     }
 
     await supabase.from('subscription_events').insert({
+      company_id: (event.data.object as { metadata?: { company_id?: string } })?.metadata?.company_id ?? null,
       stripe_event_id: event.id,
       event_type: event.type,
       payload: event as unknown as object,

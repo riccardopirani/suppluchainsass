@@ -65,6 +65,9 @@ class AppLocalizations {
         // pub overlay optional
       }
     }
+    for (final e in appLocalizationsEn.entries) {
+      _localizedStrings.putIfAbsent(e.key, () => e.value);
+    }
     return true;
   }
 
