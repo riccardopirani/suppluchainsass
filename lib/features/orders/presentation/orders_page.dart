@@ -195,6 +195,59 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
           .read(fabricosRepositoryProvider)
           .updateOrderStatus(orderId: orderId, status: newStatus);
       ref.invalidate(ordersProvider);
+      ref.invalidate(dashboardSnapshotProvider);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _deleteOrder(String companyId, Map<String, dynamic> order) async {
+    final label = order['order_number']?.toString() ?? 'this order';
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete order'),
+        content: Text(
+          'Permanently remove order "$label"? This cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+              foregroundColor: Theme.of(context).colorScheme.onError,
+            ),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
+    setState(() => _busy = true);
+    try {
+      await ref.read(fabricosRepositoryProvider).deleteOrder(
+            companyId: companyId,
+            orderId: order['id'].toString(),
+          );
+      ref.invalidate(ordersProvider);
+      ref.invalidate(alertsProvider);
+      ref.invalidate(suppliersProvider);
+      ref.invalidate(dashboardSnapshotProvider);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Order removed.')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not delete order: $e')),
+        );
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -317,22 +370,40 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
                                     ),
                                     DataCell(
                                       PopupMenuButton<String>(
-                                        onSelected: (value) => _updateStatus(
-                                          order['id'].toString(),
-                                          value,
-                                        ),
-                                        itemBuilder: (_) => const [
-                                          PopupMenuItem(
+                                        onSelected: (value) {
+                                          if (value == '__delete') {
+                                            _deleteOrder(companyId, order);
+                                            return;
+                                          }
+                                          _updateStatus(
+                                            order['id'].toString(),
+                                            value,
+                                          );
+                                        },
+                                        itemBuilder: (ctx) => [
+                                          const PopupMenuItem(
                                             value: 'pending',
                                             child: Text('Set pending'),
                                           ),
-                                          PopupMenuItem(
+                                          const PopupMenuItem(
                                             value: 'in_progress',
                                             child: Text('Set in progress'),
                                           ),
-                                          PopupMenuItem(
+                                          const PopupMenuItem(
                                             value: 'completed',
                                             child: Text('Set completed'),
+                                          ),
+                                          const PopupMenuDivider(),
+                                          PopupMenuItem(
+                                            value: '__delete',
+                                            child: Text(
+                                              'Delete order',
+                                              style: TextStyle(
+                                                color: Theme.of(
+                                                  ctx,
+                                                ).colorScheme.error,
+                                              ),
+                                            ),
                                           ),
                                         ],
                                       ),

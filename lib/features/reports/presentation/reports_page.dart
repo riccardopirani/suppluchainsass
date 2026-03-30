@@ -104,6 +104,61 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
     await Printing.layoutPdf(onLayout: (_) async => document.save());
   }
 
+  Future<void> _deleteReport(
+    String companyId,
+    Map<String, dynamic> report,
+  ) async {
+    final month = DateTime.tryParse(report['report_month']?.toString() ?? '');
+    final label =
+        month != null ? _fmtMonth(month) : (report['id']?.toString() ?? '');
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete report'),
+        content: Text(
+          'Remove the ESG report for $label? This cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+              foregroundColor: Theme.of(context).colorScheme.onError,
+            ),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
+    setState(() => _busy = true);
+    try {
+      await ref.read(fabricosRepositoryProvider).deleteEsgReport(
+            companyId: companyId,
+            reportId: report['id'].toString(),
+          );
+      ref.invalidate(esgReportsProvider);
+      ref.invalidate(dashboardSnapshotProvider);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Report removed.')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not delete report: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final companyIdAsync = ref.watch(currentCompanyIdProvider);
@@ -198,12 +253,32 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                                 subtitle: Text(
                                   'Emissions: ${emissions.toStringAsFixed(2)} tCO2 · Supplier compliance: ${compliance.toStringAsFixed(1)}',
                                 ),
-                                trailing: FilledButton.tonalIcon(
-                                  onPressed: () => _exportPdf(report),
-                                  icon: const Icon(
-                                    Icons.picture_as_pdf_outlined,
-                                  ),
-                                  label: const Text('Export PDF'),
+                                trailing: Wrap(
+                                  spacing: 4,
+                                  crossAxisAlignment:
+                                      WrapCrossAlignment.center,
+                                  children: [
+                                    FilledButton.tonalIcon(
+                                      onPressed: () => _exportPdf(report),
+                                      icon: const Icon(
+                                        Icons.picture_as_pdf_outlined,
+                                      ),
+                                      label: const Text('Export PDF'),
+                                    ),
+                                    IconButton(
+                                      tooltip: 'Delete report',
+                                      onPressed: _busy
+                                          ? null
+                                          : () =>
+                                              _deleteReport(companyId, report),
+                                      icon: Icon(
+                                        Icons.delete_outline,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.error,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               );
                             },

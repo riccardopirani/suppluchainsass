@@ -138,6 +138,60 @@ class _SuppliersPageState extends ConsumerState<SuppliersPage> {
     }
   }
 
+  Future<void> _deleteSupplier(
+    String companyId,
+    Map<String, dynamic> supplier,
+  ) async {
+    final name = supplier['name']?.toString() ?? 'this supplier';
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete supplier'),
+        content: Text(
+          'Remove "$name"? Linked orders keep their history but lose this supplier reference.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+              foregroundColor: Theme.of(context).colorScheme.onError,
+            ),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
+    setState(() => _busy = true);
+    try {
+      await ref.read(fabricosRepositoryProvider).deleteSupplier(
+            companyId: companyId,
+            supplierId: supplier['id'].toString(),
+          );
+      ref.invalidate(suppliersProvider);
+      ref.invalidate(ordersProvider);
+      ref.invalidate(dashboardSnapshotProvider);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Supplier removed.')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not delete supplier: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final companyIdAsync = ref.watch(currentCompanyIdProvider);
@@ -291,6 +345,21 @@ class _SuppliersPageState extends ConsumerState<SuppliersPage> {
                                               size: 18,
                                             ),
                                           ),
+                                        IconButton(
+                                          tooltip: 'Delete supplier',
+                                          onPressed: _busy
+                                              ? null
+                                              : () => _deleteSupplier(
+                                                    companyId,
+                                                    supplier,
+                                                  ),
+                                          icon: Icon(
+                                            Icons.delete_outline,
+                                            color: Theme.of(
+                                              context,
+                                            ).colorScheme.error,
+                                          ),
+                                        ),
                                       ],
                                     ),
                                   );

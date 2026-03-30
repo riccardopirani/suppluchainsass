@@ -143,6 +143,61 @@ class _MachinesPageState extends ConsumerState<MachinesPage> {
     }
   }
 
+  Future<void> _deleteMachine(
+    String companyId,
+    String machineId,
+    String displayName,
+  ) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete machine'),
+        content: Text(
+          'Remove "$displayName" and related telemetry and maintenance logs? This cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+              foregroundColor: Theme.of(context).colorScheme.onError,
+            ),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
+    setState(() => _busy = true);
+    try {
+      await ref.read(fabricosRepositoryProvider).deleteMachine(
+            companyId: companyId,
+            machineId: machineId,
+          );
+      ref.invalidate(machinesProvider);
+      ref.invalidate(maintenanceLogsProvider);
+      ref.invalidate(alertsProvider);
+      ref.invalidate(dashboardSnapshotProvider);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Machine removed.')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not delete machine: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
   Future<void> _logMaintenance(String companyId, String machineId) async {
     final notesController = TextEditingController();
     final technicianController = TextEditingController(
@@ -346,6 +401,25 @@ class _MachinesPageState extends ConsumerState<MachinesPage> {
                                                   ),
                                             icon: const Icon(
                                               Icons.build_outlined,
+                                            ),
+                                          ),
+                                          IconButton(
+                                            tooltip: 'Delete machine',
+                                            onPressed: _busy
+                                                ? null
+                                                : () => _deleteMachine(
+                                                      companyId,
+                                                      machine['id'].toString(),
+                                                      machine
+                                                              ['name']
+                                                              ?.toString() ??
+                                                          'Machine',
+                                                    ),
+                                            icon: Icon(
+                                              Icons.delete_outline,
+                                              color: Theme.of(
+                                                context,
+                                              ).colorScheme.error,
                                             ),
                                           ),
                                         ],
