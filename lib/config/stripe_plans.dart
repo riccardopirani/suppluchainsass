@@ -10,9 +10,11 @@ class SeatPricing {
   /// Tier thresholds: [maxSeats, centPerUser].
   /// Last tier covers everything above.
   static const List<(int, int)> tiers = [
-    (10, 900),   // 1-10 users  → €9 /user/month
-    (50, 800),   // 11-50 users → €8 /user/month
-    (9999, 700), // 51+ users   → €7 /user/month
+    (10, 900),      // 1-10 users    → €9 /user/month
+    (50, 800),      // 11-50 users   → €8 /user/month
+    (200, 700),     // 51-200 users  → €7 /user/month
+    (500, 600),     // 201-500 users → €6 /user/month
+    (999999, 500),  // 501+ users    → €5 /user/month
   ];
 
   static int unitCentsForQuantity(int qty) {

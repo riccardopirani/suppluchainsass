@@ -17,10 +17,16 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _nameController = TextEditingController();
+  final _seatsController = TextEditingController(text: '10');
   bool _loading = false;
   String? _error;
-  double _seats = 10;
+  double _sliderVal = 10;
   bool _startWithTrial = true;
+
+  int get _qty {
+    final v = int.tryParse(_seatsController.text) ?? 1;
+    return v < 1 ? 1 : v;
+  }
 
   @override
   void didChangeDependencies() {
@@ -29,8 +35,9 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     final seatsParam = uri.queryParameters['seats'];
     if (seatsParam != null) {
       final parsed = int.tryParse(seatsParam);
-      if (parsed != null && parsed >= 1 && parsed <= 200) {
-        _seats = parsed.toDouble();
+      if (parsed != null && parsed >= 1) {
+        _seatsController.text = '$parsed';
+        _sliderVal = parsed.clamp(1, 500).toDouble();
       }
     }
   }
@@ -40,6 +47,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     _emailController.dispose();
     _passwordController.dispose();
     _nameController.dispose();
+    _seatsController.dispose();
     super.dispose();
   }
 
@@ -49,7 +57,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       _loading = true;
     });
     try {
-      final qty = _seats.round();
+      final qty = _qty;
       await Supabase.instance.client.auth.signUp(
         email: _emailController.text.trim(),
         password: _passwordController.text,
@@ -79,7 +87,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final qty = _seats.round();
+    final qty = _qty;
     final unitPrice = SeatPricing.unitPrice(qty);
     final total = SeatPricing.monthlyTotal(qty);
 
@@ -166,14 +174,29 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        Text(
-                          '$qty',
-                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                color: Theme.of(context).colorScheme.primary,
-                                fontWeight: FontWeight.w800,
-                              ),
+                        SizedBox(
+                          width: 80,
+                          child: TextField(
+                            controller: _seatsController,
+                            keyboardType: TextInputType.number,
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                            decoration: const InputDecoration(
+                              border: InputBorder.none,
+                              isDense: true,
+                            ),
+                            onChanged: (v) {
+                              final n = int.tryParse(v);
+                              setState(() {
+                                if (n != null && n >= 1 && n <= 500) _sliderVal = n.toDouble();
+                              });
+                            },
+                          ),
                         ),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: 4),
                         Text(l10n.t('pricing_users')),
                         const Spacer(),
                         Text(
@@ -186,11 +209,16 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     ),
                     Slider(
                       min: 1,
-                      max: 200,
-                      divisions: 199,
-                      value: _seats,
-                      label: '$qty',
-                      onChanged: (v) => setState(() => _seats = v),
+                      max: 500,
+                      divisions: 499,
+                      value: _sliderVal.clamp(1, 500),
+                      label: '${_sliderVal.round()}',
+                      onChanged: (v) {
+                        setState(() {
+                          _sliderVal = v;
+                          _seatsController.text = '${v.round()}';
+                        });
+                      },
                     ),
                     Text(
                       '€${unitPrice.toStringAsFixed(2)} ${l10n.t('pricing_per_user_month')}',

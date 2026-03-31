@@ -14,13 +14,25 @@ class PricingPage extends StatefulWidget {
 }
 
 class _PricingPageState extends State<PricingPage> {
-  double _seats = 10;
+  final _seatsController = TextEditingController(text: '10');
+  double _sliderVal = 10;
+
+  int get _qty {
+    final v = int.tryParse(_seatsController.text) ?? 1;
+    return v < 1 ? 1 : v;
+  }
+
+  @override
+  void dispose() {
+    _seatsController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final l10n = context.l10n;
-    final qty = _seats.round();
+    final qty = _qty;
     final unitPrice = SeatPricing.unitPrice(qty);
     final total = SeatPricing.monthlyTotal(qty);
 
@@ -65,31 +77,47 @@ class _PricingPageState extends State<PricingPage> {
                               fontWeight: FontWeight.w700,
                             ),
                           ),
-                          const SizedBox(height: 8),
-                          Text(
-                            '$qty ${l10n.t('pricing_users')}',
-                            style: GoogleFonts.spaceGrotesk(
-                              fontSize: 40,
-                              fontWeight: FontWeight.w800,
-                              color: scheme.primary,
+                          const SizedBox(height: 12),
+                          SizedBox(
+                            width: 140,
+                            child: TextField(
+                              controller: _seatsController,
+                              keyboardType: TextInputType.number,
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.spaceGrotesk(
+                                fontSize: 40,
+                                fontWeight: FontWeight.w800,
+                                color: scheme.primary,
+                              ),
+                              decoration: InputDecoration(
+                                suffixText: l10n.t('pricing_users'),
+                                border: InputBorder.none,
+                              ),
+                              onChanged: (v) {
+                                final n = int.tryParse(v);
+                                setState(() {
+                                  if (n != null && n >= 1 && n <= 500) _sliderVal = n.toDouble();
+                                });
+                              },
                             ),
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 8),
                           Slider(
                             min: 1,
-                            max: 200,
-                            divisions: 199,
-                            value: _seats,
-                            label: '$qty',
-                            onChanged: (v) => setState(() => _seats = v),
+                            max: 500,
+                            divisions: 499,
+                            value: _sliderVal.clamp(1, 500),
+                            label: '${_sliderVal.round()}',
+                            onChanged: (v) {
+                              setState(() {
+                                _sliderVal = v;
+                                _seatsController.text = '${v.round()}';
+                              });
+                            },
                           ),
-                          const SizedBox(height: 6),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text('1', style: GoogleFonts.ibmPlexSans(fontSize: 12, color: scheme.onSurfaceVariant)),
-                              Text('200+', style: GoogleFonts.ibmPlexSans(fontSize: 12, color: scheme.onSurfaceVariant)),
-                            ],
+                          Text(
+                            l10n.t('pricing_slider_hint'),
+                            style: GoogleFonts.ibmPlexSans(fontSize: 12, color: scheme.onSurfaceVariant),
                           ),
                           const SizedBox(height: 24),
                           Row(
@@ -196,7 +224,9 @@ class _PricingPageState extends State<PricingPage> {
     final rows = [
       ['1 – 10', '€9.00'],
       ['11 – 50', '€8.00'],
-      ['51 – 200+', '€7.00'],
+      ['51 – 200', '€7.00'],
+      ['201 – 500', '€6.00'],
+      ['501+', '€5.00'],
     ];
     return Container(
       decoration: BoxDecoration(

@@ -16,7 +16,19 @@ class BillingPage extends ConsumerStatefulWidget {
 
 class _BillingPageState extends ConsumerState<BillingPage> {
   bool _busy = false;
-  double _seats = 10;
+  final _seatsController = TextEditingController(text: '10');
+  double _sliderVal = 10;
+
+  int get _qty {
+    final v = int.tryParse(_seatsController.text) ?? 1;
+    return v < 1 ? 1 : v;
+  }
+
+  @override
+  void dispose() {
+    _seatsController.dispose();
+    super.dispose();
+  }
 
   String _appOrigin() {
     final env = ref.read(envProvider);
@@ -73,7 +85,7 @@ class _BillingPageState extends ConsumerState<BillingPage> {
     final companyIdAsync = ref.watch(currentCompanyIdProvider);
     final billingAsync = ref.watch(billingStatusProvider);
     final historyAsync = ref.watch(paymentHistoryProvider);
-    final qty = _seats.round();
+    final qty = _qty;
     final unitPrice = SeatPricing.unitPrice(qty);
     final total = SeatPricing.monthlyTotal(qty);
 
@@ -120,12 +132,27 @@ class _BillingPageState extends ConsumerState<BillingPage> {
                                     const SizedBox(height: 12),
                                     Row(
                                       children: [
-                                        Text(
-                                          '$qty',
-                                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                                color: Theme.of(context).colorScheme.primary,
-                                                fontWeight: FontWeight.w800,
-                                              ),
+                                        SizedBox(
+                                          width: 80,
+                                          child: TextField(
+                                            controller: _seatsController,
+                                            keyboardType: TextInputType.number,
+                                            textAlign: TextAlign.center,
+                                            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                                  color: Theme.of(context).colorScheme.primary,
+                                                  fontWeight: FontWeight.w800,
+                                                ),
+                                            decoration: const InputDecoration(
+                                              border: InputBorder.none,
+                                              isDense: true,
+                                            ),
+                                            onChanged: (v) {
+                                              final n = int.tryParse(v);
+                                              setState(() {
+                                                if (n != null && n >= 1 && n <= 500) _sliderVal = n.toDouble();
+                                              });
+                                            },
+                                          ),
                                         ),
                                         const SizedBox(width: 8),
                                         Text(l10n.t('pricing_users')),
@@ -133,18 +160,16 @@ class _BillingPageState extends ConsumerState<BillingPage> {
                                     ),
                                     Slider(
                                       min: 1,
-                                      max: 200,
-                                      divisions: 199,
-                                      value: _seats,
-                                      label: '$qty',
-                                      onChanged: (v) => setState(() => _seats = v),
-                                    ),
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text('1', style: Theme.of(context).textTheme.bodySmall),
-                                        Text('200+', style: Theme.of(context).textTheme.bodySmall),
-                                      ],
+                                      max: 500,
+                                      divisions: 499,
+                                      value: _sliderVal.clamp(1, 500),
+                                      label: '${_sliderVal.round()}',
+                                      onChanged: (v) {
+                                        setState(() {
+                                          _sliderVal = v;
+                                          _seatsController.text = '${v.round()}';
+                                        });
+                                      },
                                     ),
                                     const SizedBox(height: 16),
                                     Row(
