@@ -1,8 +1,11 @@
+import 'package:fabricos/config/env.dart';
 import 'package:fabricos/features/app_shell/providers/fabricos_provider.dart';
 import 'package:fabricos/localization/app_localizations.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class OnboardingPage extends ConsumerStatefulWidget {
   const OnboardingPage({super.key});
@@ -18,6 +21,18 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
   bool _startTrial = true;
   bool _loading = false;
   String? _error;
+
+  String _appOrigin() {
+    final env = ref.read(envProvider);
+    if (kIsWeb) {
+      final u = Uri.base;
+      if (u.hasScheme && u.host.isNotEmpty) {
+        final port = u.hasPort ? ':${u.port}' : '';
+        return '${u.scheme}://${u.host}$port';
+      }
+    }
+    return env.appBaseUrl.replaceAll(RegExp(r'/$'), '');
+  }
 
   @override
   void dispose() {
@@ -47,6 +62,42 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
             startTrial: _startTrial,
           );
       ref.invalidate(fabricUserContextProvider);
+
+      final userCtx = await ref.read(fabricUserContextProvider.future);
+      final companyId = userCtx.companyId;
+
+      if (!_startTrial && companyId != null) {
+        final env = ref.read(envProvider);
+        final origin = _appOrigin();
+
+        String priceId;
+        switch (_selectedPlan) {
+          case 'pro':
+            priceId = env.stripeProMonthlyPriceId;
+            break;
+          case 'business':
+            priceId = env.stripeBusinessMonthlyPriceId;
+            break;
+          case 'starter':
+          default:
+            priceId = env.stripeStarterMonthlyPriceId;
+            break;
+        }
+
+        if (priceId.isNotEmpty) {
+          final url = await ref.read(fabricosRepositoryProvider).createCheckoutSession(
+                companyId: companyId,
+                priceId: priceId,
+                trialDays: 0,
+                successUrl: '$origin/app/billing?success=true',
+                cancelUrl: '$origin/app/billing?canceled=true',
+              );
+          if (url != null && mounted) {
+            await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+          }
+        }
+      }
+
       if (mounted) context.go('/app');
     } catch (e) {
       setState(() => _error = e.toString());
