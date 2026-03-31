@@ -2,11 +2,12 @@ import 'package:fabricos/config/env.dart';
 import 'package:fabricos/config/stripe_plans.dart';
 import 'package:fabricos/features/app_shell/providers/fabricos_provider.dart';
 import 'package:fabricos/localization/app_localizations.dart';
+import 'package:fabricos/utils/redirect_to_url.dart'
+    if (dart.library.html) 'package:fabricos/utils/redirect_to_url_web.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class OnboardingPage extends ConsumerStatefulWidget {
   const OnboardingPage({super.key});
@@ -78,7 +79,8 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
               cancelUrl: '$origin/app/billing?canceled=true',
             );
         if (url != null && mounted) {
-          await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+          await redirectToUrl(url);
+          return;
         }
       }
 

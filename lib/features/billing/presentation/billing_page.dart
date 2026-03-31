@@ -100,87 +100,102 @@ class _BillingPageState extends ConsumerState<BillingPage> {
                     error: (e, _) => Text('$e'),
                   ),
                   const SizedBox(height: 24),
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
+                  billingAsync.when(
+                    data: (billing) {
+                      final hasSubscription = billing.hasActiveSubscription;
+                      return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            l10n.t('pricing_how_many_users'),
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              Text(
-                                '$qty',
-                                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                      color: Theme.of(context).colorScheme.primary,
-                                      fontWeight: FontWeight.w800,
+                          if (!hasSubscription)
+                            Card(
+                              child: Padding(
+                                padding: const EdgeInsets.all(20),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      l10n.t('pricing_how_many_users'),
+                                      style: Theme.of(context).textTheme.titleMedium,
                                     ),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(l10n.t('pricing_users')),
-                            ],
-                          ),
-                          Slider(
-                            min: 1,
-                            max: 200,
-                            divisions: 199,
-                            value: _seats,
-                            label: '$qty',
-                            onChanged: (v) => setState(() => _seats = v),
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text('1', style: Theme.of(context).textTheme.bodySmall),
-                              Text('200+', style: Theme.of(context).textTheme.bodySmall),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Text(
-                                '€${total.toStringAsFixed(0)}',
-                                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                      fontWeight: FontWeight.w800,
+                                    const SizedBox(height: 12),
+                                    Row(
+                                      children: [
+                                        Text(
+                                          '$qty',
+                                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                                color: Theme.of(context).colorScheme.primary,
+                                                fontWeight: FontWeight.w800,
+                                              ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(l10n.t('pricing_users')),
+                                      ],
                                     ),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(l10n.t('per_month')),
-                              const Spacer(),
-                              Text(
-                                '€${unitPrice.toStringAsFixed(2)} ${l10n.t('pricing_per_user_month')}',
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                    Slider(
+                                      min: 1,
+                                      max: 200,
+                                      divisions: 199,
+                                      value: _seats,
+                                      label: '$qty',
+                                      onChanged: (v) => setState(() => _seats = v),
                                     ),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text('1', style: Theme.of(context).textTheme.bodySmall),
+                                        Text('200+', style: Theme.of(context).textTheme.bodySmall),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Row(
+                                      children: [
+                                        Text(
+                                          '€${total.toStringAsFixed(0)}',
+                                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                                fontWeight: FontWeight.w800,
+                                              ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(l10n.t('per_month')),
+                                        const Spacer(),
+                                        Text(
+                                          '€${unitPrice.toStringAsFixed(2)} ${l10n.t('pricing_per_user_month')}',
+                                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                              ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 16),
+                                    SizedBox(
+                                      width: double.infinity,
+                                      child: FilledButton(
+                                        onPressed: _busy ? null : () => _openCheckout(companyId, qty),
+                                        child: _busy
+                                            ? const SizedBox(
+                                                width: 18,
+                                                height: 18,
+                                                child: CircularProgressIndicator(strokeWidth: 2),
+                                              )
+                                            : Text(l10n.t('billing_subscribe_now')),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          SizedBox(
-                            width: double.infinity,
-                            child: FilledButton(
-                              onPressed: _busy ? null : () => _openCheckout(companyId, qty),
-                              child: _busy
-                                  ? const SizedBox(
-                                      width: 18,
-                                      height: 18,
-                                      child: CircularProgressIndicator(strokeWidth: 2),
-                                    )
-                                  : Text(l10n.t('billing_subscribe_now')),
                             ),
-                          ),
+                          if (hasSubscription) ...[
+                            const SizedBox(height: 12),
+                            FilledButton.tonal(
+                              onPressed: _busy ? null : () => _openPortal(companyId),
+                              child: Text(l10n.t('manage_subscription')),
+                            ),
+                          ],
                         ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  FilledButton.tonal(
-                    onPressed: _busy ? null : () => _openPortal(companyId),
-                    child: Text(l10n.t('manage_subscription')),
+                      );
+                    },
+                    loading: () => const LinearProgressIndicator(),
+                    error: (e, _) => Text('$e'),
                   ),
                   const SizedBox(height: 20),
                   Text(l10n.t('billing_purchase_history'), style: Theme.of(context).textTheme.titleMedium),
