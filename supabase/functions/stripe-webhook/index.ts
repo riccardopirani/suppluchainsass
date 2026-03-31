@@ -32,6 +32,7 @@ serve(async (req) => {
         const session = event.data.object as Stripe.Checkout.Session;
         let companyId =
           session.metadata?.company_id ?? session.client_reference_id ?? undefined;
+        const purchasedSeats = parseInt(session.metadata?.seats ?? '0', 10);
         if (session.subscription) {
           const sub = await stripe.subscriptions.retrieve(
             typeof session.subscription === 'string' ? session.subscription : session.subscription.id
@@ -56,6 +57,11 @@ serve(async (req) => {
               cancel_at_period_end: sub.cancel_at_period_end,
               updated_at: new Date().toISOString(),
             }, { onConflict: 'stripe_subscription_id' });
+            if (purchasedSeats > 0) {
+              await supabase.from('companies')
+                .update({ seat_limit: purchasedSeats })
+                .eq('id', companyId);
+            }
           }
         } else if (companyId && session.customer) {
           await supabase.from('customers').upsert({

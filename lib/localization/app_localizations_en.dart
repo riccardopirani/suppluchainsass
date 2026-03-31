@@ -193,6 +193,7 @@ const Map<String, String> appLocalizationsEn = {
   'pricing_users': 'users',
   'pricing_per_user_month': 'per user / month',
   'pricing_volume_discounts': 'Volume discounts',
+  'pricing_slider_hint': 'Use the slider or type any number of users',
   'pricing_all_included': 'All features included',
   'pricing_feat_dashboard': 'Decision dashboard',
   'pricing_feat_machines': 'Machine management',

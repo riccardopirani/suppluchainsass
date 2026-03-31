@@ -35,14 +35,28 @@ class WebsiteNavBar extends StatelessWidget implements PreferredSizeWidget {
                   onTap: () => context.go('/'),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    child: Text(
-                      'FabricOS',
-                      style: GoogleFonts.spaceGrotesk(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.6,
-                        color: scheme.onSurface,
-                      ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(6),
+                          child: Image.asset(
+                            'assets/image.png',
+                            width: 32,
+                            height: 32,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          'FabricOS',
+                          style: GoogleFonts.spaceGrotesk(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.6,
+                            color: scheme.onSurface,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
