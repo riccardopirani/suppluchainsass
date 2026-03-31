@@ -1,4 +1,5 @@
 import 'package:fabricos/config/env.dart';
+import 'package:fabricos/config/stripe_plans.dart';
 import 'package:fabricos/features/app_shell/providers/fabricos_provider.dart';
 import 'package:fabricos/localization/app_localizations.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -15,7 +16,8 @@ class BillingPage extends ConsumerStatefulWidget {
 
 class _BillingPageState extends ConsumerState<BillingPage> {
   bool _busy = false;
-  /// Origin for Stripe return URLs — matches deployed app (web) or `APP_BASE_URL` compile flag.
+  double _seats = 10;
+
   String _appOrigin() {
     final env = ref.read(envProvider);
     if (kIsWeb) {
@@ -28,20 +30,15 @@ class _BillingPageState extends ConsumerState<BillingPage> {
     return env.appBaseUrl.replaceAll(RegExp(r'/$'), '');
   }
 
-  Future<void> _openCheckout(String companyId, String priceId, {int trialDays = 0}) async {
-    if (priceId.isEmpty) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Missing Stripe price id configuration.')),
-      );
-      return;
-    }
+  Future<void> _openCheckout(String companyId, int qty, {int trialDays = 0}) async {
+    final unitCents = SeatPricing.unitCentsForQuantity(qty);
     setState(() => _busy = true);
     try {
       final origin = _appOrigin();
       final url = await ref.read(fabricosRepositoryProvider).createCheckoutSession(
             companyId: companyId,
-            priceId: priceId,
+            quantity: qty,
+            unitAmountCents: unitCents,
             trialDays: trialDays,
             successUrl: '$origin/app/billing?success=true',
             cancelUrl: '$origin/app/billing?canceled=true',
@@ -73,10 +70,12 @@ class _BillingPageState extends ConsumerState<BillingPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final env = ref.watch(envProvider);
     final companyIdAsync = ref.watch(currentCompanyIdProvider);
     final billingAsync = ref.watch(billingStatusProvider);
     final historyAsync = ref.watch(paymentHistoryProvider);
+    final qty = _seats.round();
+    final unitPrice = SeatPricing.unitPrice(qty);
+    final total = SeatPricing.monthlyTotal(qty);
 
     return Scaffold(
       body: SafeArea(
@@ -100,44 +99,86 @@ class _BillingPageState extends ConsumerState<BillingPage> {
                     loading: () => const LinearProgressIndicator(),
                     error: (e, _) => Text('$e'),
                   ),
-                  const SizedBox(height: 16),
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
-                    children: [
-                      _planCard(
-                        context,
-                        title: l10n.t('plan_starter'),
-                        price: '€49/${l10n.t('per_month').replaceAll('/', '')}',
-                        features: [l10n.t('billing_starter_f1'), l10n.t('billing_starter_f2')],
-                        onSelect: () => _openCheckout(companyId, env.stripeStarterMonthlyPriceId, trialDays: 30),
+                  const SizedBox(height: 24),
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.t('pricing_how_many_users'),
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Text(
+                                '$qty',
+                                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                      color: Theme.of(context).colorScheme.primary,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(l10n.t('pricing_users')),
+                            ],
+                          ),
+                          Slider(
+                            min: 1,
+                            max: 200,
+                            divisions: 199,
+                            value: _seats,
+                            label: '$qty',
+                            onChanged: (v) => setState(() => _seats = v),
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('1', style: Theme.of(context).textTheme.bodySmall),
+                              Text('200+', style: Theme.of(context).textTheme.bodySmall),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Text(
+                                '€${total.toStringAsFixed(0)}',
+                                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(l10n.t('per_month')),
+                              const Spacer(),
+                              Text(
+                                '€${unitPrice.toStringAsFixed(2)} ${l10n.t('pricing_per_user_month')}',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                    ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          SizedBox(
+                            width: double.infinity,
+                            child: FilledButton(
+                              onPressed: _busy ? null : () => _openCheckout(companyId, qty),
+                              child: _busy
+                                  ? const SizedBox(
+                                      width: 18,
+                                      height: 18,
+                                      child: CircularProgressIndicator(strokeWidth: 2),
+                                    )
+                                  : Text(l10n.t('billing_subscribe_now')),
+                            ),
+                          ),
+                        ],
                       ),
-                      _planCard(
-                        context,
-                        title: 'Pro',
-                        price: '€149/${l10n.t('per_month').replaceAll('/', '')}',
-                        features: [l10n.t('billing_pro_f1'), l10n.t('billing_pro_f2')],
-                        onSelect: () => _openCheckout(companyId, env.stripeProMonthlyPriceId),
-                      ),
-                      _planCard(
-                        context,
-                        title: 'Business',
-                        price: '€1,200/${l10n.t('per_month').replaceAll('/', '')}',
-                        features: [l10n.t('billing_business_f1'), l10n.t('billing_business_f2')],
-                        onSelect: () => _openCheckout(companyId, env.stripeBusinessMonthlyPriceId),
-                      ),
-                      _planCard(
-                        context,
-                        title: l10n.t('plan_enterprise'),
-                        price: '€5,000+/${l10n.t('per_month').replaceAll('/', '')}',
-                        features: [l10n.t('billing_enterprise_f1')],
-                        onSelect: () {},
-                        ctaLabel: l10n.t('contact_sales'),
-                      ),
-                    ],
+                    ),
                   ),
                   const SizedBox(height: 12),
-                  FilledButton(
+                  FilledButton.tonal(
                     onPressed: _busy ? null : () => _openPortal(companyId),
                     child: Text(l10n.t('manage_subscription')),
                   ),
@@ -155,7 +196,9 @@ class _BillingPageState extends ConsumerState<BillingPage> {
                               children: rows
                                   .map(
                                     (row) => ListTile(
-                                      title: Text('€${(row['amount_paid'] as num?)?.toStringAsFixed(2) ?? '-'} ${(row['currency'] ?? '').toString().toUpperCase()}'),
+                                      title: Text(
+                                        '€${(row['amount_paid'] as num?)?.toStringAsFixed(2) ?? '-'} ${(row['currency'] ?? '').toString().toUpperCase()}',
+                                      ),
                                       subtitle: Text('${row['paid_at'] ?? ''}'),
                                       trailing: Text(row['stripe_invoice_id']?.toString() ?? ''),
                                     ),
@@ -177,45 +220,6 @@ class _BillingPageState extends ConsumerState<BillingPage> {
             ),
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (e, _) => Center(child: Text('$e')),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _planCard(
-    BuildContext context, {
-    required String title,
-    required String price,
-    required List<String> features,
-    required VoidCallback onSelect,
-    String? ctaLabel,
-  }) {
-    return SizedBox(
-      width: 280,
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: 6),
-              Text(price, style: Theme.of(context).textTheme.titleMedium),
-              const SizedBox(height: 12),
-              ...features.map((f) => Padding(
-                    padding: const EdgeInsets.only(bottom: 6),
-                    child: Text('• $f'),
-                  )),
-              const SizedBox(height: 10),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: _busy ? null : onSelect,
-                  child: Text(ctaLabel ?? context.l10n.t('cta_get_started')),
-                ),
-              ),
-            ],
           ),
         ),
       ),

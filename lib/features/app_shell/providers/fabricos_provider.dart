@@ -693,14 +693,18 @@ class FabricOSRepository {
 
   Future<String?> createCheckoutSession({
     required String companyId,
-    required String priceId,
+    required int quantity,
+    required int unitAmountCents,
+    String currency = 'eur',
     int trialDays = 0,
     String? successUrl,
     String? cancelUrl,
   }) async {
     final body = <String, dynamic>{
       'companyId': companyId,
-      'priceId': priceId,
+      'quantity': quantity,
+      'unitAmountCents': unitAmountCents,
+      'currency': currency,
       'trialDays': trialDays,
     };
     if (successUrl != null) body['successUrl'] = successUrl;

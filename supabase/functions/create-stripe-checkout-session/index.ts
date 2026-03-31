@@ -36,19 +36,29 @@ serve(async (req) => {
     }
 
     const body = await req.json();
-    const { priceId, companyId, successUrl, cancelUrl, trialDays } = body as {
-      priceId: string;
+    const {
+      companyId,
+      quantity,
+      unitAmountCents,
+      currency,
+      successUrl,
+      cancelUrl,
+      trialDays,
+    } = body as {
       companyId: string;
+      quantity: number;
+      unitAmountCents: number;
+      currency?: string;
       successUrl?: string;
       cancelUrl?: string;
       trialDays?: number;
     };
 
-    if (!priceId || !companyId) {
-      return new Response(JSON.stringify({ error: 'priceId and companyId required' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    if (!companyId || !quantity || !unitAmountCents) {
+      return new Response(
+        JSON.stringify({ error: 'companyId, quantity, and unitAmountCents are required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
     }
 
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', { apiVersion: '2023-10-16' });
@@ -57,13 +67,23 @@ serve(async (req) => {
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       payment_method_types: ['card'],
-      line_items: [{ price: priceId, quantity: 1 }],
+      line_items: [
+        {
+          price_data: {
+            currency: currency ?? 'eur',
+            product_data: { name: 'FabricOS Platform' },
+            unit_amount: unitAmountCents,
+            recurring: { interval: 'month' },
+          },
+          quantity,
+        },
+      ],
       success_url: successUrl ?? `${appUrl}/app/billing?success=true`,
       cancel_url: cancelUrl ?? `${appUrl}/app/billing?canceled=true`,
       client_reference_id: companyId,
-      metadata: { company_id: companyId, user_id: user.id },
+      metadata: { company_id: companyId, user_id: user.id, seats: String(quantity) },
       subscription_data: {
-        metadata: { company_id: companyId },
+        metadata: { company_id: companyId, seats: String(quantity) },
         ...(trialDays != null && trialDays > 0 ? { trial_period_days: trialDays } : {}),
       },
     });

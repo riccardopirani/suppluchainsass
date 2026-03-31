@@ -1,8 +1,9 @@
+import 'package:fabricos/config/stripe_plans.dart';
+import 'package:fabricos/localization/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:fabricos/localization/app_localizations.dart';
 
 class RegisterPage extends ConsumerStatefulWidget {
   const RegisterPage({super.key});
@@ -18,8 +19,21 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   final _nameController = TextEditingController();
   bool _loading = false;
   String? _error;
-  String _selectedPlan = 'starter';
+  double _seats = 10;
   bool _startWithTrial = true;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final uri = GoRouterState.of(context).uri;
+    final seatsParam = uri.queryParameters['seats'];
+    if (seatsParam != null) {
+      final parsed = int.tryParse(seatsParam);
+      if (parsed != null && parsed >= 1 && parsed <= 200) {
+        _seats = parsed.toDouble();
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -35,21 +49,19 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       _loading = true;
     });
     try {
+      final qty = _seats.round();
       await Supabase.instance.client.auth.signUp(
         email: _emailController.text.trim(),
         password: _passwordController.text,
         data: {
           'full_name': _nameController.text.trim(),
-          'selected_plan': _selectedPlan,
+          'seats': qty,
           'start_trial': _startWithTrial,
         },
       );
-      // Refresh session to ensure persistence
       await Supabase.instance.client.auth.refreshSession();
       if (mounted) {
-        context.go(
-          '/onboarding?plan=$_selectedPlan&trial=${_startWithTrial ? '1' : '0'}',
-        );
+        context.go('/onboarding?seats=$qty&trial=${_startWithTrial ? '1' : '0'}');
       }
     } on AuthException catch (e) {
       setState(() {
@@ -67,6 +79,9 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final qty = _seats.round();
+    final unitPrice = SeatPricing.unitPrice(qty);
+    final total = SeatPricing.monthlyTotal(qty);
 
     return Scaffold(
       body: SafeArea(
@@ -74,7 +89,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 400),
+              constraints: const BoxConstraints(maxWidth: 440),
               child: Form(
                 key: _formKey,
                 child: Column(
@@ -89,8 +104,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     Text(
                       l10n.t('register_subtitle'),
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
                     ),
                     const SizedBox(height: 32),
                     if (_error != null) ...[
@@ -103,9 +118,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                         child: Text(
                           _error!,
                           style: TextStyle(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onErrorContainer,
+                            color: Theme.of(context).colorScheme.onErrorContainer,
                           ),
                         ),
                       ),
@@ -145,22 +158,45 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                           ? l10n.t('validation_password_min')
                           : null,
                     ),
-                    const SizedBox(height: 16),
-                    DropdownButtonFormField<String>(
-                      initialValue: _selectedPlan,
-                      items: const [
-                        DropdownMenuItem(value: 'starter', child: Text('Starter €49')),
-                        DropdownMenuItem(value: 'pro', child: Text('Pro €149')),
-                        DropdownMenuItem(value: 'business', child: Text('Business €1200')),
+                    const SizedBox(height: 20),
+                    Text(
+                      l10n.t('pricing_how_many_users'),
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Text(
+                          '$qty',
+                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                color: Theme.of(context).colorScheme.primary,
+                                fontWeight: FontWeight.w800,
+                              ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(l10n.t('pricing_users')),
+                        const Spacer(),
+                        Text(
+                          '€${total.toStringAsFixed(0)}${l10n.t('per_month')}',
+                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
+                        ),
                       ],
-                      onChanged: (value) {
-                        if (value == null) return;
-                        setState(() => _selectedPlan = value);
-                      },
-                      decoration: InputDecoration(
-                        labelText: l10n.t('billing_choose_plan'),
-                        border: const OutlineInputBorder(),
-                      ),
+                    ),
+                    Slider(
+                      min: 1,
+                      max: 200,
+                      divisions: 199,
+                      value: _seats,
+                      label: '$qty',
+                      onChanged: (v) => setState(() => _seats = v),
+                    ),
+                    Text(
+                      '€${unitPrice.toStringAsFixed(2)} ${l10n.t('pricing_per_user_month')}',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
                     ),
                     const SizedBox(height: 10),
                     SwitchListTile(
