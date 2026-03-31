@@ -1,3 +1,4 @@
+import 'package:fabricos/features/team/data/team_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -36,8 +37,22 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
-      // Refresh session to ensure persistence
       await Supabase.instance.client.auth.refreshSession();
+      if (!mounted) return;
+      final companies = await ref.read(userCompaniesProvider.future);
+      if (companies.length > 1 && mounted) {
+        final chosen = await showDialog<String>(
+          context: context,
+          barrierDismissible: false,
+          builder: (ctx) => _CompanySelectorDialog(companies: companies),
+        );
+        if (chosen != null) {
+          final userId = Supabase.instance.client.auth.currentUser?.id;
+          if (userId != null) {
+            await ref.read(teamServiceProvider).switchCompany(userId, chosen);
+          }
+        }
+      }
       if (mounted) context.go('/app');
     } on AuthException catch (e) {
       setState(() {
@@ -201,6 +216,35 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CompanySelectorDialog extends StatelessWidget {
+  const _CompanySelectorDialog({required this.companies});
+  final List<Map<String, dynamic>> companies;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return AlertDialog(
+      title: Text(l10n.t('team_select_company')),
+      content: SizedBox(
+        width: 340,
+        child: ListView.builder(
+          shrinkWrap: true,
+          itemCount: companies.length,
+          itemBuilder: (ctx, i) {
+            final c = companies[i];
+            return ListTile(
+              leading: const Icon(Icons.business_outlined),
+              title: Text(c['company_name']?.toString() ?? ''),
+              subtitle: Text(c['role']?.toString() ?? ''),
+              onTap: () => Navigator.pop(context, c['company_id']?.toString()),
+            );
+          },
         ),
       ),
     );

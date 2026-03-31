@@ -10,6 +10,7 @@ import 'package:fabricos/features/onboarding/presentation/onboarding_page.dart';
 import 'package:fabricos/features/orders/presentation/orders_page.dart';
 import 'package:fabricos/features/reports/presentation/reports_page.dart';
 import 'package:fabricos/features/settings/presentation/settings_page.dart';
+import 'package:fabricos/features/team/presentation/team_page.dart';
 import 'package:fabricos/features/supply_chain/presentation/inventory_page.dart';
 import 'package:fabricos/features/supply_chain/presentation/shipments_page.dart';
 import 'package:fabricos/features/supply_chain/presentation/simulation_page.dart';
@@ -190,6 +191,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'settings',
                 pageBuilder: (context, state) =>
                     const NoTransitionPage(child: SettingsPage()),
+              ),
+              GoRoute(
+                path: 'team',
+                pageBuilder: (context, state) =>
+                    const NoTransitionPage(child: TeamPage()),
               ),
             ],
           ),

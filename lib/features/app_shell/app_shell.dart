@@ -1,5 +1,6 @@
 import 'package:fabricos/features/app_shell/providers/fabricos_provider.dart';
 import 'package:fabricos/features/billing/presentation/subscription_gate_page.dart';
+import 'package:fabricos/features/team/data/team_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -100,13 +101,40 @@ class AppShell extends ConsumerWidget {
   }
 }
 
-class _Sidebar extends StatelessWidget {
+class _Sidebar extends ConsumerWidget {
   const _Sidebar({required this.companyName});
 
   final String companyName;
 
+  static const _menuItems = <(String key, IconData icon, String label, String route)>[
+    ('dashboard', Icons.dashboard_rounded, 'Dashboard', '/app'),
+    ('supply', Icons.visibility_outlined, 'Supply Dashboard', '/app/supply'),
+    ('inventory', Icons.inventory_2_outlined, 'Inventory', '/app/inventory'),
+    ('machines', Icons.precision_manufacturing_outlined, 'Machines', '/app/machines'),
+    ('orders', Icons.fact_check_outlined, 'Orders', '/app/orders'),
+    ('suppliers', Icons.local_shipping_outlined, 'Suppliers', '/app/suppliers'),
+    ('reports', Icons.description_outlined, 'Reports', '/app/reports'),
+    ('billing', Icons.credit_card_outlined, 'Billing', '/app/billing'),
+    ('shipments', Icons.local_shipping_outlined, 'Shipments', '/app/shipments'),
+    ('simulation', Icons.science_outlined, 'Simulation', '/app/simulation'),
+    ('team', Icons.people_outlined, 'Team', '/app/team'),
+  ];
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userCtx = ref.watch(fabricUserContextProvider).valueOrNull;
+    final companyId = userCtx?.companyId;
+    final role = userCtx?.role ?? 'operator';
+    final isAdmin = role == 'admin';
+
+    final permsAsync = companyId != null && !isAdmin
+        ? ref.watch(menuPermissionsProvider((companyId: companyId, role: role)))
+        : null;
+
+    final allowedRoutes = isAdmin
+        ? null
+        : permsAsync?.valueOrNull;
+
     return Container(
       width: 270,
       decoration: BoxDecoration(
@@ -135,56 +163,13 @@ class _Sidebar extends StatelessWidget {
             ),
           ),
           const Divider(),
-          ListTile(
-            leading: const Icon(Icons.dashboard_rounded),
-            title: const Text('Dashboard'),
-            onTap: () => context.go('/app'),
-          ),
-          ListTile(
-            leading: const Icon(Icons.visibility_outlined),
-            title: const Text('Supply Dashboard'),
-            onTap: () => context.go('/app/supply'),
-          ),
-          ListTile(
-            leading: const Icon(Icons.inventory_2_outlined),
-            title: const Text('Inventory'),
-            onTap: () => context.go('/app/inventory'),
-          ),
-          ListTile(
-            leading: const Icon(Icons.precision_manufacturing_outlined),
-            title: const Text('Machines'),
-            onTap: () => context.go('/app/machines'),
-          ),
-          ListTile(
-            leading: const Icon(Icons.fact_check_outlined),
-            title: const Text('Orders'),
-            onTap: () => context.go('/app/orders'),
-          ),
-          ListTile(
-            leading: const Icon(Icons.local_shipping_outlined),
-            title: const Text('Suppliers'),
-            onTap: () => context.go('/app/suppliers'),
-          ),
-          ListTile(
-            leading: const Icon(Icons.description_outlined),
-            title: const Text('Reports'),
-            onTap: () => context.go('/app/reports'),
-          ),
-          ListTile(
-            leading: const Icon(Icons.credit_card_outlined),
-            title: const Text('Billing'),
-            onTap: () => context.go('/app/billing'),
-          ),
-          ListTile(
-            leading: const Icon(Icons.local_shipping_outlined),
-            title: const Text('Shipments'),
-            onTap: () => context.go('/app/shipments'),
-          ),
-          ListTile(
-            leading: const Icon(Icons.science_outlined),
-            title: const Text('Simulation'),
-            onTap: () => context.go('/app/simulation'),
-          ),
+          for (final item in _menuItems)
+            if (allowedRoutes == null || allowedRoutes.contains(item.$1))
+              ListTile(
+                leading: Icon(item.$2),
+                title: Text(item.$3),
+                onTap: () => context.go(item.$4),
+              ),
           const Divider(),
           ListTile(
             leading: const Icon(Icons.settings_outlined),
