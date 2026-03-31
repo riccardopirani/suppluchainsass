@@ -15,7 +15,6 @@ class BillingPage extends ConsumerStatefulWidget {
 
 class _BillingPageState extends ConsumerState<BillingPage> {
   bool _busy = false;
-
   /// Origin for Stripe return URLs — matches deployed app (web) or `APP_BASE_URL` compile flag.
   String _appOrigin() {
     final env = ref.read(envProvider);
