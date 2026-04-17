@@ -1,6 +1,7 @@
 import 'package:fabricos/config/stripe_plans.dart';
 import 'package:fabricos/core/theme/app_colors.dart';
 import 'package:fabricos/features/website/presentation/widgets/marketing_page_widgets.dart';
+import 'package:fabricos/features/website/presentation/widgets/website_footer.dart';
 import 'package:fabricos/localization/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -215,6 +216,7 @@ class _PricingPageState extends State<PricingPage> {
               ),
             ),
           ),
+          const WebsiteFooter(),
         ],
       ),
     );

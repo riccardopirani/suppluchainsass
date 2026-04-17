@@ -1,4 +1,5 @@
 import 'package:fabricos/features/website/presentation/widgets/marketing_page_widgets.dart';
+import 'package:fabricos/features/website/presentation/widgets/website_footer.dart';
 import 'package:fabricos/localization/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -65,6 +66,7 @@ class LegalPage extends StatelessWidget {
               ),
             ),
           ),
+          const WebsiteFooter(),
         ],
       ),
     );

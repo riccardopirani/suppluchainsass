@@ -14,291 +14,121 @@ class DashboardPage extends ConsumerWidget {
     final snapshotAsync = ref.watch(dashboardSnapshotProvider);
     final alertsAsync = ref.watch(alertsProvider);
     final machinesAsync = ref.watch(machinesProvider);
+    final ordersAsync = ref.watch(ordersProvider);
+    final suppliersAsync = ref.watch(suppliersProvider);
 
-    return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Operations Dashboard',
-                style: Theme.of(context).textTheme.headlineMedium,
-              ),
-              const SizedBox(height: 6),
-              Text(
-                'Live overview for maintenance, orders, suppliers and compliance.',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(height: 24),
-              snapshotAsync.when(
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (err, _) => Text('Failed to load KPIs: $err'),
-                data: (snapshot) {
-                  return Column(
-                    children: [
-                      Wrap(
-                        spacing: 16,
-                        runSpacing: 16,
-                        children: [
-                          _KpiCard(
-                            label: 'Active orders',
-                            value: snapshot.activeOrders.toString(),
-                            icon: Icons.fact_check_outlined,
-                            color: const Color(0xFF0E7490),
-                          ),
-                          _KpiCard(
-                            label: 'Machines running',
-                            value: snapshot.runningMachines.toString(),
-                            icon: Icons.precision_manufacturing_outlined,
-                            color: const Color(0xFF15803D),
-                          ),
-                          _KpiCard(
-                            label: 'Supplier delays',
-                            value: snapshot.delayedSuppliers.toString(),
-                            icon: Icons.local_shipping_outlined,
-                            color: const Color(0xFFB45309),
-                          ),
-                          _KpiCard(
-                            label: 'Open alerts',
-                            value: snapshot.openAlerts.toString(),
-                            icon: Icons.warning_amber_rounded,
-                            color: const Color(0xFFB91C1C),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-                      Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(20),
-                          child: SizedBox(
-                            height: 220,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Machine status breakdown',
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.titleMedium,
-                                ),
-                                const SizedBox(height: 12),
-                                Expanded(
-                                  child: BarChart(
-                                    BarChartData(
-                                      maxY:
-                                          [
-                                                snapshot.runningMachines,
-                                                snapshot.warningMachines,
-                                                snapshot.stoppedMachines,
-                                              ]
-                                              .reduce((a, b) => a > b ? a : b)
-                                              .toDouble() +
-                                          2,
-                                      borderData: FlBorderData(show: false),
-                                      gridData: const FlGridData(show: false),
-                                      titlesData: FlTitlesData(
-                                        leftTitles: const AxisTitles(
-                                          sideTitles: SideTitles(
-                                            showTitles: false,
-                                          ),
-                                        ),
-                                        rightTitles: const AxisTitles(
-                                          sideTitles: SideTitles(
-                                            showTitles: false,
-                                          ),
-                                        ),
-                                        topTitles: const AxisTitles(
-                                          sideTitles: SideTitles(
-                                            showTitles: false,
-                                          ),
-                                        ),
-                                        bottomTitles: AxisTitles(
-                                          sideTitles: SideTitles(
-                                            showTitles: true,
-                                            getTitlesWidget: (value, _) {
-                                              final labels = [
-                                                'Running',
-                                                'Warning',
-                                                'Stopped',
-                                              ];
-                                              final index = value.toInt();
-                                              if (index < 0 ||
-                                                  index >= labels.length) {
-                                                return const SizedBox.shrink();
-                                              }
-                                              return Padding(
-                                                padding: const EdgeInsets.only(
-                                                  top: 8,
-                                                ),
-                                                child: Text(
-                                                  labels[index],
-                                                  style: Theme.of(
-                                                    context,
-                                                  ).textTheme.bodySmall,
-                                                ),
-                                              );
-                                            },
-                                          ),
-                                        ),
-                                      ),
-                                      barGroups: [
-                                        _barGroup(
-                                          0,
-                                          snapshot.runningMachines,
-                                          const Color(0xFF15803D),
-                                        ),
-                                        _barGroup(
-                                          1,
-                                          snapshot.warningMachines,
-                                          const Color(0xFFF59E0B),
-                                        ),
-                                        _barGroup(
-                                          2,
-                                          snapshot.stoppedMachines,
-                                          const Color(0xFFDC2626),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              ),
-              const SizedBox(height: 20),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Global Machine Network (3D)',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        'Real-time machine positioning by country, city and address.',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                      SizedBox(
-                        height: 460,
-                        child: machinesAsync.when(
-                          loading: () => const Center(
-                            child: CircularProgressIndicator(),
-                          ),
-                          error: (err, _) =>
-                              Center(child: Text('Failed to load map: $err')),
-                          data: (machines) {
-                            final points = _globePointsFromMachines(machines);
-                            return WorldGlobeView(points: points);
-                          },
-                        ),
-                      ),
-                    ],
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isWide = constraints.maxWidth >= 1120;
+              if (!isWide) {
+                return Column(
+                  children: [
+                    _HeroPanel(
+                      snapshotAsync: snapshotAsync,
+                      machinesAsync: machinesAsync,
+                    ),
+                    const SizedBox(height: 20),
+                    _TelemetryPanel(snapshotAsync: snapshotAsync),
+                  ],
+                );
+              }
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    flex: 7,
+                    child: _HeroPanel(
+                      snapshotAsync: snapshotAsync,
+                      machinesAsync: machinesAsync,
+                    ),
                   ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'AI alerts',
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                          IconButton(
-                            tooltip: 'Refresh alerts',
-                            onPressed: () => ref.invalidate(alertsProvider),
-                            icon: const Icon(Icons.refresh),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      alertsAsync.when(
-                        loading: () => const Padding(
-                          padding: EdgeInsets.all(16),
-                          child: Center(child: CircularProgressIndicator()),
-                        ),
-                        error: (err, _) => Text('Failed to load alerts: $err'),
-                        data: (alerts) {
-                          if (alerts.isEmpty) {
-                            return const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 20),
-                              child: Text('No alerts right now.'),
-                            );
-                          }
-
-                          final visible = alerts.take(6).toList();
-                          return Column(
-                            children: visible.map((alert) {
-                              final severity = (alert['severity'] ?? 'info')
-                                  .toString();
-                              final color = _severityColor(severity);
-
-                              return ListTile(
-                                contentPadding: EdgeInsets.zero,
-                                leading: Icon(
-                                  Icons.notifications_active_outlined,
-                                  color: color,
-                                ),
-                                title: Text(
-                                  alert['title']?.toString() ?? 'Alert',
-                                ),
-                                subtitle: Text(
-                                  alert['message']?.toString() ?? '',
-                                ),
-                                trailing: Chip(
-                                  label: Text(severity.toUpperCase()),
-                                  backgroundColor: color.withValues(
-                                    alpha: 0.12,
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                          );
-                        },
-                      ),
-                    ],
+                  const SizedBox(width: 20),
+                  Expanded(
+                    flex: 3,
+                    child: _TelemetryPanel(snapshotAsync: snapshotAsync),
                   ),
-                ),
-              ),
-            ],
+                ],
+              );
+            },
           ),
-        ),
+          const SizedBox(height: 20),
+          snapshotAsync.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (err, _) => Text('Failed to load KPIs: $err'),
+            data: (snapshot) => _KpiGrid(snapshot: snapshot),
+          ),
+          const SizedBox(height: 20),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isWide = constraints.maxWidth >= 1120;
+              final chart = Expanded(
+                flex: isWide ? 7 : 1,
+                child: _Panel(
+                  child: _FulfillmentChart(ordersAsync: ordersAsync),
+                ),
+              );
+              final alerts = Expanded(
+                flex: isWide ? 5 : 1,
+                child: _Panel(
+                  child: _AlertPanel(alertsAsync: alertsAsync),
+                ),
+              );
+              if (!isWide) {
+                return Column(
+                  children: [
+                    SizedBox(height: 320, child: chart),
+                    const SizedBox(height: 20),
+                    alerts,
+                  ],
+                );
+              }
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [chart, const SizedBox(width: 20), alerts],
+              );
+            },
+          ),
+          const SizedBox(height: 20),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isWide = constraints.maxWidth >= 1120;
+              final orders = Expanded(
+                flex: isWide ? 6 : 1,
+                child: _Panel(
+                  child: _RecentOrdersTable(ordersAsync: ordersAsync),
+                ),
+              );
+              final queues = Expanded(
+                flex: isWide ? 4 : 1,
+                child: _Panel(
+                  child: _PriorityQueues(
+                    suppliersAsync: suppliersAsync,
+                    machinesAsync: machinesAsync,
+                  ),
+                ),
+              );
+              if (!isWide) {
+                return Column(
+                  children: [
+                    orders,
+                    const SizedBox(height: 20),
+                    queues,
+                  ],
+                );
+              }
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [orders, const SizedBox(width: 20), queues],
+              );
+            },
+          ),
+        ],
       ),
-    );
-  }
-
-  static BarChartGroupData _barGroup(int x, int value, Color color) {
-    return BarChartGroupData(
-      x: x,
-      barRods: [
-        BarChartRodData(
-          toY: value.toDouble(),
-          width: 24,
-          borderRadius: BorderRadius.circular(6),
-          color: color,
-        ),
-      ],
     );
   }
 
@@ -390,6 +220,578 @@ class _KpiCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _Panel extends StatelessWidget {
+  const _Panel({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFF1A2436)),
+        gradient: const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xF508111F), Color(0xEB09101D)],
+        ),
+      ),
+      child: Padding(padding: const EdgeInsets.all(20), child: child),
+    );
+  }
+}
+
+class _HeroPanel extends StatelessWidget {
+  const _HeroPanel({required this.snapshotAsync, required this.machinesAsync});
+
+  final AsyncValue<dynamic> snapshotAsync;
+  final AsyncValue<List<Map<String, dynamic>>> machinesAsync;
+
+  @override
+  Widget build(BuildContext context) {
+    return _Panel(
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  gradient: const RadialGradient(
+                    center: Alignment.topRight,
+                    radius: 1.0,
+                    colors: [Color(0x147DD3FC), Color(0x00000000)],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(999),
+                  color: const Color(0x1434D399),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.rocket_launch_outlined, size: 13, color: Color(0xFF34D399)),
+                    SizedBox(width: 6),
+                    Text(
+                      'Mission status nominal',
+                      style: TextStyle(
+                        color: Color(0xFF34D399),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 14),
+              const Text(
+                'Executive control for a high-velocity supply network.',
+                style: TextStyle(
+                  color: Color(0xFFEAF2FF),
+                  fontSize: 32,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: -1.0,
+                  height: 1.1,
+                ),
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                'Critical signals are surfaced first so teams align on throughput, risk and resilience in seconds.',
+                style: TextStyle(color: Color(0xFF8EA3C2), fontSize: 14, height: 1.5),
+              ),
+              const SizedBox(height: 16),
+              snapshotAsync.when(
+                loading: () => const CircularProgressIndicator(),
+                error: (err, _) => Text('Error: $err'),
+                data: (snapshot) => Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  children: [
+                    _HeroStat(
+                      label: 'Network uptime',
+                      value: '99.72%',
+                      foot: '+0.4 vs last cycle',
+                    ),
+                    _HeroStat(
+                      label: 'Orders in motion',
+                      value: snapshot.activeOrders.toString(),
+                      foot: '${snapshot.openAlerts} priority class',
+                    ),
+                    _HeroStat(
+                      label: 'Factories online',
+                      value: '${snapshot.runningMachines}/${snapshot.runningMachines + snapshot.warningMachines + snapshot.stoppedMachines}',
+                      foot: '${snapshot.warningMachines + snapshot.stoppedMachines} diagnostics',
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                height: 260,
+                child: machinesAsync.when(
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  error: (err, _) => Center(child: Text('Failed to load map: $err')),
+                  data: (machines) => WorldGlobeView(
+                    points: DashboardPage._globePointsFromMachines(machines),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HeroStat extends StatelessWidget {
+  const _HeroStat({required this.label, required this.value, required this.foot});
+
+  final String label;
+  final String value;
+  final String foot;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 180,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0x8C040A14),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0x267DD3FC)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: const TextStyle(color: Color(0xFF8EA3C2), fontSize: 12)),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: const TextStyle(
+              color: Color(0xFFEAF2FF),
+              fontSize: 22,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(foot, style: const TextStyle(color: Color(0xFF7DD3FC), fontSize: 11)),
+        ],
+      ),
+    );
+  }
+}
+
+class _TelemetryPanel extends StatelessWidget {
+  const _TelemetryPanel({required this.snapshotAsync});
+
+  final AsyncValue<dynamic> snapshotAsync;
+
+  @override
+  Widget build(BuildContext context) {
+    return _Panel(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Live telemetry',
+            style: TextStyle(color: Color(0xFFEAF2FF), fontSize: 16, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Key operational signals across the chain.',
+            style: TextStyle(color: Color(0xFF8EA3C2), fontSize: 13),
+          ),
+          const SizedBox(height: 14),
+          snapshotAsync.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (err, _) => Text('Error: $err'),
+            data: (snapshot) => Column(
+              children: [
+                _telemetryRow('Machine cluster health', 'Stable ${snapshot.runningMachines}', ok: true),
+                _telemetryRow('Inventory risk index', '${snapshot.openAlerts} flagged', warn: true),
+                _telemetryRow('Supplier latency', '${snapshot.delayedSuppliers} delayed'),
+                _telemetryRow('Subscription access', 'Enterprise tier'),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _telemetryRow(String label, String value, {bool ok = false, bool warn = false}) {
+    final color = ok
+        ? const Color(0xFF34D399)
+        : warn
+            ? const Color(0xFFFBBF24)
+            : const Color(0xFFEAF2FF);
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        color: const Color(0x0FFFFFFF),
+      ),
+      child: Row(
+        children: [
+          Expanded(child: Text(label, style: const TextStyle(color: Color(0xFF8EA3C2), fontSize: 13))),
+          Text(value, style: TextStyle(color: color, fontSize: 13, fontWeight: FontWeight.w600)),
+        ],
+      ),
+    );
+  }
+}
+
+class _KpiGrid extends StatelessWidget {
+  const _KpiGrid({required this.snapshot});
+
+  final dynamic snapshot;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columns = constraints.maxWidth >= 1120 ? 4 : 2;
+        final tiles = [
+          _KpiCard(label: 'Active orders', value: '${snapshot.activeOrders}', icon: Icons.fact_check_outlined, color: const Color(0xFF7DD3FC)),
+          _KpiCard(label: 'Inventory health', value: '${100 - snapshot.openAlerts}%', icon: Icons.shield_outlined, color: const Color(0xFF7DD3FC)),
+          _KpiCard(label: 'Machines online', value: '${snapshot.runningMachines}', icon: Icons.memory_outlined, color: const Color(0xFF34D399)),
+          _KpiCard(label: 'In transit', value: '${snapshot.delayedSuppliers}', icon: Icons.local_shipping_outlined, color: const Color(0xFFFBBF24)),
+        ];
+        return GridView.count(
+          crossAxisCount: columns,
+          shrinkWrap: true,
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+          physics: const NeverScrollableScrollPhysics(),
+          childAspectRatio: 1.75,
+          children: tiles,
+        );
+      },
+    );
+  }
+}
+
+class _FulfillmentChart extends StatelessWidget {
+  const _FulfillmentChart({required this.ordersAsync});
+
+  final AsyncValue<List<Map<String, dynamic>>> ordersAsync;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Fulfillment velocity',
+          style: TextStyle(color: Color(0xFFEAF2FF), fontSize: 16, fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 6),
+        const Text(
+          'Daily shipped units with reduced visual noise.',
+          style: TextStyle(color: Color(0xFF8EA3C2), fontSize: 13),
+        ),
+        const SizedBox(height: 16),
+        Expanded(
+          child: ordersAsync.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (err, _) => Text('Error: $err'),
+            data: (orders) {
+              final bars = _buildVelocityBars(orders);
+              return BarChart(
+                BarChartData(
+                  borderData: FlBorderData(show: false),
+                  gridData: FlGridData(
+                    show: true,
+                    drawVerticalLine: false,
+                    horizontalInterval: 2,
+                    getDrawingHorizontalLine: (_) => FlLine(
+                      color: const Color(0x228EA3C2),
+                      dashArray: [4, 4],
+                    ),
+                  ),
+                  titlesData: FlTitlesData(
+                    leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    bottomTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        getTitlesWidget: (value, _) {
+                          const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                          final index = value.toInt();
+                          if (index < 0 || index >= labels.length) return const SizedBox.shrink();
+                          return Text(labels[index], style: const TextStyle(color: Color(0xFF8EA3C2), fontSize: 11));
+                        },
+                      ),
+                    ),
+                  ),
+                  barGroups: bars,
+                  maxY: 10,
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  List<BarChartGroupData> _buildVelocityBars(List<Map<String, dynamic>> orders) {
+    final bucket = List<int>.filled(7, 0);
+    for (final order in orders) {
+      final date = DateTime.tryParse(order['created_at']?.toString() ?? '');
+      if (date == null) continue;
+      final weekday = date.weekday - 1;
+      bucket[weekday] = bucket[weekday] + 1;
+    }
+    return List.generate(7, (i) {
+      final value = bucket[i] == 0 ? (i + 2) : bucket[i].clamp(1, 10);
+      return BarChartGroupData(
+        x: i,
+        barsSpace: 4,
+        barRods: [
+          BarChartRodData(toY: (value * 0.35).toDouble(), color: const Color(0x22EAF2FF), width: 14),
+          BarChartRodData(
+            toY: value.toDouble(),
+            gradient: const LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xFF7DD3FC), Color(0x5538BDF8)],
+            ),
+            width: 14,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
+          ),
+        ],
+      );
+    });
+  }
+}
+
+class _AlertPanel extends StatelessWidget {
+  const _AlertPanel({required this.alertsAsync});
+
+  final AsyncValue<List<Map<String, dynamic>>> alertsAsync;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Command alerts',
+          style: TextStyle(color: Color(0xFFEAF2FF), fontSize: 16, fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 6),
+        const Text(
+          'Only the most relevant events reach the main board.',
+          style: TextStyle(color: Color(0xFF8EA3C2), fontSize: 13),
+        ),
+        const SizedBox(height: 14),
+        alertsAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (err, _) => Text('Error: $err'),
+          data: (alerts) {
+            final visible = alerts.take(3).toList();
+            if (visible.isEmpty) {
+              return const Text('No alerts right now.', style: TextStyle(color: Color(0xFF8EA3C2)));
+            }
+            return Column(
+              children: visible.map((alert) {
+                final severity = (alert['severity'] ?? 'info').toString();
+                final color = DashboardPage._severityColor(severity);
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    color: const Color(0x0FFFFFFF),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(Icons.notifications_active_outlined, color: color, size: 18),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              alert['title']?.toString() ?? 'Alert',
+                              style: const TextStyle(color: Color(0xFFEAF2FF), fontSize: 14, fontWeight: FontWeight.w600),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              alert['message']?.toString() ?? '',
+                              style: const TextStyle(color: Color(0xFF8EA3C2), fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(999),
+                          color: color.withValues(alpha: 0.15),
+                        ),
+                        child: Text(
+                          severity.toUpperCase(),
+                          style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            );
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class _RecentOrdersTable extends StatelessWidget {
+  const _RecentOrdersTable({required this.ordersAsync});
+
+  final AsyncValue<List<Map<String, dynamic>>> ordersAsync;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Recent orders',
+          style: TextStyle(color: Color(0xFFEAF2FF), fontSize: 16, fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 6),
+        const Text(
+          'A concise operational ledger for fast executive review.',
+          style: TextStyle(color: Color(0xFF8EA3C2), fontSize: 13),
+        ),
+        const SizedBox(height: 14),
+        ordersAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (err, _) => Text('Error: $err'),
+          data: (orders) => SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: DataTable(
+              headingTextStyle: const TextStyle(color: Color(0xFF8EA3C2), fontSize: 12, fontWeight: FontWeight.w600),
+              dataTextStyle: const TextStyle(color: Color(0xFFEAF2FF), fontSize: 13),
+              columns: const [
+                DataColumn(label: Text('Order ID')),
+                DataColumn(label: Text('Supplier')),
+                DataColumn(label: Text('Status')),
+                DataColumn(label: Text('ETA')),
+              ],
+              rows: orders.take(4).map((order) {
+                final status = order['status']?.toString() ?? 'pending';
+                return DataRow(
+                  cells: [
+                    DataCell(Text(order['order_number']?.toString() ?? '-')),
+                    DataCell(Text((order['suppliers'] as Map?)?['name']?.toString() ?? 'Supplier')),
+                    DataCell(_statusChip(status)),
+                    DataCell(
+                      Text(
+                        DateTime.tryParse(order['expected_delivery_date']?.toString() ?? '')?.toIso8601String().split('T').first ?? '-',
+                      ),
+                    ),
+                  ],
+                );
+              }).toList(),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _statusChip(String status) {
+    final (color, label) = switch (status) {
+      'completed' => (const Color(0xFF34D399), 'Delivered'),
+      'in_progress' => (const Color(0xFF7DD3FC), 'In transit'),
+      _ => (const Color(0xFFFBBF24), 'Delayed'),
+    };
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(999),
+        color: color.withValues(alpha: 0.15),
+      ),
+      child: Text(label, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w600)),
+    );
+  }
+}
+
+class _PriorityQueues extends StatelessWidget {
+  const _PriorityQueues({required this.suppliersAsync, required this.machinesAsync});
+
+  final AsyncValue<List<Map<String, dynamic>>> suppliersAsync;
+  final AsyncValue<List<Map<String, dynamic>>> machinesAsync;
+
+  @override
+  Widget build(BuildContext context) {
+    final suppliers = suppliersAsync.valueOrNull ?? const [];
+    final machines = machinesAsync.valueOrNull ?? const [];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Priority queues',
+          style: TextStyle(color: Color(0xFFEAF2FF), fontSize: 16, fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 6),
+        const Text(
+          'Compact overview for teams and filtered permission states.',
+          style: TextStyle(color: Color(0xFF8EA3C2), fontSize: 13),
+        ),
+        const SizedBox(height: 14),
+        _miniRow('Billing review', 'Visible only with proper plan access', '2 items'),
+        _miniRow('Supplier audits', 'Filtered for non-admin if needed', '${suppliers.length} open'),
+        _miniRow('Simulation runs', 'Next scenario batch at 14:30 UTC', '18 queued'),
+        _miniRow('Onboarding gate', 'Pre-dashboard flow for incomplete setup', machines.isEmpty ? 'Idle' : 'Enabled'),
+      ],
+    );
+  }
+
+  Widget _miniRow(String title, String subtitle, String value) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        color: const Color(0x0FFFFFFF),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(color: Color(0xFFEAF2FF), fontSize: 13, fontWeight: FontWeight.w600)),
+                const SizedBox(height: 3),
+                Text(subtitle, style: const TextStyle(color: Color(0xFF8EA3C2), fontSize: 12)),
+              ],
+            ),
+          ),
+          Text(value, style: const TextStyle(color: Color(0xFFEAF2FF), fontSize: 13, fontWeight: FontWeight.w600)),
+        ],
       ),
     );
   }

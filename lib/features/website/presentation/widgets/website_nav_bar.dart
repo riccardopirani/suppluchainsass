@@ -14,15 +14,16 @@ class WebsiteNavBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final isWide = MediaQuery.sizeOf(context).width > 950;
-    final scheme = Theme.of(context).colorScheme;
-
+    const navBg = Color(0xEE030712);
+    const navBorder = Color(0xFF1F2937);
+    const textPrimary = Color(0xFFF9FAFB);
     return Material(
       elevation: 0,
-      color: scheme.surface.withValues(alpha: 0.92),
+      color: navBg,
       child: DecoratedBox(
         decoration: BoxDecoration(
           border: Border(
-            bottom: BorderSide(color: scheme.outline.withValues(alpha: 0.2)),
+            bottom: const BorderSide(color: navBorder),
           ),
         ),
         child: SafeArea(
@@ -53,7 +54,7 @@ class WebsiteNavBar extends StatelessWidget implements PreferredSizeWidget {
                             fontSize: 22,
                             fontWeight: FontWeight.w800,
                             letterSpacing: -0.6,
-                            color: scheme.onSurface,
+                            color: textPrimary,
                           ),
                         ),
                       ],
@@ -76,17 +77,23 @@ class WebsiteNavBar extends StatelessWidget implements PreferredSizeWidget {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    side: BorderSide(color: scheme.outline.withValues(alpha: 0.45)),
+                    side: const BorderSide(color: navBorder),
+                    foregroundColor: textPrimary,
                   ),
                   onPressed: () => context.go('/login'),
                   child: Text(
                     l10n.t('nav_login'),
-                    style: GoogleFonts.ibmPlexSans(fontWeight: FontWeight.w600),
+                    style: GoogleFonts.ibmPlexSans(
+                      fontWeight: FontWeight.w600,
+                      color: textPrimary,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8),
                 FilledButton(
                   style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFF2563EB),
+                    foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -116,10 +123,9 @@ class _NavLink extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     return TextButton(
       style: TextButton.styleFrom(
-        foregroundColor: scheme.onSurface.withValues(alpha: 0.85),
+        foregroundColor: const Color(0xFF9CA3AF),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),

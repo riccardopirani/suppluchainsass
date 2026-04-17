@@ -92,52 +92,63 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     final total = SeatPricing.monthlyTotal(qty);
 
     return Scaffold(
+      backgroundColor: const Color(0xFF030712),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 440),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
+              constraints: const BoxConstraints(maxWidth: 460),
+              child: Container(
+                padding: const EdgeInsets.all(28),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0F172A),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFF1F2937)),
+                ),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
                     Text(
                       l10n.t('register_title'),
-                      style: Theme.of(context).textTheme.headlineMedium,
+                      style: const TextStyle(
+                        color: Color(0xFFF9FAFB),
+                        fontSize: 34,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.8,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       l10n.t('register_subtitle'),
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                      style: const TextStyle(
+                        color: Color(0xFF9CA3AF),
+                        fontSize: 15,
+                      ),
                     ),
                     const SizedBox(height: 32),
                     if (_error != null) ...[
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.errorContainer,
-                          borderRadius: BorderRadius.circular(12),
+                          color: const Color(0x1AFB7185),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: const Color(0x66FB7185)),
                         ),
                         child: Text(
                           _error!,
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.onErrorContainer,
-                          ),
+                          style: const TextStyle(color: Color(0xFFF9FAFB)),
                         ),
                       ),
                       const SizedBox(height: 16),
                     ],
                     TextFormField(
                       controller: _nameController,
-                      decoration: InputDecoration(
-                        labelText: l10n.t('register_name'),
-                        border: const OutlineInputBorder(),
-                      ),
+                      style: const TextStyle(color: Color(0xFFF9FAFB)),
+                      decoration: _inputDecoration(l10n.t('register_name')),
                       textInputAction: TextInputAction.next,
                       validator: (v) =>
                           (v == null || v.isEmpty) ? l10n.t('validation_name_required') : null,
@@ -145,10 +156,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _emailController,
-                      decoration: InputDecoration(
-                        labelText: l10n.t('login_email'),
-                        border: const OutlineInputBorder(),
-                      ),
+                      style: const TextStyle(color: Color(0xFFF9FAFB)),
+                      decoration: _inputDecoration(l10n.t('login_email')),
                       keyboardType: TextInputType.emailAddress,
                       textInputAction: TextInputAction.next,
                       validator: (v) =>
@@ -157,10 +166,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _passwordController,
-                      decoration: InputDecoration(
-                        labelText: l10n.t('login_password'),
-                        border: const OutlineInputBorder(),
-                      ),
+                      style: const TextStyle(color: Color(0xFFF9FAFB)),
+                      decoration: _inputDecoration(l10n.t('login_password')),
                       obscureText: true,
                       validator: (v) => (v == null || v.length < 6)
                           ? l10n.t('validation_password_min')
@@ -169,7 +176,11 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     const SizedBox(height: 20),
                     Text(
                       l10n.t('pricing_how_many_users'),
-                      style: Theme.of(context).textTheme.titleSmall,
+                      style: const TextStyle(
+                        color: Color(0xFFF9FAFB),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Row(
@@ -180,14 +191,12 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                             controller: _seatsController,
                             keyboardType: TextInputType.number,
                             textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                  color: Theme.of(context).colorScheme.primary,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                            decoration: const InputDecoration(
-                              border: InputBorder.none,
-                              isDense: true,
+                            style: const TextStyle(
+                              color: Color(0xFF2563EB),
+                              fontSize: 28,
+                              fontWeight: FontWeight.w800,
                             ),
+                            decoration: _seatInputDecoration(),
                             onChanged: (v) {
                               final n = int.tryParse(v);
                               setState(() {
@@ -197,13 +206,18 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                           ),
                         ),
                         const SizedBox(width: 4),
-                        Text(l10n.t('pricing_users')),
+                        Text(
+                          l10n.t('pricing_users'),
+                          style: const TextStyle(color: Color(0xFFF9FAFB)),
+                        ),
                         const Spacer(),
                         Text(
                           '€${total.toStringAsFixed(0)}${l10n.t('per_month')}',
-                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                fontWeight: FontWeight.w700,
-                              ),
+                          style: const TextStyle(
+                            color: Color(0xFFF9FAFB),
+                            fontWeight: FontWeight.w700,
+                            fontSize: 15,
+                          ),
                         ),
                       ],
                     ),
@@ -222,9 +236,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     ),
                     Text(
                       '€${unitPrice.toStringAsFixed(2)} ${l10n.t('pricing_per_user_month')}',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                      style: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 12),
                     ),
                     const SizedBox(height: 10),
                     SwitchListTile(
@@ -236,6 +248,14 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     ),
                     const SizedBox(height: 24),
                     FilledButton(
+                      style: FilledButton.styleFrom(
+                        backgroundColor: const Color(0xFF2563EB),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
                       onPressed: _loading
                           ? null
                           : () {
@@ -254,14 +274,59 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     const SizedBox(height: 16),
                     TextButton(
                       onPressed: () => context.go('/login'),
-                      child: Text(l10n.t('cta_sign_in')),
+                      child: Text(
+                        l10n.t('cta_sign_in'),
+                        style: const TextStyle(color: Color(0xFF9CA3AF)),
+                      ),
                     ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  InputDecoration _inputDecoration(String label) {
+    return InputDecoration(
+      labelText: label,
+      labelStyle: const TextStyle(color: Color(0xFF9CA3AF)),
+      filled: true,
+      fillColor: const Color(0x08FFFFFF),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Color(0xFF1F2937)),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Color(0xFF1F2937)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Color(0xFF2563EB)),
+      ),
+    );
+  }
+
+  InputDecoration _seatInputDecoration() {
+    return InputDecoration(
+      isDense: true,
+      filled: true,
+      fillColor: const Color(0x08FFFFFF),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Color(0xFF1F2937)),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Color(0xFF1F2937)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Color(0xFF2563EB)),
       ),
     );
   }

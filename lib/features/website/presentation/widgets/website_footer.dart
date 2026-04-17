@@ -9,15 +9,17 @@ class WebsiteFooter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final scheme = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    const footerBg = Color(0xFF030712);
+    const border = Color(0xFF1F2937);
+    const textPrimary = Color(0xFFF9FAFB);
+    const textMuted = Color(0xFF9CA3AF);
 
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: isDark ? scheme.surface.withValues(alpha: 0.95) : scheme.surfaceContainerHighest,
+        color: footerBg,
         border: Border(
-          top: BorderSide(color: scheme.primary.withValues(alpha: 0.2), width: 1),
+          top: const BorderSide(color: border, width: 1),
         ),
       ),
       child: Padding(
@@ -38,6 +40,7 @@ class WebsiteFooter extends StatelessWidget {
                         fontSize: 20,
                         fontWeight: FontWeight.w800,
                         letterSpacing: -0.4,
+                        color: textPrimary,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -47,7 +50,7 @@ class WebsiteFooter extends StatelessWidget {
                       style: GoogleFonts.ibmPlexSans(
                         fontSize: 13,
                         height: 1.45,
-                        color: scheme.onSurfaceVariant,
+                        color: textMuted,
                       ),
                     ),
                   ],
@@ -101,6 +104,7 @@ class _FooterLink extends StatelessWidget {
   Widget build(BuildContext context) {
     return TextButton(
       style: TextButton.styleFrom(
+        foregroundColor: const Color(0xFF9CA3AF),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       ),
       onPressed: onTap,

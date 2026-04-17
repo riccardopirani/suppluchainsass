@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:fabricos/localization/app_localizations.dart';
-import 'package:fabricos/core/theme/app_colors.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -73,14 +72,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final isWeb = MediaQuery.sizeOf(context).width > 600;
 
     return Scaffold(
+      backgroundColor: const Color(0xFF030712),
       body: isWeb
           ? Row(
               children: [
                 Expanded(
                   child: Container(
-                    decoration: const BoxDecoration(
-                      gradient: AppColorsLight.heroGradient,
-                    ),
+                    color: const Color(0xFF030712),
                     child: Center(
                       child: Padding(
                         padding: const EdgeInsets.all(48.0),
@@ -91,16 +89,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             Text(
                               l10n.t('app_name'),
                               style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 28,
-                                fontWeight: FontWeight.w700,
+                                color: Color(0xFFF9FAFB),
+                                fontSize: 34,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -0.8,
                               ),
                             ),
                             const SizedBox(height: 16),
                             Text(
                               l10n.t('tagline'),
-                              style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.9),
+                              style: const TextStyle(
+                                color: Color(0xFF9CA3AF),
                                 fontSize: 18,
                               ),
                             ),
@@ -124,99 +123,143 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           padding: const EdgeInsets.all(24),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 400),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    l10n.t('login_title'),
-                    style: Theme.of(context).textTheme.headlineMedium,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    l10n.t('login_subtitle'),
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                  if (_error != null) ...[
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.errorContainer,
-                        borderRadius: BorderRadius.circular(12),
+            child: Container(
+              padding: const EdgeInsets.all(28),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0F172A),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFF1F2937)),
+              ),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      l10n.t('login_title'),
+                      style: const TextStyle(
+                        color: Color(0xFFF9FAFB),
+                        fontSize: 34,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.8,
                       ),
-                      child: Text(
-                        _error!,
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onErrorContainer,
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Accedi al tuo account',
+                      style: TextStyle(
+                        color: Color(0xFF9CA3AF),
+                        fontSize: 15,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    if (_error != null) ...[
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color(0x1AFB7185),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: const Color(0x66FB7185)),
+                        ),
+                        child: Text(
+                          _error!,
+                          style: const TextStyle(color: Color(0xFFF9FAFB)),
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                    ],
+                    TextFormField(
+                      controller: _emailController,
+                      style: const TextStyle(color: Color(0xFFF9FAFB)),
+                      decoration: _inputDecoration(l10n.t('login_email')),
+                      keyboardType: TextInputType.emailAddress,
+                      textInputAction: TextInputAction.next,
+                      validator: (v) =>
+                          (v == null || v.isEmpty) ? 'Email required' : null,
+                    ),
+                    const SizedBox(height: 14),
+                    TextFormField(
+                      controller: _passwordController,
+                      style: const TextStyle(color: Color(0xFFF9FAFB)),
+                      decoration: _inputDecoration(l10n.t('login_password')),
+                      obscureText: true,
+                      textInputAction: TextInputAction.done,
+                      onFieldSubmitted: (_) => _submit(),
+                      validator: (v) =>
+                          (v == null || v.isEmpty) ? 'Password required' : null,
+                    ),
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () => context.push('/forgot-password'),
+                        child: const Text(
+                          'Password dimenticata?',
+                          style: TextStyle(color: Color(0xFF9CA3AF)),
                         ),
                       ),
                     ),
                     const SizedBox(height: 16),
+                    FilledButton(
+                      style: FilledButton.styleFrom(
+                        backgroundColor: const Color(0xFF2563EB),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      onPressed: _loading
+                          ? null
+                          : () {
+                              if (_formKey.currentState?.validate() ?? false) {
+                                _submit();
+                              }
+                            },
+                      child: _loading
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : Text(l10n.t('cta_sign_in')),
+                    ),
+                    const SizedBox(height: 14),
+                    TextButton(
+                      onPressed: () => context.push('/register'),
+                      child: const Text(
+                        'Registrati',
+                        style: TextStyle(color: Color(0xFF9CA3AF)),
+                      ),
+                    ),
                   ],
-                  TextFormField(
-                    controller: _emailController,
-                    decoration: InputDecoration(
-                      labelText: l10n.t('login_email'),
-                      border: const OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.emailAddress,
-                    textInputAction: TextInputAction.next,
-                    validator: (v) =>
-                        (v == null || v.isEmpty) ? 'Email required' : null,
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _passwordController,
-                    decoration: InputDecoration(
-                      labelText: l10n.t('login_password'),
-                      border: const OutlineInputBorder(),
-                    ),
-                    obscureText: true,
-                    textInputAction: TextInputAction.done,
-                    onFieldSubmitted: (_) => _submit(),
-                    validator: (v) =>
-                        (v == null || v.isEmpty) ? 'Password required' : null,
-                  ),
-                  const SizedBox(height: 8),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: () => context.push('/forgot-password'),
-                      child: Text(l10n.t('login_forgot')),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  FilledButton(
-                    onPressed: _loading
-                        ? null
-                        : () {
-                            if (_formKey.currentState?.validate() ?? false) {
-                              _submit();
-                            }
-                          },
-                    child: _loading
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : Text(l10n.t('cta_sign_in')),
-                  ),
-                  const SizedBox(height: 16),
-                  TextButton(
-                    onPressed: () => context.push('/register'),
-                    child: Text(l10n.t('cta_sign_up')),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  InputDecoration _inputDecoration(String label) {
+    return InputDecoration(
+      labelText: label,
+      labelStyle: const TextStyle(color: Color(0xFF9CA3AF)),
+      filled: true,
+      fillColor: const Color(0x08FFFFFF),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Color(0xFF1F2937)),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Color(0xFF1F2937)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Color(0xFF2563EB)),
       ),
     );
   }
