@@ -44,6 +44,7 @@ dependencies:
   uuid: ^4.5.1
   equatable: ^2.0.7
   collection: ^1.18.0
+  http: ^1.2.2
   google_fonts: ^6.2.1
   shared_preferences: ^2.3.3
 
@@ -51,6 +52,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.14.3
   build_runner: ^2.4.13
   freezed: ^2.5.7
   json_serializable: ^6.8.0
@@ -78,3 +80,16 @@ flutter:
     - assets/translations/pub_de.json
     - assets/translations/pub_ru.json
     - assets/translations/pub_zh.json
+
+# App icon: single 1024×1024 master → all platforms (run: dart run flutter_launcher_icons)
+flutter_launcher_icons:
+  image_path: assets/image.png
+  android: true
+  ios: true
+  remove_alpha_ios: true
+  web:
+    generate: true
+  macos:
+    generate: true
+  windows:
+    generate: true

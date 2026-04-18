@@ -32,4 +32,8 @@ class Env {
   bool get isDevelopment =>
       const String.fromEnvironment('APP_ENV', defaultValue: 'development') ==
       'development';
+
+  /// Optional — when empty, FabricOS Copilot uses the mock service.
+  String get openAiApiKey =>
+      const String.fromEnvironment('OPENAI_API_KEY', defaultValue: '');
 }

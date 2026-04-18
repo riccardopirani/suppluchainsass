@@ -1,4 +1,7 @@
+import 'package:fabricos/core/marketing/roi_calculator_logic.dart';
+import 'package:fabricos/core/operations/auto_actions_engine.dart';
 import 'package:fabricos/features/app_shell/providers/fabricos_provider.dart';
+import 'package:fabricos/features/dashboard/data/auto_actions_provider.dart';
 import 'package:fabricos/features/dashboard/presentation/widgets/world_globe_view_stub.dart'
     if (dart.library.html)
     'package:fabricos/features/dashboard/presentation/widgets/world_globe_view_web.dart';
@@ -60,36 +63,66 @@ class DashboardPage extends ConsumerWidget {
           snapshotAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (err, _) => Text('Failed to load KPIs: $err'),
-            data: (snapshot) => _KpiGrid(snapshot: snapshot),
+            data: (snapshot) => _ExecutiveKpiRow(
+              snapshot: snapshot,
+              machinesAsync: machinesAsync,
+              suppliersAsync: suppliersAsync,
+              alertsAsync: alertsAsync,
+            ),
           ),
           const SizedBox(height: 20),
           LayoutBuilder(
             builder: (context, constraints) {
               final isWide = constraints.maxWidth >= 1120;
-              final chart = Expanded(
-                flex: isWide ? 7 : 1,
-                child: _Panel(
-                  child: _FulfillmentChart(ordersAsync: ordersAsync),
-                ),
+              final fulfillment = _Panel(
+                child: _FulfillmentChart(ordersAsync: ordersAsync),
               );
-              final alerts = Expanded(
-                flex: isWide ? 5 : 1,
-                child: _Panel(
-                  child: _AlertPanel(alertsAsync: alertsAsync),
-                ),
+              final savings = _Panel(
+                child: _SavingsTrendChart(snapshotAsync: snapshotAsync),
+              );
+              final insights = _Panel(
+                child: _AlertPanel(alertsAsync: alertsAsync),
               );
               if (!isWide) {
                 return Column(
                   children: [
-                    SizedBox(height: 320, child: chart),
+                    SizedBox(height: 300, child: fulfillment),
                     const SizedBox(height: 20),
-                    alerts,
+                    SizedBox(height: 260, child: savings),
+                    const SizedBox(height: 20),
+                    SizedBox(height: 400, child: insights),
                   ],
                 );
               }
-              return Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [chart, const SizedBox(width: 20), alerts],
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(flex: 5, child: SizedBox(height: 340, child: fulfillment)),
+                      const SizedBox(width: 20),
+                      Expanded(flex: 4, child: SizedBox(height: 340, child: savings)),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  SizedBox(height: 420, child: insights),
+                ],
+              );
+            },
+          ),
+          const SizedBox(height: 20),
+          snapshotAsync.when(
+            loading: () => const SizedBox.shrink(),
+            error: (_, __) => const SizedBox.shrink(),
+            data: (snapshot) => _OpsTrendsRow(snapshot: snapshot),
+          ),
+          const SizedBox(height: 20),
+          Consumer(
+            builder: (context, ref, _) {
+              final actions = ref.watch(autoActionsProvider);
+              return _Panel(
+                child: _DailyActionsPanel(actions: actions),
               );
             },
           ),
@@ -97,33 +130,31 @@ class DashboardPage extends ConsumerWidget {
           LayoutBuilder(
             builder: (context, constraints) {
               final isWide = constraints.maxWidth >= 1120;
-              final orders = Expanded(
-                flex: isWide ? 6 : 1,
-                child: _Panel(
-                  child: _RecentOrdersTable(ordersAsync: ordersAsync),
-                ),
+              final ordersPanel = _Panel(
+                child: _RecentOrdersTable(ordersAsync: ordersAsync),
               );
-              final queues = Expanded(
-                flex: isWide ? 4 : 1,
-                child: _Panel(
-                  child: _PriorityQueues(
-                    suppliersAsync: suppliersAsync,
-                    machinesAsync: machinesAsync,
-                  ),
+              final queuesPanel = _Panel(
+                child: _PriorityQueues(
+                  suppliersAsync: suppliersAsync,
+                  machinesAsync: machinesAsync,
                 ),
               );
               if (!isWide) {
                 return Column(
                   children: [
-                    orders,
+                    SizedBox(height: 380, child: ordersPanel),
                     const SizedBox(height: 20),
-                    queues,
+                    queuesPanel,
                   ],
                 );
               }
               return Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [orders, const SizedBox(width: 20), queues],
+                children: [
+                  Expanded(flex: 6, child: SizedBox(height: 400, child: ordersPanel)),
+                  const SizedBox(width: 20),
+                  Expanded(flex: 4, child: queuesPanel),
+                ],
               );
             },
           ),
@@ -173,14 +204,209 @@ class DashboardPage extends ConsumerWidget {
   }
 }
 
-class _KpiCard extends StatelessWidget {
-  const _KpiCard({
-    required this.label,
-    required this.value,
-    required this.icon,
-    required this.color,
+class _OpsTrendsRow extends StatelessWidget {
+  const _OpsTrendsRow({required this.snapshot});
+
+  final DashboardSnapshot snapshot;
+
+  static List<FlSpot> _series(double start, double drift) {
+    return List.generate(
+      14,
+      (i) => FlSpot(i.toDouble(), (start + drift * i + (i % 4) * 0.25).clamp(0, 500)),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final downIdx = (snapshot.stoppedMachines * 2.8 + snapshot.warningMachines * 1.2).clamp(3.0, 56.0);
+    final supScore = (92 - snapshot.delayedSuppliers * 5.0).clamp(38.0, 96.0);
+    final turns = (6.8 - snapshot.openAlerts * 0.07).clamp(2.2, 9.4);
+
+    Widget chartCard(String title, String subtitle, List<FlSpot> spots, Color color) {
+      return _Panel(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(color: Color(0xFFEAF2FF), fontSize: 14, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 4),
+            Text(subtitle, style: const TextStyle(color: Color(0xFF8EA3C2), fontSize: 12)),
+            const SizedBox(height: 10),
+            SizedBox(
+              height: 130,
+              child: LineChart(
+                LineChartData(
+                  gridData: FlGridData(
+                    show: true,
+                    drawVerticalLine: false,
+                    getDrawingHorizontalLine: (_) => const FlLine(
+                      color: Color(0x148EA3C2),
+                      dashArray: [4, 4],
+                    ),
+                  ),
+                  titlesData: const FlTitlesData(show: false),
+                  borderData: FlBorderData(show: false),
+                  lineBarsData: [
+                    LineChartBarData(
+                      spots: spots,
+                      isCurved: true,
+                      color: color,
+                      barWidth: 2.5,
+                      dotData: const FlDotData(show: false),
+                      belowBarData: BarAreaData(
+                        show: true,
+                        gradient: LinearGradient(
+                          colors: [color.withValues(alpha: 0.35), color.withValues(alpha: 0)],
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return LayoutBuilder(
+      builder: (context, c) {
+        final downtimeSpots = _series(downIdx * 0.35, -0.07);
+        final supplierSpots = _series(supScore * 0.92, 0.035);
+        final inventorySpots = _series(turns, 0.018);
+
+        if (c.maxWidth < 900) {
+          return Column(
+            children: [
+              chartCard(
+                'Downtime trend',
+                'Directional hours index — last 14 days',
+                downtimeSpots,
+                const Color(0xFFF97316),
+              ),
+              const SizedBox(height: 16),
+              chartCard(
+                'Supplier performance',
+                'Composite reliability score',
+                supplierSpots,
+                const Color(0xFF38BDF8),
+              ),
+              const SizedBox(height: 16),
+              chartCard(
+                'Inventory turnover',
+                'Turns per month (proxy)',
+                inventorySpots,
+                const Color(0xFF34D399),
+              ),
+            ],
+          );
+        }
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: chartCard(
+                'Downtime trend',
+                'Directional hours index — last 14 days',
+                downtimeSpots,
+                const Color(0xFFF97316),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: chartCard(
+                'Supplier performance',
+                'Composite reliability score',
+                supplierSpots,
+                const Color(0xFF38BDF8),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: chartCard(
+                'Inventory turnover',
+                'Turns per month (proxy)',
+                inventorySpots,
+                const Color(0xFF34D399),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _ExecutiveKpiRow extends ConsumerWidget {
+  const _ExecutiveKpiRow({
+    required this.snapshot,
+    required this.machinesAsync,
+    required this.suppliersAsync,
+    required this.alertsAsync,
   });
 
+  final DashboardSnapshot snapshot;
+  final AsyncValue<List<Map<String, dynamic>>> machinesAsync;
+  final AsyncValue<List<Map<String, dynamic>>> suppliersAsync;
+  final AsyncValue<List<Map<String, dynamic>>> alertsAsync;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final machines = machinesAsync.valueOrNull ?? const [];
+    final suppliers = suppliersAsync.valueOrNull ?? const [];
+    final totalM = machines.isEmpty ? 1 : machines.length;
+    final running = machines.where((m) => m['status'] == 'running').length;
+    final machineHealth = (running * 100 / totalM).round().clamp(0, 100);
+    final supTotal = suppliers.length;
+    final reliabilityPct = supTotal == 0
+        ? 94
+        : (((supTotal - snapshot.delayedSuppliers) / supTotal) * 100).round().clamp(0, 100);
+    final invEff = (100 - snapshot.openAlerts * 3).clamp(45, 99);
+    final savings = RoiCalculatorLogic.estimate(
+      monthlyRevenue: 1800000,
+      downtimeHours: (snapshot.stoppedMachines + snapshot.warningMachines) * 4.0,
+      avgDelayCostPerEvent: snapshot.delayedSuppliers * 3500.0,
+      inventoryValue: 1200000,
+    ).estimatedMonthlySavings;
+    final criticalOpen = alertsAsync.maybeWhen(
+      data: (alerts) => alerts
+          .where((a) => a['resolved'] != true && (a['severity'] ?? '').toString() == 'critical')
+          .length,
+      orElse: () => 0,
+    );
+
+    final tiles = [
+      _ExecTile('Active orders', '${snapshot.activeOrders}', Icons.fact_check_outlined, const Color(0xFF7DD3FC)),
+      _ExecTile('Machine health', '$machineHealth%', Icons.precision_manufacturing_outlined, const Color(0xFF34D399)),
+      _ExecTile('Supplier reliability', '$reliabilityPct%', Icons.local_shipping_outlined, const Color(0xFFFBBF24)),
+      _ExecTile('Inventory efficiency', '$invEff%', Icons.inventory_2_outlined, const Color(0xFFA78BFA)),
+      _ExecTile('Monthly savings (est.)', '€${savings.round()}', Icons.savings_outlined, const Color(0xFF2DD4BF)),
+      _ExecTile('Open critical alerts', '$criticalOpen', Icons.crisis_alert_outlined, const Color(0xFFF472B6)),
+    ];
+
+    return LayoutBuilder(
+      builder: (context, c) {
+        final cols = c.maxWidth >= 1300 ? 6 : c.maxWidth >= 800 ? 3 : c.maxWidth >= 520 ? 2 : 1;
+        return GridView.count(
+          crossAxisCount: cols,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+          childAspectRatio: cols == 1 ? 3.25 : cols == 6 ? 1.95 : 1.75,
+          children: tiles,
+        );
+      },
+    );
+  }
+}
+
+class _ExecTile extends StatelessWidget {
+  const _ExecTile(this.label, this.value, this.icon, this.color);
   final String label;
   final String value;
   final IconData icon;
@@ -188,39 +414,198 @@ class _KpiCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.sizeOf(context).width;
-    final cardWidth = width > 1200
-        ? 250.0
-        : (width > 850 ? (width - 120) / 2 : width - 64);
-
-    return SizedBox(
-      width: cardWidth,
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(icon, color: color),
-              ),
-              const SizedBox(width: 14),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(label, style: Theme.of(context).textTheme.bodyMedium),
-                  const SizedBox(height: 2),
-                  Text(value, style: Theme.of(context).textTheme.headlineSmall),
-                ],
-              ),
-            ],
-          ),
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFF1A2436)),
+        gradient: const LinearGradient(
+          colors: [Color(0xF508111F), Color(0xEB09101D)],
         ),
       ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: color, size: 22),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(label, style: const TextStyle(color: Color(0xFF8EA3C2), fontSize: 12)),
+                  Text(
+                    value,
+                    style: const TextStyle(
+                      color: Color(0xFFEAF2FF),
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SavingsTrendChart extends StatelessWidget {
+  const _SavingsTrendChart({required this.snapshotAsync});
+
+  final AsyncValue<DashboardSnapshot> snapshotAsync;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Cost savings trend',
+          style: TextStyle(color: Color(0xFFEAF2FF), fontSize: 16, fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 6),
+        const Text(
+          'Illustrative 14-day trajectory from alert and delay reduction.',
+          style: TextStyle(color: Color(0xFF8EA3C2), fontSize: 13),
+        ),
+        const SizedBox(height: 12),
+        Expanded(
+          child: snapshotAsync.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (e, _) => Text('$e'),
+            data: (snap) {
+              final base = RoiCalculatorLogic.estimate(
+                monthlyRevenue: 1800000,
+                downtimeHours: (snap.stoppedMachines + snap.warningMachines) * 4.0,
+                avgDelayCostPerEvent: snap.delayedSuppliers * 3500.0,
+                inventoryValue: 1200000,
+              ).estimatedMonthlySavings;
+              final spots = List.generate(
+                14,
+                (i) => FlSpot(i.toDouble(), (base * (0.65 + i * 0.025)).clamp(0, base * 1.4)),
+              );
+              return LineChart(
+                LineChartData(
+                  gridData: FlGridData(
+                    show: true,
+                    drawVerticalLine: false,
+                    getDrawingHorizontalLine: (_) => FlLine(
+                      color: const Color(0x228EA3C2),
+                      dashArray: [4, 4],
+                    ),
+                  ),
+                  titlesData: const FlTitlesData(
+                    leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  ),
+                  borderData: FlBorderData(show: false),
+                  lineBarsData: [
+                    LineChartBarData(
+                      spots: spots,
+                      isCurved: true,
+                      color: const Color(0xFF34D399),
+                      barWidth: 3,
+                      dotData: const FlDotData(show: false),
+                      belowBarData: BarAreaData(
+                        show: true,
+                        gradient: LinearGradient(
+                          colors: [
+                            const Color(0x4434D399),
+                            const Color(0x0034D399),
+                          ],
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _DailyActionsPanel extends StatelessWidget {
+  const _DailyActionsPanel({required this.actions});
+
+  final List<AutoActionSuggestion> actions;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Daily actions (auto rules)',
+          style: TextStyle(color: Color(0xFFEAF2FF), fontSize: 16, fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 6),
+        const Text(
+          'Reorder, maintenance, and vendor flags generated from live thresholds.',
+          style: TextStyle(color: Color(0xFF8EA3C2), fontSize: 13),
+        ),
+        const SizedBox(height: 14),
+        if (actions.isEmpty)
+          const Text('No rule-based actions right now.', style: TextStyle(color: Color(0xFF8EA3C2)))
+        else
+          ...actions.take(6).map((a) {
+            final color = switch (a.severity) {
+              AutoActionSeverity.critical => const Color(0xFFDC2626),
+              AutoActionSeverity.warning => const Color(0xFFFBBF24),
+              AutoActionSeverity.info => const Color(0xFF7DD3FC),
+            };
+            return Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                color: const Color(0x0FFFFFFF),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.bolt_outlined, color: color, size: 18),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          a.title,
+                          style: const TextStyle(
+                            color: Color(0xFFEAF2FF),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          a.body,
+                          style: const TextStyle(color: Color(0xFF8EA3C2), fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+      ],
     );
   }
 }
@@ -457,36 +842,6 @@ class _TelemetryPanel extends StatelessWidget {
   }
 }
 
-class _KpiGrid extends StatelessWidget {
-  const _KpiGrid({required this.snapshot});
-
-  final dynamic snapshot;
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final columns = constraints.maxWidth >= 1120 ? 4 : 2;
-        final tiles = [
-          _KpiCard(label: 'Active orders', value: '${snapshot.activeOrders}', icon: Icons.fact_check_outlined, color: const Color(0xFF7DD3FC)),
-          _KpiCard(label: 'Inventory health', value: '${100 - snapshot.openAlerts}%', icon: Icons.shield_outlined, color: const Color(0xFF7DD3FC)),
-          _KpiCard(label: 'Machines online', value: '${snapshot.runningMachines}', icon: Icons.memory_outlined, color: const Color(0xFF34D399)),
-          _KpiCard(label: 'In transit', value: '${snapshot.delayedSuppliers}', icon: Icons.local_shipping_outlined, color: const Color(0xFFFBBF24)),
-        ];
-        return GridView.count(
-          crossAxisCount: columns,
-          shrinkWrap: true,
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
-          physics: const NeverScrollableScrollPhysics(),
-          childAspectRatio: 1.75,
-          children: tiles,
-        );
-      },
-    );
-  }
-}
-
 class _FulfillmentChart extends StatelessWidget {
   const _FulfillmentChart({required this.ordersAsync});
 
@@ -594,12 +949,12 @@ class _AlertPanel extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Command alerts',
+          'AI insights feed',
           style: TextStyle(color: Color(0xFFEAF2FF), fontSize: 16, fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 6),
         const Text(
-          'Only the most relevant events reach the main board.',
+          'Machine risk, supplier slippage, stock criticality and margin alerts — prioritized.',
           style: TextStyle(color: Color(0xFF8EA3C2), fontSize: 13),
         ),
         const SizedBox(height: 14),
@@ -607,7 +962,7 @@ class _AlertPanel extends StatelessWidget {
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (err, _) => Text('Error: $err'),
           data: (alerts) {
-            final visible = alerts.take(3).toList();
+            final visible = alerts.take(8).toList();
             if (visible.isEmpty) {
               return const Text('No alerts right now.', style: TextStyle(color: Color(0xFF8EA3C2)));
             }

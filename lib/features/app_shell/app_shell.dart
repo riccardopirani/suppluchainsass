@@ -1,6 +1,8 @@
 import 'package:fabricos/features/app_shell/providers/fabricos_provider.dart';
 import 'package:fabricos/features/billing/presentation/subscription_gate_page.dart';
+import 'package:fabricos/features/copilot/presentation/fabric_copilot_sheet.dart';
 import 'package:fabricos/features/team/data/team_provider.dart';
+import 'package:fabricos/localization/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -92,62 +94,73 @@ class AppShell extends ConsumerWidget {
     const panelBackground = Color(0xFF08111F);
 
     if (isWide) {
-      return Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFF08111F), Color(0xFF050914)],
-          ),
-        ),
-        child: Scaffold(
-          backgroundColor: Colors.transparent,
-          body: Row(
-            children: [
-              _Sidebar(companyName: companyName),
-              Expanded(
-                child: Container(
-                  decoration: const BoxDecoration(
-                    gradient: RadialGradient(
-                      center: Alignment.topRight,
-                      radius: 1.2,
-                      colors: [Color(0x2220BDF8), Color(0x00000000)],
-                    ),
-                  ),
-                  child: Column(
-                    children: [
-                      const _TopBar(),
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              color: panelBackground.withValues(alpha: 0.88),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: shellBorder.withValues(alpha: 0.8),
-                              ),
-                            ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: child,
-                            ),
-                          ),
+      return Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Color(0xFF08111F), Color(0xFF050914)],
+              ),
+            ),
+            child: Scaffold(
+              backgroundColor: Colors.transparent,
+              body: Row(
+                children: [
+                  _Sidebar(companyName: companyName),
+                  Expanded(
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        gradient: RadialGradient(
+                          center: Alignment.topRight,
+                          radius: 1.2,
+                          colors: [Color(0x2220BDF8), Color(0x00000000)],
                         ),
                       ),
-                    ],
+                      child: Column(
+                        children: [
+                          const _TopBar(),
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  color: panelBackground.withValues(alpha: 0.88),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: shellBorder.withValues(alpha: 0.8),
+                                  ),
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: child,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
+          const Positioned(
+            right: 32,
+            bottom: 32,
+            child: FabricCopilotFab(),
+          ),
+        ],
       );
     }
     return Scaffold(
       backgroundColor: shellBackground,
       body: child,
       bottomNavigationBar: const _BottomNav(),
+      floatingActionButton: const FabricCopilotFab(),
     );
   }
 }
@@ -157,19 +170,90 @@ class _Sidebar extends ConsumerWidget {
 
   final String companyName;
 
-  static const _menuItems = <(String key, IconData icon, String label, String route)>[
-    ('dashboard', Icons.dashboard_rounded, 'Dashboard', '/app'),
-    ('supply', Icons.visibility_outlined, 'Supply Dashboard', '/app/supply'),
-    ('inventory', Icons.inventory_2_outlined, 'Inventory', '/app/inventory'),
+  static const (String, IconData, String, String) _dash = (
+    'dashboard',
+    Icons.dashboard_rounded,
+    'Dashboard',
+    '/app',
+  );
+
+  static const _operations = <(String, IconData, String, String)>[
     ('machines', Icons.precision_manufacturing_outlined, 'Machines', '/app/machines'),
     ('orders', Icons.fact_check_outlined, 'Orders', '/app/orders'),
-    ('suppliers', Icons.local_shipping_outlined, 'Suppliers', '/app/suppliers'),
-    ('reports', Icons.description_outlined, 'Reports', '/app/reports'),
-    ('billing', Icons.credit_card_outlined, 'Billing', '/app/billing'),
-    ('shipments', Icons.local_shipping_outlined, 'Shipments', '/app/shipments'),
-    ('simulation', Icons.science_outlined, 'Simulation', '/app/simulation'),
-    ('team', Icons.people_outlined, 'Team', '/app/team'),
   ];
+
+  static const _supply = <(String, IconData, String, String)>[
+    ('supply', Icons.visibility_outlined, 'Supply', '/app/supply'),
+    ('inventory', Icons.inventory_2_outlined, 'Inventory', '/app/inventory'),
+    ('suppliers', Icons.local_shipping_outlined, 'Suppliers', '/app/suppliers'),
+    ('shipments', Icons.route_outlined, 'Shipments', '/app/shipments'),
+  ];
+
+  static const _intelligence = <(String, IconData, String, String)>[
+    ('control_tower', Icons.hub_outlined, 'AI Control Tower', '/app/control-tower'),
+    ('executive_report', Icons.insights_outlined, 'CEO report', '/app/executive-report'),
+    ('forecasting', Icons.trending_up_outlined, 'Forecasts', '/app/forecasting'),
+    ('simulation', Icons.science_outlined, 'What-if lab', '/app/simulation'),
+    ('reports', Icons.description_outlined, 'Reports', '/app/reports'),
+  ];
+
+  static String _itemLabel(BuildContext context, String key, String fallback) {
+    final l10n = context.l10n;
+    return switch (key) {
+      'control_tower' => l10n.t('app_menu_control_tower'),
+      'executive_report' => l10n.t('app_menu_executive'),
+      'simulation' => l10n.t('app_menu_simulation'),
+      'forecasting' => l10n.t('app_menu_forecasting'),
+      _ => fallback,
+    };
+  }
+
+  static Widget? _navTile({
+    required BuildContext context,
+    required (String, IconData, String, String) item,
+    required List<String>? allowedRoutes,
+    required String currentPath,
+    required Color sidebarForeground,
+    required Color sidebarPrimary,
+  }) {
+    if (allowedRoutes != null && !allowedRoutes.contains(item.$1)) {
+      return null;
+    }
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: ListTile(
+        dense: true,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+          side: currentPath == item.$4 ? const BorderSide(color: Color(0x227DD3FC)) : BorderSide.none,
+        ),
+        tileColor: currentPath == item.$4 ? sidebarPrimary.withValues(alpha: 0.8) : Colors.transparent,
+        textColor: sidebarForeground,
+        iconColor: sidebarForeground,
+        leading: Icon(item.$2, size: 20),
+        title: Text(
+          _itemLabel(context, item.$1, item.$3),
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+        ),
+        onTap: () => context.go(item.$4),
+      ),
+    );
+  }
+
+  static Widget _sectionLabel(BuildContext context, String l10nKey) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(10, 14, 10, 6),
+      child: Text(
+        context.l10n.t(l10nKey).toUpperCase(),
+        style: const TextStyle(
+          color: Color(0xFF8EA3C2),
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 1.1,
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -182,14 +266,157 @@ class _Sidebar extends ConsumerWidget {
         ? ref.watch(menuPermissionsProvider((companyId: companyId, role: role)))
         : null;
 
-    final allowedRoutes = isAdmin
-        ? null
-        : permsAsync?.valueOrNull;
+    final allowedRoutes = isAdmin ? null : permsAsync?.valueOrNull;
     final currentPath = GoRouterState.of(context).uri.path;
     const sidebarForeground = Color(0xFFC7D6F3);
     const mutedForeground = Color(0xFF8EA3C2);
     const sidebarPrimary = Color(0xFF0D1B30);
     const border = Color(0xFF1A2436);
+
+    final children = <Widget>[
+      Padding(
+        padding: const EdgeInsets.fromLTRB(6, 8, 6, 16),
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF7DD3FC), Color(0x337DD3FC)],
+                ),
+              ),
+              child: const Icon(Icons.radar_rounded, color: Color(0xFF03111E)),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'FabricOS',
+                    style: TextStyle(
+                      color: Color(0xFFEAF2FF),
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    companyName,
+                    style: const TextStyle(
+                      color: mutedForeground,
+                      fontSize: 12,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(999),
+                color: const Color(0x1F34D399),
+              ),
+              child: const Text(
+                'Live',
+                style: TextStyle(
+                  color: Color(0xFF34D399),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ];
+
+    final dash = _navTile(
+      context: context,
+      item: _dash,
+      allowedRoutes: allowedRoutes,
+      currentPath: currentPath,
+      sidebarForeground: sidebarForeground,
+      sidebarPrimary: sidebarPrimary,
+    );
+    if (dash != null) children.add(dash);
+
+    children.add(_sectionLabel(context, 'nav_section_operations'));
+    for (final item in _operations) {
+      final w = _navTile(
+        context: context,
+        item: item,
+        allowedRoutes: allowedRoutes,
+        currentPath: currentPath,
+        sidebarForeground: sidebarForeground,
+        sidebarPrimary: sidebarPrimary,
+      );
+      if (w != null) children.add(w);
+    }
+
+    children.add(_sectionLabel(context, 'nav_section_supply'));
+    for (final item in _supply) {
+      final w = _navTile(
+        context: context,
+        item: item,
+        allowedRoutes: allowedRoutes,
+        currentPath: currentPath,
+        sidebarForeground: sidebarForeground,
+        sidebarPrimary: sidebarPrimary,
+      );
+      if (w != null) children.add(w);
+    }
+
+    children.add(_sectionLabel(context, 'nav_section_intelligence'));
+    for (final item in _intelligence) {
+      final w = _navTile(
+        context: context,
+        item: item,
+        allowedRoutes: allowedRoutes,
+        currentPath: currentPath,
+        sidebarForeground: sidebarForeground,
+        sidebarPrimary: sidebarPrimary,
+      );
+      if (w != null) children.add(w);
+    }
+
+    final billing = _navTile(
+      context: context,
+      item: ('billing', Icons.credit_card_outlined, 'Billing', '/app/billing'),
+      allowedRoutes: allowedRoutes,
+      currentPath: currentPath,
+      sidebarForeground: sidebarForeground,
+      sidebarPrimary: sidebarPrimary,
+    );
+    if (billing != null) children.add(billing);
+
+    children.add(_sectionLabel(context, 'nav_section_workspace'));
+    final team = _navTile(
+      context: context,
+      item: ('team', Icons.people_outlined, 'Team', '/app/team'),
+      allowedRoutes: allowedRoutes,
+      currentPath: currentPath,
+      sidebarForeground: sidebarForeground,
+      sidebarPrimary: sidebarPrimary,
+    );
+    if (team != null) children.add(team);
+
+    children.add(
+      ListTile(
+        leading: const Icon(Icons.settings_outlined, size: 20),
+        iconColor: sidebarForeground,
+        textColor: sidebarForeground,
+        title: const Text('Settings', style: TextStyle(fontSize: 14)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        onTap: () => context.go('/app/settings'),
+      ),
+    );
 
     return Container(
       width: 272,
@@ -206,100 +433,7 @@ class _Sidebar extends ConsumerWidget {
       child: ListView(
         padding: const EdgeInsets.fromLTRB(14, 18, 14, 14),
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(6, 8, 6, 16),
-            child: Row(
-              children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    gradient: const LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [Color(0xFF7DD3FC), Color(0x337DD3FC)],
-                    ),
-                  ),
-                  child: const Icon(Icons.radar_rounded, color: Color(0xFF03111E)),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'OrbitalOps',
-                        style: TextStyle(
-                          color: Color(0xFFEAF2FF),
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16,
-                          letterSpacing: -0.3,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        companyName,
-                        style: const TextStyle(
-                          color: mutedForeground,
-                          fontSize: 12,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(999),
-                    color: const Color(0x1F34D399),
-                  ),
-                  child: const Text(
-                    'Live',
-                    style: TextStyle(
-                      color: Color(0xFF34D399),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          for (final item in _menuItems)
-            if (allowedRoutes == null || allowedRoutes.contains(item.$1))
-              Padding(
-                padding: const EdgeInsets.only(bottom: 6),
-                child: ListTile(
-                  dense: true,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    side: currentPath == item.$4
-                        ? const BorderSide(color: Color(0x227DD3FC))
-                        : BorderSide.none,
-                  ),
-                  tileColor: currentPath == item.$4
-                      ? sidebarPrimary.withValues(alpha: 0.8)
-                      : Colors.transparent,
-                  textColor: sidebarForeground,
-                  iconColor: sidebarForeground,
-                  leading: Icon(item.$2, size: 20),
-                  title: Text(
-                    item.$3,
-                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                  ),
-                  onTap: () => context.go(item.$4),
-                ),
-              ),
-          ListTile(
-            leading: const Icon(Icons.settings_outlined, size: 20),
-            iconColor: sidebarForeground,
-            textColor: sidebarForeground,
-            title: const Text('Settings', style: TextStyle(fontSize: 14)),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            onTap: () => context.go('/app/settings'),
-          ),
+          ...children,
           const SizedBox(height: 14),
           Container(
             padding: const EdgeInsets.all(12),
@@ -359,6 +493,9 @@ class _TopBar extends ConsumerWidget {
     final path = GoRouterState.of(context).uri.path;
     final title = switch (path) {
       '/app' => 'Global Supply Command',
+      '/app/control-tower' => context.l10n.t('control_tower_title'),
+      '/app/executive-report' => context.l10n.t('exec_report_title'),
+      '/app/forecasting' => context.l10n.t('app_menu_forecasting'),
       '/app/supply' => 'Supply Dashboard',
       '/app/inventory' => 'Inventory Command',
       '/app/machines' => 'Machine Control',
@@ -366,7 +503,7 @@ class _TopBar extends ConsumerWidget {
       '/app/suppliers' => 'Supplier Intelligence',
       '/app/reports' => 'Mission Reports',
       '/app/shipments' => 'Shipment Tracking',
-      '/app/simulation' => 'Simulation Lab',
+      '/app/simulation' => context.l10n.t('app_menu_simulation'),
       '/app/team' => 'Team & Permissions',
       '/app/settings' => 'Settings',
       '/app/billing' => 'Billing',
@@ -387,12 +524,12 @@ class _TopBar extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Wrap(
+                Wrap(
                   spacing: 8,
                   runSpacing: 8,
                   children: [
-                    _HeaderTag(text: 'Mission control', icon: Icons.satellite_alt),
-                    _HeaderTag(text: 'Executive view', icon: Icons.document_scanner_outlined),
+                    _HeaderTag(text: context.l10n.t('topbar_chip_roi'), icon: Icons.rocket_launch_outlined),
+                    _HeaderTag(text: context.l10n.t('topbar_chip_alerts'), icon: Icons.notifications_active_outlined),
                   ],
                 ),
                 const SizedBox(height: 10),
@@ -406,9 +543,9 @@ class _TopBar extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 2),
-                const Text(
-                  'Aerospace-inspired monitoring for inventory, machines, orders and suppliers.',
-                  style: TextStyle(color: Color(0xFF8EA3C2), fontSize: 13),
+                Text(
+                  context.l10n.t('topbar_tagline'),
+                  style: const TextStyle(color: Color(0xFF8EA3C2), fontSize: 13),
                 ),
               ],
             ),

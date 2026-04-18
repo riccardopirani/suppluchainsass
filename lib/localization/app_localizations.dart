@@ -46,6 +46,17 @@ class AppLocalizations {
     }
   }
 
+  /// Fills missing `pub_*` keys after a non-English pub file (e.g. older `pub_it.json`).
+  Future<void> _mergePubFallbackFromEn() async {
+    try {
+      final raw = await rootBundle.loadString('assets/translations/pub_en.json');
+      final Map<String, dynamic> map = jsonDecode(raw) as Map<String, dynamic>;
+      for (final e in map.entries) {
+        _localizedStrings.putIfAbsent(e.key, () => e.value?.toString() ?? '');
+      }
+    } catch (_) {}
+  }
+
   Future<bool> load() async {
     final langCode = locale.languageCode;
     try {
@@ -58,6 +69,9 @@ class AppLocalizations {
     // Public marketing site (home, pricing, contact, …) — overlay per locale
     try {
       await _mergeJsonAsset('assets/translations/pub_$langCode.json');
+      if (langCode != 'en') {
+        await _mergePubFallbackFromEn();
+      }
     } catch (_) {
       try {
         await _mergeJsonAsset('assets/translations/pub_en.json');

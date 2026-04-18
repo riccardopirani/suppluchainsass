@@ -1,3 +1,13 @@
+import 'package:fabricos/config/plan_catalog.dart';
+
+/// Flat monthly plan checkout (quantity = 1) in EUR cents.
+abstract final class PlanCheckoutPricing {
+  static int unitAmountCents(SubscriptionPlanTier tier, {required bool annual}) {
+    final d = PlanCatalog.byTier(tier);
+    return annual ? d.annualMonthlyEquivalentCents : d.flatMonthlyCents;
+  }
+}
+
 /// Per-seat pricing tiers (EUR cents per user per month).
 /// The Edge Function receives `quantity` and `unitAmountCents` and creates
 /// an inline `price_data` in Stripe — no pre-existing Price objects required.

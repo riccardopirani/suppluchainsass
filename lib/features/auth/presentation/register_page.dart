@@ -22,6 +22,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   String? _error;
   double _sliderVal = 10;
   bool _startWithTrial = true;
+  String? _planFromUrl;
 
   int get _qty {
     final v = int.tryParse(_seatsController.text) ?? 1;
@@ -40,6 +41,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
         _sliderVal = parsed.clamp(1, 500).toDouble();
       }
     }
+    _planFromUrl = uri.queryParameters['plan'];
   }
 
   @override
@@ -65,11 +67,13 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
           'full_name': _nameController.text.trim(),
           'seats': qty,
           'start_trial': _startWithTrial,
+          if (_planFromUrl != null && _planFromUrl!.isNotEmpty) 'plan': _planFromUrl,
         },
       );
       await Supabase.instance.client.auth.refreshSession();
       if (mounted) {
-        context.go('/onboarding?seats=$qty&trial=${_startWithTrial ? '1' : '0'}');
+        final p = _planFromUrl != null && _planFromUrl!.isNotEmpty ? _planFromUrl! : 'growth';
+        context.go('/onboarding?seats=$qty&trial=${_startWithTrial ? '1' : '0'}&plan=$p');
       }
     } on AuthException catch (e) {
       setState(() {

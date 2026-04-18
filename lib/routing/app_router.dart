@@ -17,12 +17,19 @@ import 'package:fabricos/features/supply_chain/presentation/simulation_page.dart
 import 'package:fabricos/features/supply_chain/presentation/supply_dashboard_page.dart';
 import 'package:fabricos/features/suppliers/presentation/suppliers_page.dart';
 import 'package:fabricos/features/suppliers/presentation/supplier_detail_page.dart';
+import 'package:fabricos/features/control_tower/presentation/control_tower_page.dart';
+import 'package:fabricos/features/executive/presentation/executive_report_page.dart';
+import 'package:fabricos/features/forecasting/presentation/forecasting_page.dart';
+import 'package:fabricos/features/website/presentation/book_demo_page.dart';
+import 'package:fabricos/features/website/presentation/case_studies_page.dart';
 import 'package:fabricos/features/website/presentation/contact_page.dart';
+import 'package:fabricos/features/website/presentation/factory_audit_page.dart';
 import 'package:fabricos/features/website/presentation/faq_page.dart';
 import 'package:fabricos/features/website/presentation/features_page.dart';
 import 'package:fabricos/features/website/presentation/home_page.dart';
 import 'package:fabricos/features/website/presentation/legal_page.dart';
 import 'package:fabricos/features/website/presentation/pricing_page.dart';
+import 'package:fabricos/features/website/presentation/roi_calculator_page.dart';
 import 'package:fabricos/features/website/presentation/website_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -57,6 +64,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
+      GoRoute(
+        path: '/factory-audit',
+        redirect: (context, state) => '/factory-score',
+      ),
       ShellRoute(
         builder: (context, state, child) => WebsiteLayout(child: child),
         routes: [
@@ -102,6 +113,26 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               child: LegalPage(type: LegalType.cookies),
             ),
           ),
+          GoRoute(
+            path: '/roi-calculator',
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: RoiCalculatorPage()),
+          ),
+          GoRoute(
+            path: '/factory-score',
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: FactoryAuditPage()),
+          ),
+          GoRoute(
+            path: '/book-demo',
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: BookDemoPage()),
+          ),
+          GoRoute(
+            path: '/case-studies',
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: CaseStudiesPage()),
+          ),
         ],
       ),
       GoRoute(
@@ -132,6 +163,21 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             pageBuilder: (context, state) =>
                 const NoTransitionPage(child: DashboardPage()),
             routes: [
+              GoRoute(
+                path: 'control-tower',
+                pageBuilder: (context, state) =>
+                    const NoTransitionPage(child: ControlTowerPage()),
+              ),
+              GoRoute(
+                path: 'executive-report',
+                pageBuilder: (context, state) =>
+                    const NoTransitionPage(child: ExecutiveReportPage()),
+              ),
+              GoRoute(
+                path: 'forecasting',
+                pageBuilder: (context, state) =>
+                    const NoTransitionPage(child: ForecastingPage()),
+              ),
               GoRoute(
                 path: 'machines',
                 pageBuilder: (context, state) =>

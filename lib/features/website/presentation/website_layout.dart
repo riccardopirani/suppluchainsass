@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
+import 'package:fabricos/features/website/presentation/widgets/exit_intent/exit_intent.dart';
 import 'package:fabricos/features/website/presentation/widgets/website_nav_bar.dart';
+import 'package:flutter/material.dart';
 
 class WebsiteLayout extends StatelessWidget {
   const WebsiteLayout({super.key, required this.child});
@@ -10,11 +11,13 @@ class WebsiteLayout extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF030712),
-      body: Column(
-        children: [
-          const WebsiteNavBar(),
-          Expanded(child: child),
-        ],
+      body: wrapWebsiteExitIntent(
+        child: Column(
+          children: [
+            const WebsiteNavBar(),
+            Expanded(child: child),
+          ],
+        ),
       ),
     );
   }

@@ -65,6 +65,10 @@ class WebsiteNavBar extends StatelessWidget implements PreferredSizeWidget {
                 if (isWide) ...[
                   _NavLink(label: l10n.t('nav_features'), onTap: () => context.go('/features')),
                   _NavLink(label: l10n.t('nav_pricing'), onTap: () => context.go('/pricing')),
+                  _NavLink(label: l10n.t('nav_roi'), onTap: () => context.go('/roi-calculator')),
+                  _NavLink(label: l10n.t('nav_factory_audit'), onTap: () => context.go('/factory-score')),
+                  _NavLink(label: l10n.t('nav_book_demo'), onTap: () => context.go('/book-demo')),
+                  _NavLink(label: l10n.t('nav_case_studies'), onTap: () => context.go('/case-studies')),
                   _NavLink(label: l10n.t('nav_contact'), onTap: () => context.go('/contact')),
                   _NavLink(label: l10n.t('nav_faq'), onTap: () => context.go('/faq')),
                   const SizedBox(width: 8),
@@ -73,7 +77,26 @@ class WebsiteNavBar extends StatelessWidget implements PreferredSizeWidget {
                 const SizedBox(width: 6),
                 OutlinedButton(
                   style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    side: const BorderSide(color: navBorder),
+                    foregroundColor: textPrimary,
+                  ),
+                  onPressed: () => context.go('/contact'),
+                  child: Text(
+                    l10n.t('pub_mfg_cta_demo'),
+                    style: GoogleFonts.ibmPlexSans(
+                      fontWeight: FontWeight.w600,
+                      color: textPrimary,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -94,14 +117,14 @@ class WebsiteNavBar extends StatelessWidget implements PreferredSizeWidget {
                   style: FilledButton.styleFrom(
                     backgroundColor: const Color(0xFF2563EB),
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
                   onPressed: () => context.go('/register'),
                   child: Text(
-                    l10n.t('cta_try_free'),
+                    l10n.t('pub_mfg_cta_trial'),
                     style: GoogleFonts.ibmPlexSans(fontWeight: FontWeight.w700),
                   ),
                 ),

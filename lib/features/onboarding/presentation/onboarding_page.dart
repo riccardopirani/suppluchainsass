@@ -1,5 +1,6 @@
 import 'package:fabricos/config/env.dart';
 import 'package:fabricos/config/stripe_plans.dart';
+import 'package:fabricos/core/marketing/roi_calculator_logic.dart';
 import 'package:fabricos/features/app_shell/providers/fabricos_provider.dart';
 import 'package:fabricos/localization/app_localizations.dart';
 import 'package:fabricos/utils/redirect_to_url.dart'
@@ -18,11 +19,17 @@ class OnboardingPage extends ConsumerStatefulWidget {
 
 class _OnboardingPageState extends ConsumerState<OnboardingPage> {
   final _companyController = TextEditingController();
+  int _step = 0;
   String _sizeBand = '10-50';
+  String _plantsBand = '1';
+  String _machinesBand = '10-50';
+  String _pain = 'downtime';
   int _seats = 10;
   bool _startTrial = true;
   bool _loading = false;
   String? _error;
+
+  static const _steps = 6;
 
   String _appOrigin() {
     final env = ref.read(envProvider);
@@ -34,6 +41,42 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
       }
     }
     return env.appBaseUrl.replaceAll(RegExp(r'/$'), '');
+  }
+
+  RoiCalculatorResult _roiPreview() {
+    var monthlyRevenue = 520000.0;
+    monthlyRevenue += switch (_plantsBand) {
+      '1' => 0.0,
+      '2-3' => 220000.0,
+      _ => 480000.0,
+    };
+    monthlyRevenue += switch (_machinesBand) {
+      '10-50' => 90000.0,
+      '51-200' => 240000.0,
+      _ => 420000.0,
+    };
+
+    var downtimeHours = switch (_machinesBand) {
+      '<10' => 18.0,
+      '10-50' => 28.0,
+      '51-200' => 44.0,
+      _ => 62.0,
+    };
+    if (_pain == 'downtime') downtimeHours += 22;
+
+    var delayCost = 12000.0 + (_plantsBand == '1' ? 0.0 : 9000.0);
+    if (_pain == 'delays') delayCost += 24000;
+
+    var inventory = 680000.0;
+    if (_pain == 'inventory') inventory += 520000;
+    if (_pain == 'visibility') inventory += 180000;
+
+    return RoiCalculatorLogic.estimate(
+      monthlyRevenue: monthlyRevenue,
+      downtimeHours: downtimeHours,
+      avgDelayCostPerEvent: delayCost,
+      inventoryValue: inventory,
+    );
   }
 
   @override
@@ -54,12 +97,13 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
       _error = null;
     });
 
+    final plan = GoRouterState.of(context).uri.queryParameters['plan'];
+
     try {
-      await ref
-          .read(fabricosRepositoryProvider)
-          .createCompanyAndAssignUser(
+      await ref.read(fabricosRepositoryProvider).createCompanyAndAssignUser(
             companyName: companyName,
             sizeBand: _sizeBand,
+            plan: plan != null && plan.isNotEmpty ? plan : null,
             startTrial: _startTrial,
           );
       ref.invalidate(fabricUserContextProvider);
@@ -105,6 +149,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
     final l10n = context.l10n;
     final total = SeatPricing.monthlyTotal(_seats);
     final unitPrice = SeatPricing.unitPrice(_seats);
+    final roi = _roiPreview();
 
     return Scaffold(
       body: SafeArea(
@@ -119,51 +164,192 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        l10n.t('onboarding_welcome'),
-                        style: Theme.of(context).textTheme.headlineSmall,
+                      LinearProgressIndicator(
+                        value: (_step + 1) / _steps,
+                        borderRadius: BorderRadius.circular(6),
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        l10n.t('onboarding_company_setup_subtitle'),
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        '${switch (_step) {
+                          0 => l10n.t('onboarding_step_welcome'),
+                          1 => l10n.t('onboarding_step_company'),
+                          2 => l10n.t('onboarding_step_plants'),
+                          3 => l10n.t('onboarding_step_machines'),
+                          4 => l10n.t('onboarding_step_pain'),
+                          _ => l10n.t('onboarding_step_roi'),
+                        }} · ${_step + 1}/$_steps',
+                        style: Theme.of(context).textTheme.labelMedium?.copyWith(
                               color: Theme.of(context).colorScheme.onSurfaceVariant,
                             ),
                       ),
                       const SizedBox(height: 20),
-                      TextField(
-                        controller: _companyController,
-                        decoration: InputDecoration(
-                          labelText: l10n.t('company_name'),
+                      if (_step == 0) ...[
+                        Text(
+                          l10n.t('onboarding_welcome'),
+                          style: Theme.of(context).textTheme.headlineSmall,
                         ),
-                      ),
-                      const SizedBox(height: 12),
-                      DropdownButtonFormField<String>(
-                        initialValue: _sizeBand,
-                        items: [
-                          DropdownMenuItem(value: '10-50', child: Text('10-50 ${l10n.t('pricing_users')}')),
-                          DropdownMenuItem(value: '51-200', child: Text('51-200 ${l10n.t('pricing_users')}')),
-                          DropdownMenuItem(value: '201-500', child: Text('201-500 ${l10n.t('pricing_users')}')),
-                        ],
-                        onChanged: (value) {
-                          if (value == null) return;
-                          setState(() => _sizeBand = value);
-                        },
-                        decoration: InputDecoration(
-                          labelText: l10n.t('company_size'),
+                        const SizedBox(height: 8),
+                        Text(
+                          l10n.t('onboarding_intro_body'),
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              ),
                         ),
-                      ),
-                      const SizedBox(height: 16),
-                      ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(l10n.t('billing_seat_summary')),
-                        subtitle: Text(
+                      ],
+                      if (_step == 1) ...[
+                        Text(
+                          l10n.t('onboarding_step_company'),
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                        const SizedBox(height: 16),
+                        TextField(
+                          controller: _companyController,
+                          decoration: InputDecoration(
+                            labelText: l10n.t('company_name'),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        DropdownButtonFormField<String>(
+                          initialValue: _sizeBand,
+                          items: [
+                            DropdownMenuItem(value: '10-50', child: Text('10-50 ${l10n.t('pricing_users')}')),
+                            DropdownMenuItem(value: '51-200', child: Text('51-200 ${l10n.t('pricing_users')}')),
+                            DropdownMenuItem(value: '201-500', child: Text('201-500 ${l10n.t('pricing_users')}')),
+                          ],
+                          onChanged: (value) {
+                            if (value == null) return;
+                            setState(() => _sizeBand = value);
+                          },
+                          decoration: InputDecoration(
+                            labelText: l10n.t('company_size'),
+                          ),
+                        ),
+                      ],
+                      if (_step == 2) ...[
+                        Text(
+                          l10n.t('onboarding_step_plants'),
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                        const SizedBox(height: 16),
+                        DropdownButtonFormField<String>(
+                          initialValue: _plantsBand,
+                          items: const [
+                            DropdownMenuItem(value: '1', child: Text('1 site')),
+                            DropdownMenuItem(value: '2-3', child: Text('2–3 sites')),
+                            DropdownMenuItem(value: '4+', child: Text('4+ sites')),
+                          ],
+                          onChanged: (v) => setState(() => _plantsBand = v ?? '1'),
+                          decoration: InputDecoration(
+                            labelText: l10n.t('onboarding_plants_label'),
+                          ),
+                        ),
+                      ],
+                      if (_step == 3) ...[
+                        Text(
+                          l10n.t('onboarding_step_machines'),
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                        const SizedBox(height: 16),
+                        DropdownButtonFormField<String>(
+                          initialValue: _machinesBand,
+                          items: [
+                            DropdownMenuItem(value: '<10', child: Text('<10 machines')),
+                            DropdownMenuItem(value: '10-50', child: Text('10–50 machines')),
+                            DropdownMenuItem(value: '51-200', child: Text('51–200 machines')),
+                            DropdownMenuItem(value: '200+', child: Text('200+ machines')),
+                          ],
+                          onChanged: (v) => setState(() => _machinesBand = v ?? '10-50'),
+                          decoration: InputDecoration(
+                            labelText: l10n.t('onboarding_machines_label'),
+                          ),
+                        ),
+                      ],
+                      if (_step == 4) ...[
+                        Text(
+                          l10n.t('onboarding_step_pain'),
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          l10n.t('onboarding_pain_label'),
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                        const SizedBox(height: 12),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            ChoiceChip(
+                              label: Text(l10n.t('onboarding_pain_downtime')),
+                              selected: _pain == 'downtime',
+                              onSelected: (_) => setState(() => _pain = 'downtime'),
+                            ),
+                            ChoiceChip(
+                              label: Text(l10n.t('onboarding_pain_delays')),
+                              selected: _pain == 'delays',
+                              onSelected: (_) => setState(() => _pain = 'delays'),
+                            ),
+                            ChoiceChip(
+                              label: Text(l10n.t('onboarding_pain_inventory')),
+                              selected: _pain == 'inventory',
+                              onSelected: (_) => setState(() => _pain = 'inventory'),
+                            ),
+                            ChoiceChip(
+                              label: Text(l10n.t('onboarding_pain_visibility')),
+                              selected: _pain == 'visibility',
+                              onSelected: (_) => setState(() => _pain = 'visibility'),
+                            ),
+                          ],
+                        ),
+                      ],
+                      if (_step == 5) ...[
+                        Text(
+                          l10n.t('onboarding_step_roi'),
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                        const SizedBox(height: 12),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '€${roi.estimatedMonthlySavings.round()}${l10n.t('per_month')} · est. savings',
+                                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                l10n.t('onboarding_roi_blurb'),
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                    ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        Text(
+                          l10n.t('billing_seat_summary'),
+                          style: Theme.of(context).textTheme.titleSmall,
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
                           '$_seats ${l10n.t('pricing_users')} · €${unitPrice.toStringAsFixed(2)} ${l10n.t('pricing_per_user_month')} · €${total.toStringAsFixed(0)}${l10n.t('per_month')}'
                           '${_startTrial ? ' · ${l10n.t('billing_trial_30_days')}' : ''}',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              ),
                         ),
-                      ),
-                      const SizedBox(height: 12),
-                      if (_error != null)
+                      ],
+                      if (_error != null) ...[
+                        const SizedBox(height: 16),
                         Container(
                           width: double.infinity,
                           padding: const EdgeInsets.all(12),
@@ -178,19 +364,44 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                             ),
                           ),
                         ),
-                      const SizedBox(height: 20),
-                      SizedBox(
-                        width: double.infinity,
-                        child: FilledButton(
-                          onPressed: _loading ? null : _complete,
-                          child: _loading
-                              ? const SizedBox(
-                                  width: 18,
-                                  height: 18,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
-                                )
-                              : Text(l10n.t('create_workspace_continue')),
-                        ),
+                      ],
+                      const SizedBox(height: 24),
+                      Row(
+                        children: [
+                          if (_step > 0)
+                            OutlinedButton(
+                              onPressed: _loading ? null : () => setState(() => _step -= 1),
+                              child: Text(l10n.t('onboarding_back')),
+                            ),
+                          const Spacer(),
+                          if (_step < _steps - 1)
+                            FilledButton(
+                              onPressed: _loading
+                                  ? null
+                                  : () {
+                                      if (_step == 1 && _companyController.text.trim().isEmpty) {
+                                        setState(() => _error = l10n.t('validation_name_required'));
+                                        return;
+                                      }
+                                      setState(() {
+                                        _error = null;
+                                        _step += 1;
+                                      });
+                                    },
+                              child: Text(l10n.t('onboarding_next')),
+                            )
+                          else
+                            FilledButton(
+                              onPressed: _loading ? null : _complete,
+                              child: _loading
+                                  ? const SizedBox(
+                                      width: 18,
+                                      height: 18,
+                                      child: CircularProgressIndicator(strokeWidth: 2),
+                                    )
+                                  : Text(l10n.t('create_workspace_continue')),
+                            ),
+                        ],
                       ),
                     ],
                   ),

@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:fabricos/config/plan_catalog.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -250,6 +251,7 @@ class BillingStatus {
     required this.inTrial,
     this.trialEndsAt,
     this.subscription,
+    this.planKey = 'starter',
   });
 
   final bool hasActiveSubscription;
@@ -257,7 +259,19 @@ class BillingStatus {
   final DateTime? trialEndsAt;
   final Map<String, dynamic>? subscription;
 
+  /// Raw plan string from Stripe/subscription metadata when present.
+  final String planKey;
+
   bool get canAccessApp => hasActiveSubscription || inTrial;
+
+  SubscriptionPlanTier get resolvedTier {
+    if (inTrial && !hasActiveSubscription) {
+      return SubscriptionPlanTier.growth;
+    }
+    final parsed = PlanCatalog.tryParseTier(planKey);
+    if (parsed != null) return parsed;
+    return SubscriptionPlanTier.starter;
+  }
 }
 
 final billingStatusProvider = FutureProvider<BillingStatus>((ref) async {
@@ -283,12 +297,29 @@ final billingStatusProvider = FutureProvider<BillingStatus>((ref) async {
   final status = (sub?['status'] ?? '').toString();
   final active = status == 'active' || status == 'trialing' || status == 'past_due';
 
+  var planKey = 'starter';
+  if (sub != null) {
+    final meta = sub['metadata'];
+    if (meta is Map && meta['plan'] != null) {
+      planKey = meta['plan'].toString();
+    } else if (sub['plan'] != null) {
+      planKey = sub['plan'].toString();
+    }
+  }
+
   return BillingStatus(
     hasActiveSubscription: active,
     inTrial: inTrial,
     trialEndsAt: trialEndsAt,
     subscription: sub,
+    planKey: planKey,
   );
+});
+
+final subscriptionEntitlementsProvider = Provider<SubscriptionEntitlements>((ref) {
+  final billing = ref.watch(billingStatusProvider).valueOrNull;
+  final tier = billing?.resolvedTier ?? SubscriptionPlanTier.starter;
+  return SubscriptionEntitlements(tier: tier);
 });
 
 final paymentHistoryProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
