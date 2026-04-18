@@ -76,6 +76,7 @@ deploy_fn() {
 }
 
 deploy_fn bootstrap-company
+deploy_fn register-mobile-purchase
 deploy_fn predict-maintenance-risk
 deploy_fn analyze-order-risks
 deploy_fn generate-esg-report

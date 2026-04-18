@@ -2,6 +2,8 @@ import 'package:fabricos/config/env.dart';
 import 'package:fabricos/config/plan_catalog.dart';
 import 'package:fabricos/config/stripe_plans.dart';
 import 'package:fabricos/features/app_shell/providers/fabricos_provider.dart';
+import 'package:fabricos/features/billing/data/fabric_iap_coordinator.dart';
+import 'package:fabricos/features/billing/data/mobile_billing_platform.dart';
 import 'package:fabricos/localization/app_localizations.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -31,6 +33,34 @@ class _BillingPageState extends ConsumerState<BillingPage> {
       }
     }
     return env.appBaseUrl.replaceAll(RegExp(r'/$'), '');
+  }
+
+  void _attachIapHandlers(FabricIapCoordinator iap) {
+    iap.onError = (m) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(m ?? 'Error')),
+      );
+    };
+    iap.onSuccess = () {
+      ref.invalidate(billingStatusProvider);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.t('billing_purchase_success'))),
+      );
+    };
+  }
+
+  Future<void> _startMobilePlanPurchase(String companyId) async {
+    if (_tier == SubscriptionPlanTier.enterprise) return;
+    setState(() => _busy = true);
+    final iap = ref.read(fabricIapCoordinatorProvider);
+    _attachIapHandlers(iap);
+    try {
+      await iap.startPurchase(companyId: companyId, tier: _tier, annual: _annual);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
   }
 
   Future<void> _openCheckoutPlan(String companyId) async {
@@ -164,6 +194,8 @@ class _BillingPageState extends ConsumerState<BillingPage> {
                                     : () {
                                         if (_tier == SubscriptionPlanTier.enterprise) {
                                           context.go('/contact');
+                                        } else if (kUseMobileStoreBilling) {
+                                          _startMobilePlanPurchase(companyId);
                                         } else {
                                           _openCheckoutPlan(companyId);
                                         }
@@ -177,28 +209,56 @@ class _BillingPageState extends ConsumerState<BillingPage> {
                                     : Text(
                                         _tier == SubscriptionPlanTier.enterprise
                                             ? l10n.t('contact_sales')
-                                            : l10n.t('billing_checkout'),
+                                            : kUseMobileStoreBilling
+                                                ? l10n.t('billing_iap_continue')
+                                                : l10n.t('billing_checkout'),
                                       ),
                               ),
                             ),
-                            const SizedBox(height: 32),
-                            Text('Legacy seat-based checkout', style: Theme.of(context).textTheme.titleSmall),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Per-user pricing still available for grandfathered contracts.',
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                            const SizedBox(height: 8),
-                            OutlinedButton(
-                              onPressed: _busy ? null : () => _openCheckoutLegacySeats(companyId, 10),
-                              child: const Text('10 seats · checkout'),
-                            ),
+                            if (!kUseMobileStoreBilling) ...[
+                              const SizedBox(height: 32),
+                              Text('Legacy seat-based checkout', style: Theme.of(context).textTheme.titleSmall),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Per-user pricing still available for grandfathered contracts.',
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                              const SizedBox(height: 8),
+                              OutlinedButton(
+                                onPressed: _busy ? null : () => _openCheckoutLegacySeats(companyId, 10),
+                                child: const Text('10 seats · checkout'),
+                              ),
+                            ],
                           ],
                           if (hasSubscription) ...[
-                            FilledButton.tonal(
-                              onPressed: _busy ? null : () => _openPortal(companyId),
-                              child: Text(l10n.t('manage_subscription')),
-                            ),
+                            if (billing.isStoreBillingSubscription) ...[
+                              Text(
+                                l10n.t('billing_manage_in_store'),
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                    ),
+                              ),
+                              const SizedBox(height: 12),
+                              OutlinedButton(
+                                onPressed: _busy
+                                    ? null
+                                    : () async {
+                                        setState(() => _busy = true);
+                                        final iap = ref.read(fabricIapCoordinatorProvider);
+                                        _attachIapHandlers(iap);
+                                        try {
+                                          await iap.restorePurchases();
+                                        } finally {
+                                          if (mounted) setState(() => _busy = false);
+                                        }
+                                      },
+                                child: Text(l10n.t('billing_restore_purchases')),
+                              ),
+                            ] else
+                              FilledButton.tonal(
+                                onPressed: _busy ? null : () => _openPortal(companyId),
+                                child: Text(l10n.t('manage_subscription')),
+                              ),
                           ],
                         ],
                       );

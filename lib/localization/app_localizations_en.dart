@@ -251,6 +251,12 @@ const Map<String, String> appLocalizationsEn = {
   'billing_plan_subtitle': 'Flat monthly pricing — upgrade or downgrade anytime.',
   'billing_annual': 'Annual billing (~17% off)',
   'billing_checkout': 'Continue to secure checkout',
+  'billing_iap_continue': 'Subscribe with App Store / Google Play',
+  'billing_manage_in_store':
+      'Manage or cancel this subscription in your App Store or Google Play account settings.',
+  'billing_restore_purchases': 'Restore purchases',
+  'billing_purchase_success': 'Subscription activated.',
+  'billing_iap_timeout': 'Purchase is taking too long. You can finish subscribing from Billing in settings.',
   'billing_enterprise_note': 'Enterprise includes SSO, API and white-label — talk to sales.',
   'app_menu_executive': 'CEO report',
   'app_menu_simulation': 'What-if lab',

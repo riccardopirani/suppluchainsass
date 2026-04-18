@@ -1,7 +1,12 @@
+import 'dart:async';
+
 import 'package:fabricos/config/env.dart';
+import 'package:fabricos/config/plan_catalog.dart';
 import 'package:fabricos/config/stripe_plans.dart';
 import 'package:fabricos/core/marketing/roi_calculator_logic.dart';
 import 'package:fabricos/features/app_shell/providers/fabricos_provider.dart';
+import 'package:fabricos/features/billing/data/fabric_iap_coordinator.dart';
+import 'package:fabricos/features/billing/data/mobile_billing_platform.dart';
 import 'package:fabricos/localization/app_localizations.dart';
 import 'package:fabricos/utils/redirect_to_url.dart'
     if (dart.library.html) 'package:fabricos/utils/redirect_to_url_web.dart';
@@ -112,6 +117,49 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
       final companyId = userCtx.companyId;
 
       if (!_startTrial && companyId != null) {
+        if (kUseMobileStoreBilling) {
+          final tier = PlanCatalog.tryParseTier(plan ?? '') ?? SubscriptionPlanTier.growth;
+          if (tier == SubscriptionPlanTier.enterprise) {
+            if (mounted) context.go('/contact');
+            return;
+          }
+          final iap = ref.read(fabricIapCoordinatorProvider);
+          final done = Completer<void>();
+          var canceled = false;
+          iap.onSuccess = () {
+            if (!done.isCompleted) done.complete();
+          };
+          iap.onError = (m) {
+            if (!done.isCompleted) done.completeError(Exception(m ?? 'Purchase failed'));
+          };
+          iap.onCanceled = () {
+            canceled = true;
+            if (!done.isCompleted) done.complete();
+          };
+          try {
+            await iap.startPurchase(companyId: companyId, tier: tier, annual: false);
+            await done.future.timeout(
+              const Duration(minutes: 3),
+              onTimeout: () => throw TimeoutException('iap'),
+            );
+            if (canceled) return;
+            ref.invalidate(billingStatusProvider);
+            if (mounted) context.go('/app');
+            return;
+          } on TimeoutException {
+            if (mounted) {
+              setState(() => _error = context.l10n.t('billing_iap_timeout'));
+            }
+            return;
+          } catch (e) {
+            if (mounted) setState(() => _error = e.toString());
+            return;
+          } finally {
+            iap.onSuccess = null;
+            iap.onError = null;
+            iap.onCanceled = null;
+          }
+        }
         final origin = _appOrigin();
         final unitCents = SeatPricing.unitCentsForQuantity(_seats);
         final url = await ref.read(fabricosRepositoryProvider).createCheckoutSession(

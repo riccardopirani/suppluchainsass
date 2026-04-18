@@ -272,6 +272,14 @@ class BillingStatus {
     if (parsed != null) return parsed;
     return SubscriptionPlanTier.starter;
   }
+
+  /// True when subscription was activated via App Store / Play Billing (`register-mobile-purchase`).
+  bool get isStoreBillingSubscription {
+    final meta = subscription?['metadata'];
+    if (meta is! Map) return false;
+    final src = meta['source']?.toString() ?? '';
+    return src.startsWith('iap_');
+  }
 }
 
 final billingStatusProvider = FutureProvider<BillingStatus>((ref) async {
@@ -748,6 +756,33 @@ class FabricOSRepository {
     final data = response.data;
     if (data is Map<String, dynamic>) return data['url']?.toString();
     return null;
+  }
+
+  /// After a successful App Store / Play Billing transaction, registers entitlement server-side.
+  Future<void> registerMobilePurchase({
+    required String companyId,
+    required String plan,
+    required String platform,
+    required String productId,
+    required String purchaseId,
+    String? verificationData,
+  }) async {
+    final response = await _client.functions.invoke(
+      'register-mobile-purchase',
+      body: {
+        'companyId': companyId,
+        'plan': plan,
+        'platform': platform,
+        'productId': productId,
+        'purchaseId': purchaseId,
+        'verificationData': verificationData ?? '',
+      },
+    );
+    if (response.status >= 400) {
+      throw Exception(
+        'register-mobile-purchase failed (${response.status}): ${response.data}',
+      );
+    }
   }
 
   Future<String?> createPortalSession({

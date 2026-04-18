@@ -1,3 +1,4 @@
+supabase functions deploy register-mobile-purchase       --project-ref "$SUPABASE_PROJECT_REF" --use-api
 supabase functions deploy create-stripe-checkout-session --project-ref "$SUPABASE_PROJECT_REF" --use-api --no-verify-jwt
 supabase functions deploy create-stripe-portal-session   --project-ref "$SUPABASE_PROJECT_REF" --use-api --no-verify-jwt
 supabase functions deploy stripe-webhook                 --project-ref "$SUPABASE_PROJECT_REF" --use-api --no-verify-jwt
