@@ -158,7 +158,7 @@ class AppShell extends ConsumerWidget {
     }
     return Scaffold(
       backgroundColor: shellBackground,
-      body: child,
+      body: SafeArea(child: child),
       bottomNavigationBar: const _BottomNav(),
       floatingActionButton: const FabricCopilotFab(),
     );
@@ -510,85 +510,86 @@ class _TopBar extends ConsumerWidget {
       _ => 'Mission Control',
     };
 
-    return Container(
-      padding: const EdgeInsets.fromLTRB(24, 18, 24, 18),
-      decoration: BoxDecoration(
-        color: const Color(0xD1050914),
-        border: Border(
-          bottom: BorderSide(color: const Color(0xFF1A2436).withValues(alpha: 0.8)),
-        ),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return LayoutBuilder(
+      builder: (context, c) {
+        final stackHeader = c.maxWidth < 1080;
+        final titleBlock = Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
               children: [
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    _HeaderTag(text: context.l10n.t('topbar_chip_roi'), icon: Icons.rocket_launch_outlined),
-                    _HeaderTag(text: context.l10n.t('topbar_chip_alerts'), icon: Icons.notifications_active_outlined),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: Color(0xFFEAF2FF),
-                    fontSize: 28,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: -0.8,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  context.l10n.t('topbar_tagline'),
-                  style: const TextStyle(color: Color(0xFF8EA3C2), fontSize: 13),
-                ),
+                _HeaderTag(text: context.l10n.t('topbar_chip_roi'), icon: Icons.rocket_launch_outlined),
+                _HeaderTag(text: context.l10n.t('topbar_chip_alerts'), icon: Icons.notifications_active_outlined),
               ],
             ),
+            const SizedBox(height: 10),
+            Text(
+              title,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: const Color(0xFFEAF2FF),
+                fontSize: c.maxWidth < 1200 ? 22 : 28,
+                fontWeight: FontWeight.w600,
+                letterSpacing: -0.8,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              context.l10n.t('topbar_tagline'),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: Color(0xFF8EA3C2), fontSize: 13, height: 1.35),
+            ),
+          ],
+        );
+
+        final alertsChip = Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(color: const Color(0xFF1A2436)),
+            color: const Color(0xF208111F),
           ),
-          const SizedBox(width: 12),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(999),
-              border: Border.all(color: const Color(0xFF1A2436)),
-              color: const Color(0xF208111F),
-            ),
-            child: const Row(
-              children: [
-                Icon(Icons.warning_amber_rounded, size: 16, color: Color(0xFFEAF2FF)),
-                SizedBox(width: 8),
-                Text('4 alerts', style: TextStyle(color: Color(0xFFEAF2FF), fontSize: 13)),
-              ],
-            ),
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.warning_amber_rounded, size: 16, color: Color(0xFFEAF2FF)),
+              SizedBox(width: 8),
+              Text('4 alerts', style: TextStyle(color: Color(0xFFEAF2FF), fontSize: 13)),
+            ],
           ),
-          const SizedBox(width: 10),
-          Container(
-            padding: const EdgeInsets.fromLTRB(6, 6, 10, 6),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(999),
-              border: Border.all(color: const Color(0xFF1A2436)),
-              color: const Color(0xF208111F),
-            ),
-            child: Row(
-              children: [
-                const CircleAvatar(
-                  radius: 16,
-                  backgroundColor: Color(0xFF0D1B30),
-                  child: Icon(Icons.person_outline, color: Color(0xFF8EA3C2), size: 16),
-                ),
-                const SizedBox(width: 8),
-                Column(
+        );
+
+        final userChip = Container(
+          constraints: const BoxConstraints(maxWidth: 220),
+          padding: const EdgeInsets.fromLTRB(6, 6, 10, 6),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(color: const Color(0xFF1A2436)),
+            color: const Color(0xF208111F),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const CircleAvatar(
+                radius: 16,
+                backgroundColor: Color(0xFF0D1B30),
+                child: Icon(Icons.person_outline, color: Color(0xFF8EA3C2), size: 16),
+              ),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       userCtx?.fullName.isNotEmpty == true
                           ? userCtx!.fullName
                           : (userCtx?.email ?? 'Operator'),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         color: Color(0xFFEAF2FF),
                         fontSize: 13,
@@ -597,15 +598,51 @@ class _TopBar extends ConsumerWidget {
                     ),
                     Text(
                       userCtx?.role ?? 'operator',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(color: Color(0xFF8EA3C2), fontSize: 11),
                     ),
                   ],
                 ),
-              ],
+              ),
+            ],
+          ),
+        );
+
+        return Container(
+          padding: const EdgeInsets.fromLTRB(24, 18, 24, 18),
+          decoration: BoxDecoration(
+            color: const Color(0xD1050914),
+            border: Border(
+              bottom: BorderSide(color: const Color(0xFF1A2436).withValues(alpha: 0.8)),
             ),
           ),
-        ],
-      ),
+          child: stackHeader
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    titleBlock,
+                    const SizedBox(height: 14),
+                    Wrap(
+                      alignment: WrapAlignment.end,
+                      spacing: 10,
+                      runSpacing: 10,
+                      children: [alertsChip, userChip],
+                    ),
+                  ],
+                )
+              : Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(child: titleBlock),
+                    const SizedBox(width: 12),
+                    alertsChip,
+                    const SizedBox(width: 10),
+                    userChip,
+                  ],
+                ),
+        );
+      },
     );
   }
 }
@@ -662,6 +699,7 @@ class _BottomNav extends StatelessWidget {
     }
 
     return NavigationBar(
+      labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
       selectedIndex: currentIndex,
       onDestinationSelected: (i) {
         switch (i) {

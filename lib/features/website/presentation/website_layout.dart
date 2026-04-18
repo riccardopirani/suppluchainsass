@@ -1,4 +1,5 @@
 import 'package:fabricos/features/website/presentation/widgets/exit_intent/exit_intent.dart';
+import 'package:fabricos/features/website/presentation/widgets/website_marketing_drawer.dart';
 import 'package:fabricos/features/website/presentation/widgets/website_nav_bar.dart';
 import 'package:flutter/material.dart';
 
@@ -7,17 +8,28 @@ class WebsiteLayout extends StatelessWidget {
 
   final Widget child;
 
+  static const double _drawerBreakpoint = 960;
+
   @override
   Widget build(BuildContext context) {
+    final useDrawer = MediaQuery.sizeOf(context).width < _drawerBreakpoint;
     return Scaffold(
       backgroundColor: const Color(0xFF030712),
-      body: wrapWebsiteExitIntent(
-        child: Column(
-          children: [
-            const WebsiteNavBar(),
-            Expanded(child: child),
-          ],
-        ),
+      drawer: useDrawer ? const WebsiteMarketingDrawer() : null,
+      body: Builder(
+        builder: (scaffoldContext) {
+          return wrapWebsiteExitIntent(
+            child: Column(
+              children: [
+                WebsiteNavBar(
+                  onOpenMobileMenu:
+                      useDrawer ? () => Scaffold.of(scaffoldContext).openDrawer() : null,
+                ),
+                Expanded(child: child),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

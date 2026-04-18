@@ -112,41 +112,47 @@ class MarketingPageIntro extends StatelessWidget {
             child: Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 1200),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      eyebrow.toUpperCase(),
-                      style: GoogleFonts.ibmPlexSans(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 1.5,
-                        color: accent,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      title,
-                      style: GoogleFonts.spaceGrotesk(
-                        fontSize: 36,
-                        fontWeight: FontWeight.w700,
-                        height: 1.1,
-                        letterSpacing: -0.8,
-                        color: _onHero,
-                      ),
-                    ),
-                    if (subtitle != null && subtitle!.isNotEmpty) ...[
-                      const SizedBox(height: 14),
-                      Text(
-                        subtitle!,
-                        style: GoogleFonts.ibmPlexSans(
-                          fontSize: 16,
-                          height: 1.5,
-                          color: _onHero.withValues(alpha: 0.72),
+                child: LayoutBuilder(
+                  builder: (context, bc) {
+                    final narrow = bc.maxWidth < 520;
+                    final titleSize = narrow ? 28.0 : 36.0;
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          eyebrow.toUpperCase(),
+                          style: GoogleFonts.ibmPlexSans(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1.5,
+                            color: accent,
+                          ),
                         ),
-                      ),
-                    ],
-                  ],
+                        const SizedBox(height: 12),
+                        Text(
+                          title,
+                          style: GoogleFonts.spaceGrotesk(
+                            fontSize: titleSize,
+                            fontWeight: FontWeight.w700,
+                            height: 1.12,
+                            letterSpacing: -0.8,
+                            color: _onHero,
+                          ),
+                        ),
+                        if (subtitle != null && subtitle!.isNotEmpty) ...[
+                          const SizedBox(height: 14),
+                          Text(
+                            subtitle!,
+                            style: GoogleFonts.ibmPlexSans(
+                              fontSize: narrow ? 15 : 16,
+                              height: 1.5,
+                              color: _onHero.withValues(alpha: 0.72),
+                            ),
+                          ),
+                        ],
+                      ],
+                    );
+                  },
                 ),
               ),
             ),

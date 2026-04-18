@@ -20,8 +20,10 @@ class DashboardPage extends ConsumerWidget {
     final ordersAsync = ref.watch(ordersProvider);
     final suppliersAsync = ref.watch(suppliersProvider);
 
+    final w = MediaQuery.sizeOf(context).width;
+    final hPad = w < 480 ? 12.0 : w < 900 ? 16.0 : 24.0;
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.fromLTRB(hPad, 16, hPad, 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

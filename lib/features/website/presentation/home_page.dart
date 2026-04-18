@@ -140,29 +140,36 @@ class _SectionTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final narrow = MediaQuery.sizeOf(context).width < 560;
     return Column(
       children: [
-        Text(
-          title,
-          textAlign: TextAlign.center,
-          style: GoogleFonts.spaceGrotesk(
-            color: const Color(0xFFF9FAFB),
-            fontSize: 44,
-            fontWeight: FontWeight.w700,
-            height: 1.1,
-            letterSpacing: -0.8,
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Text(
+            title,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.spaceGrotesk(
+              color: const Color(0xFFF9FAFB),
+              fontSize: narrow ? 30 : 44,
+              fontWeight: FontWeight.w700,
+              height: 1.1,
+              letterSpacing: -0.8,
+            ),
           ),
         ),
         const SizedBox(height: 14),
         ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 720),
-          child: Text(
-            subtitle,
-            textAlign: TextAlign.center,
-            style: GoogleFonts.ibmPlexSans(
-              color: const Color(0xFF9CA3AF),
-              fontSize: 18,
-              height: 1.6,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Text(
+              subtitle,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.ibmPlexSans(
+                color: const Color(0xFF9CA3AF),
+                fontSize: narrow ? 16 : 18,
+                height: 1.6,
+              ),
             ),
           ),
         ),

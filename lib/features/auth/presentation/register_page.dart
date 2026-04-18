@@ -88,6 +88,29 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     }
   }
 
+  Widget _seatsCountField() {
+    return SizedBox(
+      width: 80,
+      child: TextField(
+        controller: _seatsController,
+        keyboardType: TextInputType.number,
+        textAlign: TextAlign.center,
+        style: const TextStyle(
+          color: Color(0xFF2563EB),
+          fontSize: 28,
+          fontWeight: FontWeight.w800,
+        ),
+        decoration: _seatInputDecoration(),
+        onChanged: (v) {
+          final n = int.tryParse(v);
+          setState(() {
+            if (n != null && n >= 1 && n <= 500) _sliderVal = n.toDouble();
+          });
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -187,43 +210,63 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        SizedBox(
-                          width: 80,
-                          child: TextField(
-                            controller: _seatsController,
-                            keyboardType: TextInputType.number,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              color: Color(0xFF2563EB),
-                              fontSize: 28,
-                              fontWeight: FontWeight.w800,
+                    LayoutBuilder(
+                      builder: (context, rc) {
+                        final stackSeats = rc.maxWidth < 400;
+                        if (stackSeats) {
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Row(
+                                children: [
+                                  _seatsCountField(),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      l10n.t('pricing_users'),
+                                      style: const TextStyle(color: Color(0xFFF9FAFB)),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                '€${total.toStringAsFixed(0)}${l10n.t('per_month')}',
+                                style: const TextStyle(
+                                  color: Color(0xFFF9FAFB),
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 15,
+                                ),
+                              ),
+                            ],
+                          );
+                        }
+                        return Row(
+                          children: [
+                            _seatsCountField(),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                l10n.t('pricing_users'),
+                                style: const TextStyle(color: Color(0xFFF9FAFB)),
+                              ),
                             ),
-                            decoration: _seatInputDecoration(),
-                            onChanged: (v) {
-                              final n = int.tryParse(v);
-                              setState(() {
-                                if (n != null && n >= 1 && n <= 500) _sliderVal = n.toDouble();
-                              });
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          l10n.t('pricing_users'),
-                          style: const TextStyle(color: Color(0xFFF9FAFB)),
-                        ),
-                        const Spacer(),
-                        Text(
-                          '€${total.toStringAsFixed(0)}${l10n.t('per_month')}',
-                          style: const TextStyle(
-                            color: Color(0xFFF9FAFB),
-                            fontWeight: FontWeight.w700,
-                            fontSize: 15,
-                          ),
-                        ),
-                      ],
+                            Flexible(
+                              child: Text(
+                                '€${total.toStringAsFixed(0)}${l10n.t('per_month')}',
+                                textAlign: TextAlign.end,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: Color(0xFFF9FAFB),
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 15,
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
                     ),
                     Slider(
                       min: 1,

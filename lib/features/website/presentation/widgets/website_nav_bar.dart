@@ -5,7 +5,10 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class WebsiteNavBar extends StatelessWidget implements PreferredSizeWidget {
-  const WebsiteNavBar({super.key});
+  const WebsiteNavBar({super.key, this.onOpenMobileMenu});
+
+  /// When set (narrow viewport), shows a menu icon that opens [WebsiteMarketingDrawer].
+  final VoidCallback? onOpenMobileMenu;
 
   @override
   Size get preferredSize => const Size.fromHeight(72);
@@ -13,7 +16,10 @@ class WebsiteNavBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final isWide = MediaQuery.sizeOf(context).width > 950;
+    final w = MediaQuery.sizeOf(context).width;
+    // Keep in sync with [WebsiteLayout._drawerBreakpoint]
+    final isWide = w >= 960;
+    final compactActions = onOpenMobileMenu != null;
     const navBg = Color(0xEE030712);
     const navBorder = Color(0xFF1F2937);
     const textPrimary = Color(0xFFF9FAFB);
@@ -32,36 +38,48 @@ class WebsiteNavBar extends StatelessWidget implements PreferredSizeWidget {
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             child: Row(
               children: [
-                GestureDetector(
-                  onTap: () => context.go('/'),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(6),
-                          child: Image.asset(
-                            'assets/image.png',
-                            width: 32,
-                            height: 32,
+                if (compactActions)
+                  IconButton(
+                    padding: const EdgeInsets.only(right: 4),
+                    icon: const Icon(Icons.menu_rounded, color: textPrimary),
+                    onPressed: onOpenMobileMenu,
+                    tooltip: MaterialLocalizations.of(context).openAppDrawerTooltip,
+                  ),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => context.go('/'),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(6),
+                            child: Image.asset(
+                              'assets/image.png',
+                              width: compactActions ? 28 : 32,
+                              height: compactActions ? 28 : 32,
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 10),
-                        Text(
-                          'FabricOS',
-                          style: GoogleFonts.spaceGrotesk(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -0.6,
-                            color: textPrimary,
+                          const SizedBox(width: 10),
+                          Flexible(
+                            child: Text(
+                              'FabricOS',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.spaceGrotesk(
+                                fontSize: compactActions ? 19 : 22,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -0.6,
+                                color: textPrimary,
+                              ),
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
-                const Spacer(),
                 if (isWide) ...[
                   _NavLink(label: l10n.t('nav_features'), onTap: () => context.go('/features')),
                   _NavLink(label: l10n.t('nav_pricing'), onTap: () => context.go('/pricing')),
@@ -74,50 +92,56 @@ class WebsiteNavBar extends StatelessWidget implements PreferredSizeWidget {
                   const SizedBox(width: 8),
                 ],
                 const LanguageSelector(),
-                const SizedBox(width: 6),
-                OutlinedButton(
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                if (!compactActions) ...[
+                  const SizedBox(width: 6),
+                  OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      side: const BorderSide(color: navBorder),
+                      foregroundColor: textPrimary,
                     ),
-                    side: const BorderSide(color: navBorder),
-                    foregroundColor: textPrimary,
-                  ),
-                  onPressed: () => context.go('/contact'),
-                  child: Text(
-                    l10n.t('pub_mfg_cta_demo'),
-                    style: GoogleFonts.ibmPlexSans(
-                      fontWeight: FontWeight.w600,
-                      color: textPrimary,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                OutlinedButton(
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    side: const BorderSide(color: navBorder),
-                    foregroundColor: textPrimary,
-                  ),
-                  onPressed: () => context.go('/login'),
-                  child: Text(
-                    l10n.t('nav_login'),
-                    style: GoogleFonts.ibmPlexSans(
-                      fontWeight: FontWeight.w600,
-                      color: textPrimary,
+                    onPressed: () => context.go('/contact'),
+                    child: Text(
+                      l10n.t('pub_mfg_cta_demo'),
+                      style: GoogleFonts.ibmPlexSans(
+                        fontWeight: FontWeight.w600,
+                        color: textPrimary,
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 8),
+                  const SizedBox(width: 8),
+                  OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      side: const BorderSide(color: navBorder),
+                      foregroundColor: textPrimary,
+                    ),
+                    onPressed: () => context.go('/login'),
+                    child: Text(
+                      l10n.t('nav_login'),
+                      style: GoogleFonts.ibmPlexSans(
+                        fontWeight: FontWeight.w600,
+                        color: textPrimary,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                ],
+                if (compactActions) const SizedBox(width: 4),
                 FilledButton(
                   style: FilledButton.styleFrom(
                     backgroundColor: const Color(0xFF2563EB),
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: compactActions ? 12 : 18,
+                      vertical: 12,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -125,10 +149,15 @@ class WebsiteNavBar extends StatelessWidget implements PreferredSizeWidget {
                   onPressed: () => context.go('/register'),
                   child: Text(
                     l10n.t('pub_mfg_cta_trial'),
-                    style: GoogleFonts.ibmPlexSans(fontWeight: FontWeight.w700),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.ibmPlexSans(
+                      fontWeight: FontWeight.w700,
+                      fontSize: compactActions ? 13 : 14,
+                    ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: compactActions ? 4 : 12),
               ],
             ),
           ),
