@@ -47,173 +47,46 @@ class _PricingPageState extends State<PricingPage> {
             subtitle: l10n.t('pub_price_subtitle'),
           ),
           MarketingBody(
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 720),
-                child: Column(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final wide = constraints.maxWidth >= 980;
+                final selectorCard = _selectorCard(
+                  context,
+                  l10n,
+                  scheme,
+                  qty: qty,
+                  unitPrice: unitPrice,
+                  total: total,
+                );
+
+                final supportingContent = Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 36),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.all(
-                          width: 2,
-                          color: scheme.primary.withValues(alpha: 0.5),
-                        ),
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            scheme.primary.withValues(alpha: 0.08),
-                            scheme.surface,
-                          ],
-                        ),
-                      ),
-                      child: Column(
-                        children: [
-                          Text(
-                            l10n.t('pricing_how_many_users'),
-                            style: GoogleFonts.spaceGrotesk(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          SizedBox(
-                            width: 140,
-                            child: TextField(
-                              controller: _seatsController,
-                              keyboardType: TextInputType.number,
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.spaceGrotesk(
-                                fontSize: 40,
-                                fontWeight: FontWeight.w800,
-                                color: scheme.primary,
-                              ),
-                              decoration: InputDecoration(
-                                suffixText: l10n.t('pricing_users'),
-                                border: InputBorder.none,
-                              ),
-                              onChanged: (v) {
-                                final n = int.tryParse(v);
-                                setState(() {
-                                  if (n != null && n >= 1 && n <= 500) _sliderVal = n.toDouble();
-                                });
-                              },
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Slider(
-                            min: 1,
-                            max: 500,
-                            divisions: 499,
-                            value: _sliderVal.clamp(1, 500),
-                            label: '${_sliderVal.round()}',
-                            onChanged: (v) {
-                              setState(() {
-                                _sliderVal = v;
-                                _seatsController.text = '${v.round()}';
-                              });
-                            },
-                          ),
-                          Text(
-                            l10n.t('pricing_slider_hint'),
-                            style: GoogleFonts.ibmPlexSans(fontSize: 12, color: scheme.onSurfaceVariant),
-                          ),
-                          const SizedBox(height: 24),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.baseline,
-                            textBaseline: TextBaseline.alphabetic,
-                            children: [
-                              Text(
-                                '€${total.toStringAsFixed(0)}',
-                                style: GoogleFonts.spaceGrotesk(
-                                  fontSize: 48,
-                                  fontWeight: FontWeight.w800,
-                                  height: 1,
-                                  color: scheme.primary,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                l10n.t('pub_price_period'),
-                                style: GoogleFonts.ibmPlexSans(
-                                  fontSize: 16,
-                                  color: scheme.onSurfaceVariant,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            '€${unitPrice.toStringAsFixed(2)} ${l10n.t('pricing_per_user_month')}',
-                            style: GoogleFonts.ibmPlexSans(
-                              fontSize: 14,
-                              color: scheme.onSurfaceVariant,
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          SizedBox(
-                            width: double.infinity,
-                            child: FilledButton(
-                              style: FilledButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 16),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                                backgroundColor: scheme.primary,
-                                foregroundColor: Theme.of(context).brightness == Brightness.dark
-                                    ? scheme.onPrimary
-                                    : AppColorsLight.onPrimary,
-                              ),
-                              onPressed: () => context.go('/register?seats=$qty'),
-                              child: Text(
-                                l10n.t('cta_start_trial'),
-                                style: GoogleFonts.ibmPlexSans(fontWeight: FontWeight.w700),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 28),
                     _tierTable(context, l10n, scheme),
                     const SizedBox(height: 28),
                     _featuresList(context, l10n, scheme),
                   ],
-                ),
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 0, 24, 56),
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 1200),
-                child: Container(
-                  padding: const EdgeInsets.all(22),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: scheme.outline.withValues(alpha: 0.3)),
-                    color: scheme.surfaceContainerHighest.withValues(alpha: 0.4),
-                  ),
-                  child: Row(
+                );
+
+                if (wide) {
+                  return Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.verified_outlined, color: scheme.primary, size: 28),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Text(
-                          l10n.t('pub_price_footnote'),
-                          style: GoogleFonts.ibmPlexSans(
-                            fontSize: 14,
-                            height: 1.45,
-                            color: scheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ),
+                      Expanded(flex: 5, child: selectorCard),
+                      const SizedBox(width: 24),
+                      Expanded(flex: 4, child: supportingContent),
                     ],
-                  ),
-                ),
-              ),
+                  );
+                }
+
+                return Column(
+                  children: [
+                    selectorCard,
+                    const SizedBox(height: 28),
+                    supportingContent,
+                  ],
+                );
+              },
             ),
           ),
           const WebsiteFooter(),
@@ -222,7 +95,193 @@ class _PricingPageState extends State<PricingPage> {
     );
   }
 
-  Widget _tierTable(BuildContext context, AppLocalizations l10n, ColorScheme scheme) {
+  Widget _selectorCard(
+    BuildContext context,
+    AppLocalizations l10n,
+    ColorScheme scheme, {
+    required int qty,
+    required double unitPrice,
+    required double total,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(28),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          width: 1.4,
+          color: scheme.primary.withValues(alpha: 0.38),
+        ),
+        color: scheme.surfaceContainerHighest.withValues(
+          alpha: isDark ? 0.48 : 0.9,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.22 : 0.08),
+            blurRadius: 32,
+            offset: const Offset(0, 16),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            l10n.t('pricing_how_many_users'),
+            textAlign: TextAlign.center,
+            style: GoogleFonts.spaceGrotesk(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              height: 1.2,
+            ),
+          ),
+          const SizedBox(height: 18),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: scheme.outline.withValues(alpha: 0.22)),
+              color: scheme.surface.withValues(alpha: isDark ? 0.35 : 0.95),
+            ),
+            child: TextField(
+              controller: _seatsController,
+              keyboardType: TextInputType.number,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.spaceGrotesk(
+                fontSize: 42,
+                fontWeight: FontWeight.w800,
+                color: scheme.primary,
+              ),
+              decoration: InputDecoration(
+                isDense: true,
+                border: InputBorder.none,
+                suffixText: l10n.t('pricing_users'),
+                suffixStyle: GoogleFonts.ibmPlexSans(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: scheme.onSurfaceVariant,
+                ),
+              ),
+              onChanged: (v) {
+                final n = int.tryParse(v);
+                setState(() {
+                  if (n != null && n >= 1 && n <= 500) {
+                    _sliderVal = n.toDouble();
+                  }
+                });
+              },
+            ),
+          ),
+          const SizedBox(height: 12),
+          Slider(
+            min: 1,
+            max: 500,
+            divisions: 499,
+            value: _sliderVal.clamp(1, 500),
+            label: '${_sliderVal.round()}',
+            onChanged: (v) {
+              setState(() {
+                _sliderVal = v;
+                _seatsController.text = '${v.round()}';
+              });
+            },
+          ),
+          Text(
+            l10n.t('pricing_slider_hint'),
+            textAlign: TextAlign.center,
+            style: GoogleFonts.ibmPlexSans(
+              fontSize: 13,
+              height: 1.45,
+              color: scheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 24),
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(18),
+              color: scheme.primary.withValues(alpha: 0.08),
+              border: Border.all(color: scheme.primary.withValues(alpha: 0.16)),
+            ),
+            child: Column(
+              children: [
+                Text(
+                  '€${total.toStringAsFixed(0)}',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.spaceGrotesk(
+                    fontSize: 52,
+                    fontWeight: FontWeight.w800,
+                    height: 1,
+                    color: scheme.primary,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  l10n.t('pub_price_period'),
+                  style: GoogleFonts.ibmPlexSans(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  '€${unitPrice.toStringAsFixed(2)} ${l10n.t('pricing_per_user_month')}',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.ibmPlexSans(
+                    fontSize: 14,
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 22),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              style: FilledButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                backgroundColor: scheme.primary,
+                foregroundColor: Theme.of(context).brightness == Brightness.dark
+                    ? scheme.onPrimary
+                    : AppColorsLight.onPrimary,
+              ),
+              onPressed: () => context.go('/register?seats=$qty'),
+              child: Text(
+                l10n.t('cta_start_trial'),
+                style: GoogleFonts.ibmPlexSans(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 15,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            l10n.t('pub_price_footnote'),
+            textAlign: TextAlign.center,
+            style: GoogleFonts.ibmPlexSans(
+              fontSize: 12,
+              height: 1.45,
+              color: scheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _tierTable(
+    BuildContext context,
+    AppLocalizations l10n,
+    ColorScheme scheme,
+  ) {
     final rows = [
       ['1 – 10', '€9.00'],
       ['11 – 50', '€8.00'],
@@ -234,6 +293,7 @@ class _PricingPageState extends State<PricingPage> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: scheme.outline.withValues(alpha: 0.3)),
+        color: scheme.surfaceContainerHighest.withValues(alpha: 0.35),
       ),
       child: Column(
         children: [
@@ -242,30 +302,56 @@ class _PricingPageState extends State<PricingPage> {
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
             decoration: BoxDecoration(
               color: scheme.surfaceContainerHighest.withValues(alpha: 0.5),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(16),
+              ),
             ),
             child: Text(
               l10n.t('pricing_volume_discounts'),
-              style: GoogleFonts.spaceGrotesk(fontSize: 16, fontWeight: FontWeight.w700),
+              style: GoogleFonts.spaceGrotesk(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
           for (var i = 0; i < rows.length; i++)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-              decoration: BoxDecoration(
-                border: i < rows.length - 1
-                    ? Border(bottom: BorderSide(color: scheme.outline.withValues(alpha: 0.15)))
-                    : null,
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            _discountRow(
+              context,
+              scheme,
+              range: rows[i][0],
+              price: rows[i][1],
+              isLast: i == rows.length - 1,
+              usersLabel: l10n.t('pricing_users'),
+              periodLabel: l10n.t('pricing_per_user_month'),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _discountRow(
+    BuildContext context,
+    ColorScheme scheme, {
+    required String range,
+    required String price,
+    required bool isLast,
+    required String usersLabel,
+    required String periodLabel,
+  }) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final narrow = constraints.maxWidth < 420;
+        final rowContent = narrow
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '${rows[i][0]} ${l10n.t('pricing_users')}',
-                    style: GoogleFonts.ibmPlexSans(fontSize: 14),
+                    '$range $usersLabel',
+                    style: GoogleFonts.ibmPlexSans(fontSize: 14, height: 1.4),
                   ),
+                  const SizedBox(height: 4),
                   Text(
-                    '${rows[i][1]} / ${l10n.t('pricing_per_user_month')}',
+                    '$price / $periodLabel',
                     style: GoogleFonts.ibmPlexSans(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -273,14 +359,50 @@ class _PricingPageState extends State<PricingPage> {
                     ),
                   ),
                 ],
-              ),
-            ),
-        ],
-      ),
+              )
+            : Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      '$range $usersLabel',
+                      style: GoogleFonts.ibmPlexSans(fontSize: 14, height: 1.4),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Text(
+                    '$price / $periodLabel',
+                    style: GoogleFonts.ibmPlexSans(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: scheme.primary,
+                    ),
+                  ),
+                ],
+              );
+
+        return Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          decoration: BoxDecoration(
+            border: isLast
+                ? null
+                : Border(
+                    bottom: BorderSide(
+                      color: scheme.outline.withValues(alpha: 0.15),
+                    ),
+                  ),
+          ),
+          child: rowContent,
+        );
+      },
     );
   }
 
-  Widget _featuresList(BuildContext context, AppLocalizations l10n, ColorScheme scheme) {
+  Widget _featuresList(
+    BuildContext context,
+    AppLocalizations l10n,
+    ColorScheme scheme,
+  ) {
     final features = [
       l10n.t('pricing_feat_dashboard'),
       l10n.t('pricing_feat_machines'),
@@ -297,27 +419,37 @@ class _PricingPageState extends State<PricingPage> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: scheme.outline.withValues(alpha: 0.3)),
+        color: scheme.surfaceContainerHighest.withValues(alpha: 0.28),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             l10n.t('pricing_all_included'),
-            style: GoogleFonts.spaceGrotesk(fontSize: 16, fontWeight: FontWeight.w700),
+            style: GoogleFonts.spaceGrotesk(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+            ),
           ),
           const SizedBox(height: 14),
           Wrap(
-            spacing: 20,
-            runSpacing: 10,
+            spacing: 18,
+            runSpacing: 12,
             children: features
-                .map((f) => Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.check_circle_rounded, size: 18, color: scheme.primary),
-                        const SizedBox(width: 8),
-                        Text(f, style: GoogleFonts.ibmPlexSans(fontSize: 14)),
-                      ],
-                    ))
+                .map(
+                  (f) => Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.check_circle_rounded,
+                        size: 18,
+                        color: scheme.primary,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(f, style: GoogleFonts.ibmPlexSans(fontSize: 14)),
+                    ],
+                  ),
+                )
                 .toList(),
           ),
         ],
