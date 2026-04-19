@@ -58,14 +58,16 @@ supabase link --project-ref "$SUPABASE_PROJECT_REF_VALUE" --password "$SUPABASE_
 echo "Pushing migrations..."
 supabase db push --password "$SUPABASE_DB_PASSWORD"
 
-echo "Setting edge function secrets..."
-supabase secrets set --project-ref "$SUPABASE_PROJECT_REF_VALUE" \
-  SUPABASE_URL="$SUPABASE_URL_VALUE" \
-  SUPABASE_SERVICE_ROLE_KEY="$SUPABASE_SERVICE_ROLE_VALUE" \
-  SUPABASE_ANON_KEY="$SUPABASE_PUBLISHABLE_VALUE"
-
+# SUPABASE_URL / SERVICE_ROLE / ANON are injected automatically for Edge Functions.
+# CLI cannot set secrets whose names start with SUPABASE_ (use Dashboard → Edge Functions → Secrets for extras).
+echo "Optional edge secrets (Stripe, app URL, …) — set APP_BASE_URL or STRIPE_* in .env if needed."
 if [[ -n "${APP_BASE_URL:-}" ]]; then
   supabase secrets set --project-ref "$SUPABASE_PROJECT_REF_VALUE" APP_BASE_URL="$APP_BASE_URL"
+fi
+if [[ -n "${STRIPE_SECRET_KEY:-}" && -n "${STRIPE_WEBHOOK_SECRET:-}" ]]; then
+  supabase secrets set --project-ref "$SUPABASE_PROJECT_REF_VALUE" \
+    STRIPE_SECRET_KEY="$STRIPE_SECRET_KEY" \
+    STRIPE_WEBHOOK_SECRET="$STRIPE_WEBHOOK_SECRET"
 fi
 
 deploy_fn() {
