@@ -72,14 +72,32 @@ deploy_fn() {
   local fn_name="$1"
   shift
   echo "Deploying function: $fn_name"
-  supabase functions deploy "$fn_name" --project-ref "$SUPABASE_PROJECT_REF_VALUE" --use-api "$@"
+  supabase functions deploy "$fn_name" --project-ref "$SUPABASE_PROJECT_REF_VALUE" --use-api --no-verify-jwt "$@"
 }
 
-deploy_fn bootstrap-company
-deploy_fn register-mobile-purchase
-deploy_fn predict-maintenance-risk
+deploy_fn accept-invitation
 deploy_fn analyze-order-risks
+deploy_fn analyze-supplier-risk
+deploy_fn auto-replenishment
+deploy_fn bootstrap-company
+deploy_fn create-stripe-checkout-session
+deploy_fn create-stripe-portal-session
+deploy_fn detect-disruptions
 deploy_fn generate-esg-report
-deploy_fn submit-contact-form --no-verify-jwt
+deploy_fn generate-forecast
+deploy_fn generate-reorder-recommendations
+deploy_fn invite-user
+deploy_fn optimize-costs
+deploy_fn optimize-inventory
+deploy_fn predict-demand
+deploy_fn predict-maintenance-risk
+deploy_fn process-import
+deploy_fn register-mobile-purchase
+deploy_fn run-simulation
+deploy_fn seed-demo-workspace
+deploy_fn send-alerts
+deploy_fn stripe-webhook
+deploy_fn submit-contact-form
+deploy_fn sync-warehouse-inventory
 
 echo "Supabase deploy completed for project $SUPABASE_PROJECT_REF_VALUE."
