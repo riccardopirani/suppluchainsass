@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { resolveCompanyTable } from '../_shared/company_table.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -52,8 +53,9 @@ serve(async (req) => {
       return json({ companyId: profile.company_id, alreadyConfigured: true });
     }
 
+    const companyTable = await resolveCompanyTable(admin);
     const { data: company, error: companyError } = await admin
-      .from('companies')
+      .from(companyTable)
       .insert({
         name: companyName,
         size_band: sizeBand,
@@ -70,10 +72,19 @@ serve(async (req) => {
       return json({ error: companyError?.message ?? 'Failed to create company' }, 500);
     }
 
-    await admin
-      .from('users')
-      .update({ company_id: company.id, role: 'admin' })
-      .eq('id', user.id);
+    await admin.from('users').upsert(
+      {
+        id: user.id,
+        email: user.email ?? '',
+        full_name:
+          user.user_metadata?.full_name?.toString() ??
+          user.user_metadata?.name?.toString() ??
+          '',
+        company_id: company.id,
+        role: 'admin',
+      },
+      { onConflict: 'id' },
+    );
 
     const suppliers = [
       { name: 'Delta Components', reliability_score: 89, compliance_status: 'compliant', risk_level: 'low' },

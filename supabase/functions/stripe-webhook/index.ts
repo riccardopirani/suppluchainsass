@@ -1,6 +1,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import Stripe from 'https://esm.sh/stripe@14.21.0?target=deno';
+import { resolveCompanyTable } from '../_shared/company_table.ts';
 
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', {
   apiVersion: '2023-10-16',
@@ -25,6 +26,7 @@ serve(async (req) => {
     Deno.env.get('SUPABASE_URL') ?? '',
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
   );
+  const companyTable = await resolveCompanyTable(supabase);
 
   try {
     switch (event.type) {
@@ -58,7 +60,7 @@ serve(async (req) => {
               updated_at: new Date().toISOString(),
             }, { onConflict: 'stripe_subscription_id' });
             if (purchasedSeats > 0) {
-              await supabase.from('companies')
+              await supabase.from(companyTable)
                 .update({ seat_limit: purchasedSeats })
                 .eq('id', companyId);
             }

@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { resolveCompanyTable } from '../_shared/company_table.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -64,8 +65,9 @@ serve(async (req) => {
       return json({ error: 'Only admin or manager can invite users' }, 403);
     }
 
+    const companyTable = await resolveCompanyTable(admin);
     const { data: company } = await admin
-      .from('companies')
+      .from(companyTable)
       .select('seat_limit')
       .eq('id', companyId)
       .single();

@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:fabricos/config/company_table.dart';
 import 'package:fabricos/config/plan_catalog.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -63,7 +64,7 @@ final fabricUserContextProvider = FutureProvider<FabricUserContext>((
 
   Map<String, dynamic>? profile = await client
       .from('users')
-      .select('id, email, full_name, role, company_id, companies(name)')
+      .select('id, email, full_name, role, company_id')
       .eq('id', currentUser.id)
       .maybeSingle();
 
@@ -77,12 +78,15 @@ final fabricUserContextProvider = FutureProvider<FabricUserContext>((
 
     profile = await client
         .from('users')
-        .select('id, email, full_name, role, company_id, companies(name)')
+        .select('id, email, full_name, role, company_id')
         .eq('id', currentUser.id)
         .single();
   }
 
-  final company = profile['companies'] as Map<String, dynamic>?;
+  final companyName = await fetchCompanyName(
+    client,
+    profile['company_id']?.toString(),
+  );
 
   return FabricUserContext(
     userId: currentUser.id,
@@ -90,7 +94,7 @@ final fabricUserContextProvider = FutureProvider<FabricUserContext>((
     fullName: (profile['full_name'] ?? '').toString(),
     role: (profile['role'] ?? 'operator').toString(),
     companyId: profile['company_id']?.toString(),
-    companyName: company?['name']?.toString(),
+    companyName: companyName,
   );
 });
 
@@ -286,11 +290,11 @@ final billingStatusProvider = FutureProvider<BillingStatus>((ref) async {
   final client = ref.watch(fabricSupabaseClientProvider);
   final companyId = await ref.watch(currentCompanyIdProvider.future);
 
-  final company = await client
-      .from('companies')
-      .select('trial_ends_at')
-      .eq('id', companyId)
-      .maybeSingle();
+  final company = await fetchCompanyRow(
+    client,
+    companyId,
+    columns: 'id, trial_ends_at',
+  );
 
   final sub = await client
       .from('subscriptions')
@@ -300,10 +304,13 @@ final billingStatusProvider = FutureProvider<BillingStatus>((ref) async {
       .limit(1)
       .maybeSingle();
 
-  final trialEndsAt = DateTime.tryParse(company?['trial_ends_at']?.toString() ?? '');
+  final trialEndsAt = DateTime.tryParse(
+    company?['trial_ends_at']?.toString() ?? '',
+  );
   final inTrial = trialEndsAt != null && trialEndsAt.isAfter(DateTime.now());
   final status = (sub?['status'] ?? '').toString();
-  final active = status == 'active' || status == 'trialing' || status == 'past_due';
+  final active =
+      status == 'active' || status == 'trialing' || status == 'past_due';
 
   var planKey = 'starter';
   if (sub != null) {
@@ -324,13 +331,17 @@ final billingStatusProvider = FutureProvider<BillingStatus>((ref) async {
   );
 });
 
-final subscriptionEntitlementsProvider = Provider<SubscriptionEntitlements>((ref) {
+final subscriptionEntitlementsProvider = Provider<SubscriptionEntitlements>((
+  ref,
+) {
   final billing = ref.watch(billingStatusProvider).valueOrNull;
   final tier = billing?.resolvedTier ?? SubscriptionPlanTier.starter;
   return SubscriptionEntitlements(tier: tier);
 });
 
-final paymentHistoryProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
+final paymentHistoryProvider = FutureProvider<List<Map<String, dynamic>>>((
+  ref,
+) async {
   final client = ref.watch(fabricSupabaseClientProvider);
   final companyId = await ref.watch(currentCompanyIdProvider.future);
   return client

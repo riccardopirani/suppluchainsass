@@ -1,42 +1,53 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:fabricos/config/company_table.dart';
 
-final teamMembersProvider = FutureProvider.family<List<Map<String, dynamic>>, String>((ref, companyId) async {
-  final client = Supabase.instance.client;
-  final rows = await client
-      .from('team_members')
-      .select()
-      .eq('company_id', companyId)
-      .order('created_at', ascending: false);
-  return List<Map<String, dynamic>>.from(rows);
-});
+final teamMembersProvider =
+    FutureProvider.family<List<Map<String, dynamic>>, String>((
+      ref,
+      companyId,
+    ) async {
+      final client = Supabase.instance.client;
+      final rows = await client
+          .from('team_members')
+          .select()
+          .eq('company_id', companyId)
+          .order('created_at', ascending: false);
+      return List<Map<String, dynamic>>.from(rows);
+    });
 
-final menuPermissionsProvider = FutureProvider.family<List<String>?, ({String companyId, String role})>((ref, params) async {
-  final client = Supabase.instance.client;
-  final row = await client
-      .from('menu_permissions')
-      .select('allowed_routes')
-      .eq('company_id', params.companyId)
-      .eq('role', params.role)
-      .maybeSingle();
-  if (row == null) return null;
-  final routes = row['allowed_routes'];
-  if (routes is List) return routes.cast<String>();
-  return null;
-});
+final menuPermissionsProvider =
+    FutureProvider.family<List<String>?, ({String companyId, String role})>((
+      ref,
+      params,
+    ) async {
+      final client = Supabase.instance.client;
+      final row = await client
+          .from('menu_permissions')
+          .select('allowed_routes')
+          .eq('company_id', params.companyId)
+          .eq('role', params.role)
+          .maybeSingle();
+      if (row == null) return null;
+      final routes = row['allowed_routes'];
+      if (routes is List) return routes.cast<String>();
+      return null;
+    });
 
-final userCompaniesProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
+final userCompaniesProvider = FutureProvider<List<Map<String, dynamic>>>((
+  ref,
+) async {
   final client = Supabase.instance.client;
   final userId = client.auth.currentUser?.id;
   if (userId == null) return [];
   final rows = await client
       .from('team_members')
-      .select('company_id, role, companies:company_id(name)')
+      .select('company_id, role')
       .eq('user_id', userId)
       .eq('status', 'active');
   final ownProfile = await client
       .from('users')
-      .select('company_id, role, companies:company_id(name)')
+      .select('company_id, role')
       .eq('id', userId)
       .maybeSingle();
   final result = <String, Map<String, dynamic>>{};
@@ -44,19 +55,24 @@ final userCompaniesProvider = FutureProvider<List<Map<String, dynamic>>>((ref) a
     result[ownProfile['company_id'] as String] = {
       'company_id': ownProfile['company_id'],
       'role': ownProfile['role'],
-      'company_name': (ownProfile['companies'] as Map?)?['name'] ?? '',
+      'company_name': '',
     };
   }
   for (final r in List<Map<String, dynamic>>.from(rows)) {
     final cId = r['company_id'] as String;
     if (!result.containsKey(cId)) {
-      result[cId] = {
-        'company_id': cId,
-        'role': r['role'],
-        'company_name': (r['companies'] as Map?)?['name'] ?? '',
-      };
+      result[cId] = {'company_id': cId, 'role': r['role'], 'company_name': ''};
     }
   }
+
+  final companyIds = result.keys.toList(growable: false);
+  final companyNames = await Future.wait(
+    companyIds.map((cId) => fetchCompanyName(client, cId)),
+  );
+  for (var i = 0; i < companyIds.length; i++) {
+    result[companyIds[i]]?['company_name'] = companyNames[i] ?? '';
+  }
+
   return result.values.toList();
 });
 
@@ -81,7 +97,9 @@ class TeamService {
     );
     final data = response.data;
     if (response.status >= 400) {
-      throw Exception(data is Map ? data['error'] ?? 'Invite failed' : 'Invite failed');
+      throw Exception(
+        data is Map ? data['error'] ?? 'Invite failed' : 'Invite failed',
+      );
     }
     return data is Map<String, dynamic> ? data : {};
   }
@@ -91,7 +109,10 @@ class TeamService {
   }
 
   Future<void> updateMemberRole(String memberId, String newRole) async {
-    await _client.from('team_members').update({'role': newRole}).eq('id', memberId);
+    await _client
+        .from('team_members')
+        .update({'role': newRole})
+        .eq('id', memberId);
   }
 
   Future<void> updateMenuPermissions({
@@ -107,7 +128,10 @@ class TeamService {
   }
 
   Future<void> switchCompany(String userId, String companyId) async {
-    await _client.from('users').update({'company_id': companyId}).eq('id', userId);
+    await _client
+        .from('users')
+        .update({'company_id': companyId})
+        .eq('id', userId);
   }
 }
 
