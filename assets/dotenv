@@ -1,0 +1,8 @@
+# Bundled defaults (optional). Highest priority:
+# — repo-root `.env` merged on desktop when present (see bootstrap_dotenv.dart).
+# Variables are intentionally empty here so `--dart-define` still works unless set in .env
+SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_URL=
+SUPABASE_ANON_KEY=
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY=
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
