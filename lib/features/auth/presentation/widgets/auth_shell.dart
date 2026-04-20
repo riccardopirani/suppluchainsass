@@ -26,7 +26,8 @@ class AuthPageShell extends StatelessWidget {
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final split = constraints.maxWidth >= 980;
+            final split =
+                constraints.maxWidth >= 1040 && constraints.maxHeight >= 760;
             if (split) {
               return Row(
                 children: [
@@ -426,10 +427,14 @@ class _ProductIllustration extends StatelessWidget {
                       ),
                       const SizedBox(height: 14),
                       Expanded(
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: List.generate(8, (index) {
-                            final heights = <double>[
+                        child: LayoutBuilder(
+                          builder: (context, chartConstraints) {
+                            final barMaxHeight =
+                                (chartConstraints.maxHeight * 0.72).clamp(
+                                  54.0,
+                                  138.0,
+                                );
+                            const heights = <double>[
                               0.38,
                               0.52,
                               0.68,
@@ -439,45 +444,51 @@ class _ProductIllustration extends StatelessWidget {
                               0.58,
                               0.72,
                             ];
-                            return Expanded(
-                              child: Padding(
-                                padding: EdgeInsets.only(
-                                  right: index == 7 ? 0 : 8,
-                                ),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  children: [
-                                    Container(
-                                      height: 120 * heights[index],
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(
-                                          999,
-                                        ),
-                                        gradient: const LinearGradient(
-                                          begin: Alignment.topCenter,
-                                          end: Alignment.bottomCenter,
-                                          colors: [
-                                            Color(0xFF60A5FA),
-                                            Color(0xFF2563EB),
-                                          ],
-                                        ),
-                                      ),
+                            return Row(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: List.generate(8, (index) {
+                                return Expanded(
+                                  child: Padding(
+                                    padding: EdgeInsets.only(
+                                      right: index == 7 ? 0 : 8,
                                     ),
-                                    const SizedBox(height: 10),
-                                    Container(
-                                      height: 2,
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFF334155),
-                                        borderRadius: BorderRadius.circular(
-                                          999,
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Container(
+                                          height: barMaxHeight * heights[index],
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(
+                                              999,
+                                            ),
+                                            gradient: const LinearGradient(
+                                              begin: Alignment.topCenter,
+                                              end: Alignment.bottomCenter,
+                                              colors: [
+                                                Color(0xFF60A5FA),
+                                                Color(0xFF2563EB),
+                                              ],
+                                            ),
+                                          ),
                                         ),
-                                      ),
+                                        const SizedBox(height: 6),
+                                        Container(
+                                          height: 2,
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFF334155),
+                                            borderRadius: BorderRadius.circular(
+                                              999,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  ],
-                                ),
-                              ),
+                                  ),
+                                );
+                              }),
                             );
-                          }),
+                          },
                         ),
                       ),
                     ],
@@ -509,14 +520,17 @@ class _MiniMetric extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             value,
             style: GoogleFonts.spaceGrotesk(
               color: const Color(0xFFF9FAFB),
-              fontSize: 20,
+              fontSize: 18,
               fontWeight: FontWeight.w700,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 4),
           Text(
@@ -525,6 +539,8 @@ class _MiniMetric extends StatelessWidget {
               color: const Color(0xFF94A3B8),
               fontSize: 11,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
@@ -584,6 +600,8 @@ class _FloatingCard extends StatelessWidget {
                   color: const Color(0xFF94A3B8),
                   fontSize: 11,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
               Text(
                 value,
@@ -592,6 +610,8 @@ class _FloatingCard extends StatelessWidget {
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
