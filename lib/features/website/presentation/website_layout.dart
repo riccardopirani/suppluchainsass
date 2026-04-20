@@ -1,4 +1,3 @@
-import 'package:fabricos/features/website/presentation/widgets/exit_intent/exit_intent.dart';
 import 'package:fabricos/features/website/presentation/widgets/website_marketing_drawer.dart';
 import 'package:fabricos/features/website/presentation/widgets/website_nav_bar.dart';
 import 'package:flutter/material.dart';
@@ -18,16 +17,15 @@ class WebsiteLayout extends StatelessWidget {
       drawer: useDrawer ? const WebsiteMarketingDrawer() : null,
       body: Builder(
         builder: (scaffoldContext) {
-          return wrapWebsiteExitIntent(
-            child: Column(
-              children: [
-                WebsiteNavBar(
-                  onOpenMobileMenu:
-                      useDrawer ? () => Scaffold.of(scaffoldContext).openDrawer() : null,
-                ),
-                Expanded(child: child),
-              ],
-            ),
+          return Column(
+            children: [
+              WebsiteNavBar(
+                onOpenMobileMenu: useDrawer
+                    ? () => Scaffold.of(scaffoldContext).openDrawer()
+                    : null,
+              ),
+              Expanded(child: child),
+            ],
           );
         },
       ),

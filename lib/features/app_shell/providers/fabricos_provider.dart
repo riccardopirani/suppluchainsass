@@ -268,6 +268,9 @@ class BillingStatus {
 
   bool get canAccessApp => hasActiveSubscription || inTrial;
 
+  bool get isExpiredTrial =>
+      trialEndsAt != null && !inTrial && !hasActiveSubscription;
+
   SubscriptionPlanTier get resolvedTier {
     if (inTrial && !hasActiveSubscription) {
       return SubscriptionPlanTier.growth;
@@ -293,7 +296,7 @@ final billingStatusProvider = FutureProvider<BillingStatus>((ref) async {
   final company = await fetchCompanyRow(
     client,
     companyId,
-    columns: 'id, trial_ends_at',
+    columns: 'id, trial_ends_at, selected_plan',
   );
 
   final sub = await client
@@ -312,7 +315,7 @@ final billingStatusProvider = FutureProvider<BillingStatus>((ref) async {
   final active =
       status == 'active' || status == 'trialing' || status == 'past_due';
 
-  var planKey = 'starter';
+  var planKey = (company?['selected_plan'] ?? 'starter').toString();
   if (sub != null) {
     final meta = sub['metadata'];
     if (meta is Map && meta['plan'] != null) {

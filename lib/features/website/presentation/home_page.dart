@@ -1,4 +1,3 @@
-import 'package:fabricos/features/website/presentation/widgets/marketing_roi_calculator.dart';
 import 'package:fabricos/features/website/presentation/widgets/website_footer.dart';
 import 'package:fabricos/localization/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -23,7 +22,6 @@ class HomePage extends StatelessWidget {
             const _PainSection(),
             const _SolutionSection(),
             const _RoiMetricsSection(),
-            const _HomeRoiCalculatorSection(),
             const _FeaturesGridSection(),
             const _TestimonialsSection(),
             _PricingTiersSection(
@@ -84,8 +82,12 @@ class _SectionWrap extends StatelessWidget {
         color: alt ? const Color(0xFF111827) : const Color(0xFF030712),
         border: alt
             ? Border(
-                top: BorderSide(color: const Color(0xFF1F2937).withValues(alpha: 0.9)),
-                bottom: BorderSide(color: const Color(0xFF1F2937).withValues(alpha: 0.9)),
+                top: BorderSide(
+                  color: const Color(0xFF1F2937).withValues(alpha: 0.9),
+                ),
+                bottom: BorderSide(
+                  color: const Color(0xFF1F2937).withValues(alpha: 0.9),
+                ),
               )
             : null,
       ),
@@ -103,7 +105,9 @@ class _Eyebrow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment: center ? MainAxisAlignment.center : MainAxisAlignment.start,
+      mainAxisAlignment: center
+          ? MainAxisAlignment.center
+          : MainAxisAlignment.start,
       children: [
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -219,7 +223,10 @@ class _HeroSection extends StatelessWidget {
           _PageContainer(
             child: Column(
               children: [
-                _Eyebrow(icon: Icons.hub_outlined, text: l10n.t('pub_mfg_eyebrow')),
+                _Eyebrow(
+                  icon: Icons.hub_outlined,
+                  text: l10n.t('pub_mfg_eyebrow'),
+                ),
                 const SizedBox(height: 18),
                 Text(
                   l10n.t('pub_mfg_hero_title'),
@@ -280,8 +287,13 @@ class _HeroSection extends StatelessWidget {
                         backgroundColor: const Color(0xFF2563EB),
                         foregroundColor: Colors.white,
                         elevation: 0,
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 18,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
                       child: Text(l10n.t('pub_mfg_cta_demo')),
                     ),
@@ -290,8 +302,13 @@ class _HeroSection extends StatelessWidget {
                       style: FilledButton.styleFrom(
                         foregroundColor: const Color(0xFFEAF2FF),
                         backgroundColor: const Color(0xFF1E293B),
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 18,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
                       child: Text(l10n.t('pub_mfg_cta_trial')),
                     ),
@@ -300,8 +317,13 @@ class _HeroSection extends StatelessWidget {
                       style: OutlinedButton.styleFrom(
                         foregroundColor: const Color(0xFFF9FAFB),
                         side: const BorderSide(color: Color(0xFF1F2937)),
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 18,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
                       child: Text(l10n.t('pub_mfg_cta_roi')),
                     ),
@@ -313,10 +335,22 @@ class _HeroSection extends StatelessWidget {
                   runSpacing: 10,
                   alignment: WrapAlignment.center,
                   children: [
-                    _Chip(icon: Icons.verified_outlined, text: l10n.t('pub_mfg_trust_1')),
-                    _Chip(icon: Icons.notifications_active_outlined, text: l10n.t('pub_mfg_trust_2')),
-                    _Chip(icon: Icons.description_outlined, text: l10n.t('pub_mfg_trust_3')),
-                    _Chip(icon: Icons.shield_outlined, text: l10n.t('pub_mfg_trust_4')),
+                    _Chip(
+                      icon: Icons.verified_outlined,
+                      text: l10n.t('pub_mfg_trust_1'),
+                    ),
+                    _Chip(
+                      icon: Icons.notifications_active_outlined,
+                      text: l10n.t('pub_mfg_trust_2'),
+                    ),
+                    _Chip(
+                      icon: Icons.description_outlined,
+                      text: l10n.t('pub_mfg_trust_3'),
+                    ),
+                    _Chip(
+                      icon: Icons.shield_outlined,
+                      text: l10n.t('pub_mfg_trust_4'),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 48),
@@ -326,7 +360,11 @@ class _HeroSection extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: const Color(0xFF1F2937)),
                     boxShadow: const [
-                      BoxShadow(color: Color(0x80000000), blurRadius: 40, offset: Offset(0, 18)),
+                      BoxShadow(
+                        color: Color(0x80000000),
+                        blurRadius: 40,
+                        offset: Offset(0, 18),
+                      ),
                     ],
                   ),
                   child: Image.network(
@@ -373,7 +411,13 @@ class _Chip extends StatelessWidget {
         children: [
           Icon(icon, size: 14, color: const Color(0xFF9CA3AF)),
           const SizedBox(width: 8),
-          Text(text, style: GoogleFonts.ibmPlexSans(color: const Color(0xFF9CA3AF), fontSize: 13)),
+          Text(
+            text,
+            style: GoogleFonts.ibmPlexSans(
+              color: const Color(0xFF9CA3AF),
+              fontSize: 13,
+            ),
+          ),
         ],
       ),
     );
@@ -387,8 +431,16 @@ class _PainSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final cards = [
-      (Icons.precision_manufacturing_outlined, 'pub_mfg_pain1_title', 'pub_mfg_pain1_desc'),
-      (Icons.local_shipping_outlined, 'pub_mfg_pain2_title', 'pub_mfg_pain2_desc'),
+      (
+        Icons.precision_manufacturing_outlined,
+        'pub_mfg_pain1_title',
+        'pub_mfg_pain1_desc',
+      ),
+      (
+        Icons.local_shipping_outlined,
+        'pub_mfg_pain2_title',
+        'pub_mfg_pain2_desc',
+      ),
       (Icons.inventory_2_outlined, 'pub_mfg_pain3_title', 'pub_mfg_pain3_desc'),
       (Icons.table_chart_outlined, 'pub_mfg_pain4_title', 'pub_mfg_pain4_desc'),
     ];
@@ -397,7 +449,10 @@ class _PainSection extends StatelessWidget {
       child: _PageContainer(
         child: Column(
           children: [
-            _Eyebrow(icon: Icons.crisis_alert_outlined, text: l10n.t('pub_mfg_pain_eyebrow')),
+            _Eyebrow(
+              icon: Icons.crisis_alert_outlined,
+              text: l10n.t('pub_mfg_pain_eyebrow'),
+            ),
             const SizedBox(height: 14),
             Wrap(
               spacing: 10,
@@ -412,11 +467,18 @@ class _PainSection extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 34),
-            _SectionTitle(title: l10n.t('pub_mfg_pain_title'), subtitle: l10n.t('pub_mfg_pain_subtitle')),
+            _SectionTitle(
+              title: l10n.t('pub_mfg_pain_title'),
+              subtitle: l10n.t('pub_mfg_pain_subtitle'),
+            ),
             const SizedBox(height: 46),
             LayoutBuilder(
               builder: (context, c) {
-                final col = c.maxWidth >= 980 ? 4 : c.maxWidth >= 700 ? 2 : 1;
+                final col = c.maxWidth >= 980
+                    ? 4
+                    : c.maxWidth >= 700
+                    ? 2
+                    : 1;
                 return GridView.count(
                   crossAxisCount: col,
                   shrinkWrap: true,
@@ -456,13 +518,23 @@ class _Tag extends StatelessWidget {
         border: Border.all(color: const Color(0xFF1F2937)),
         color: const Color(0x0DFFFFFF),
       ),
-      child: Text(text, style: GoogleFonts.ibmPlexSans(color: const Color(0xFFF9FAFB), fontSize: 13)),
+      child: Text(
+        text,
+        style: GoogleFonts.ibmPlexSans(
+          color: const Color(0xFFF9FAFB),
+          fontSize: 13,
+        ),
+      ),
     );
   }
 }
 
 class _PainCard extends StatelessWidget {
-  const _PainCard({required this.icon, required this.title, required this.text});
+  const _PainCard({
+    required this.icon,
+    required this.title,
+    required this.text,
+  });
   final IconData icon;
   final String title;
   final String text;
@@ -500,7 +572,11 @@ class _PainCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             text,
-            style: GoogleFonts.ibmPlexSans(color: const Color(0xFF9CA3AF), fontSize: 14, height: 1.5),
+            style: GoogleFonts.ibmPlexSans(
+              color: const Color(0xFF9CA3AF),
+              fontSize: 14,
+              height: 1.5,
+            ),
           ),
         ],
       ),
@@ -525,9 +601,15 @@ class _SolutionSection extends StatelessWidget {
       child: _PageContainer(
         child: Column(
           children: [
-            _Eyebrow(icon: Icons.auto_awesome_outlined, text: l10n.t('pub_mfg_sol_eyebrow')),
+            _Eyebrow(
+              icon: Icons.auto_awesome_outlined,
+              text: l10n.t('pub_mfg_sol_eyebrow'),
+            ),
             const SizedBox(height: 14),
-            _SectionTitle(title: l10n.t('pub_mfg_sol_title'), subtitle: l10n.t('pub_mfg_sol_subtitle')),
+            _SectionTitle(
+              title: l10n.t('pub_mfg_sol_title'),
+              subtitle: l10n.t('pub_mfg_sol_subtitle'),
+            ),
             const SizedBox(height: 40),
             ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 720),
@@ -535,7 +617,10 @@ class _SolutionSection extends StatelessWidget {
                 children: List.generate(keys.length, (i) {
                   return Container(
                     margin: const EdgeInsets.only(bottom: 14),
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 18,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFF0F172A),
                       borderRadius: BorderRadius.circular(12),
@@ -545,7 +630,10 @@ class _SolutionSection extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
                           decoration: BoxDecoration(
                             color: const Color(0x1A2563EB),
                             borderRadius: BorderRadius.circular(6),
@@ -614,13 +702,23 @@ class _RoiMetricsSection extends StatelessWidget {
       child: _PageContainer(
         child: Column(
           children: [
-            _Eyebrow(icon: Icons.insights_outlined, text: l10n.t('pub_mfg_roi_eyebrow')),
+            _Eyebrow(
+              icon: Icons.insights_outlined,
+              text: l10n.t('pub_mfg_roi_eyebrow'),
+            ),
             const SizedBox(height: 14),
-            _SectionTitle(title: l10n.t('pub_mfg_roi_title'), subtitle: l10n.t('pub_mfg_roi_subtitle')),
+            _SectionTitle(
+              title: l10n.t('pub_mfg_roi_title'),
+              subtitle: l10n.t('pub_mfg_roi_subtitle'),
+            ),
             const SizedBox(height: 44),
             LayoutBuilder(
               builder: (context, c) {
-                final cols = c.maxWidth >= 980 ? 4 : c.maxWidth >= 700 ? 2 : 1;
+                final cols = c.maxWidth >= 980
+                    ? 4
+                    : c.maxWidth >= 700
+                    ? 2
+                    : 1;
                 return GridView.count(
                   crossAxisCount: cols,
                   shrinkWrap: true,
@@ -695,28 +793,6 @@ class _RoiMetricsSection extends StatelessWidget {
   }
 }
 
-class _HomeRoiCalculatorSection extends StatelessWidget {
-  const _HomeRoiCalculatorSection();
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    return _SectionWrap(
-      child: _PageContainer(
-        child: Column(
-          children: [
-            _Eyebrow(icon: Icons.calculate_outlined, text: l10n.t('pub_calc_eyebrow')),
-            const SizedBox(height: 14),
-            _SectionTitle(title: l10n.t('pub_calc_title'), subtitle: l10n.t('pub_calc_subtitle')),
-            const SizedBox(height: 36),
-            const MarketingRoiCalculator(),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _FeaturesGridSection extends StatelessWidget {
   const _FeaturesGridSection();
 
@@ -724,9 +800,17 @@ class _FeaturesGridSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final cards = [
-      (Icons.hub_outlined, 'pub_feat_control_tower_title', 'pub_feat_control_tower_desc'),
+      (
+        Icons.hub_outlined,
+        'pub_feat_control_tower_title',
+        'pub_feat_control_tower_desc',
+      ),
       (Icons.speed_outlined, 'pub_feat_pm_title', 'pub_feat_pm_desc'),
-      (Icons.groups_2_outlined, 'pub_feat_sup_intel_title', 'pub_feat_sup_intel_desc'),
+      (
+        Icons.groups_2_outlined,
+        'pub_feat_sup_intel_title',
+        'pub_feat_sup_intel_desc',
+      ),
       (Icons.inventory_2_outlined, 'pub_feat_inv_title', 'pub_feat_inv_desc'),
       (Icons.science_outlined, 'pub_feat_sim_title', 'pub_feat_sim_desc'),
       (Icons.assessment_outlined, 'pub_feat_exec_title', 'pub_feat_exec_desc'),
@@ -736,14 +820,24 @@ class _FeaturesGridSection extends StatelessWidget {
       child: _PageContainer(
         child: Column(
           children: [
-            _Eyebrow(icon: Icons.layers_outlined, text: l10n.t('pub_feat_eyebrow')),
+            _Eyebrow(
+              icon: Icons.layers_outlined,
+              text: l10n.t('pub_feat_eyebrow'),
+            ),
             const SizedBox(height: 14),
-            _SectionTitle(title: l10n.t('pub_feat_title'), subtitle: l10n.t('pub_feat_subtitle')),
+            _SectionTitle(
+              title: l10n.t('pub_feat_title'),
+              subtitle: l10n.t('pub_feat_subtitle'),
+            ),
             const SizedBox(height: 40),
             LayoutBuilder(
               builder: (context, c) {
                 final w = c.maxWidth;
-                final cols = w >= 1100 ? 3 : w >= 700 ? 2 : 1;
+                final cols = w >= 1100
+                    ? 3
+                    : w >= 700
+                    ? 2
+                    : 1;
                 return GridView.count(
                   crossAxisCount: cols,
                   shrinkWrap: true,
@@ -771,7 +865,11 @@ class _FeaturesGridSection extends StatelessWidget {
 }
 
 class _FeatureCard extends StatelessWidget {
-  const _FeatureCard({required this.icon, required this.title, required this.text});
+  const _FeatureCard({
+    required this.icon,
+    required this.title,
+    required this.text,
+  });
   final IconData icon;
   final String title;
   final String text;
@@ -810,7 +908,11 @@ class _FeatureCard extends StatelessWidget {
           Expanded(
             child: Text(
               text,
-              style: GoogleFonts.ibmPlexSans(color: const Color(0xFF9CA3AF), fontSize: 14, height: 1.55),
+              style: GoogleFonts.ibmPlexSans(
+                color: const Color(0xFF9CA3AF),
+                fontSize: 14,
+                height: 1.55,
+              ),
             ),
           ),
         ],
@@ -834,7 +936,10 @@ class _TestimonialsSection extends StatelessWidget {
       child: _PageContainer(
         child: Column(
           children: [
-            _Eyebrow(icon: Icons.format_quote_outlined, text: l10n.t('pub_testimonial_eyebrow')),
+            _Eyebrow(
+              icon: Icons.format_quote_outlined,
+              text: l10n.t('pub_testimonial_eyebrow'),
+            ),
             const SizedBox(height: 14),
             _SectionTitle(
               title: l10n.t('pub_testimonial_section_title'),
@@ -897,7 +1002,10 @@ class _TestimonialsSection extends StatelessWidget {
 }
 
 class _PricingTiersSection extends StatelessWidget {
-  const _PricingTiersSection({required this.onPlan, required this.onEnterprise});
+  const _PricingTiersSection({
+    required this.onPlan,
+    required this.onEnterprise,
+  });
 
   final void Function(String plan) onPlan;
   final VoidCallback onEnterprise;
@@ -910,14 +1018,23 @@ class _PricingTiersSection extends StatelessWidget {
       child: _PageContainer(
         child: Column(
           children: [
-            _Eyebrow(icon: Icons.payments_outlined, text: l10n.t('pub_price_eyebrow')),
+            _Eyebrow(
+              icon: Icons.payments_outlined,
+              text: l10n.t('pub_price_eyebrow'),
+            ),
             const SizedBox(height: 14),
-            _SectionTitle(title: l10n.t('pub_price_title'), subtitle: l10n.t('pub_price_subtitle')),
+            _SectionTitle(
+              title: l10n.t('pub_price_title'),
+              subtitle: l10n.t('pub_price_subtitle'),
+            ),
             const SizedBox(height: 12),
             Text(
               l10n.t('pub_price_annual_note'),
               textAlign: TextAlign.center,
-              style: GoogleFonts.ibmPlexSans(color: const Color(0xFF6B7280), fontSize: 14),
+              style: GoogleFonts.ibmPlexSans(
+                color: const Color(0xFF6B7280),
+                fontSize: 14,
+              ),
             ),
             const SizedBox(height: 36),
             LayoutBuilder(
@@ -983,7 +1100,11 @@ class _PricingTiersSection extends StatelessWidget {
                 if (c.maxWidth < 720) {
                   return Column(
                     children: [
-                      for (final t in tiers) Padding(padding: const EdgeInsets.only(bottom: 16), child: t),
+                      for (final t in tiers)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: t,
+                        ),
                     ],
                   );
                 }
@@ -1013,7 +1134,10 @@ class _PricingTiersSection extends StatelessWidget {
             Text(
               l10n.t('pub_price_footnote'),
               textAlign: TextAlign.center,
-              style: GoogleFonts.ibmPlexSans(color: const Color(0xFF6B7280), fontSize: 13),
+              style: GoogleFonts.ibmPlexSans(
+                color: const Color(0xFF6B7280),
+                fontSize: 13,
+              ),
             ),
           ],
         ),
@@ -1053,7 +1177,13 @@ class _TierCard extends StatelessWidget {
           width: highlight ? 1.5 : 1,
         ),
         boxShadow: highlight
-            ? const [BoxShadow(color: Color(0x332563EB), blurRadius: 28, offset: Offset(0, 12))]
+            ? const [
+                BoxShadow(
+                  color: Color(0x332563EB),
+                  blurRadius: 28,
+                  offset: Offset(0, 12),
+                ),
+              ]
             : null,
       ),
       child: Column(
@@ -1077,7 +1207,14 @@ class _TierCard extends StatelessWidget {
               ),
             ),
           if (highlight) const SizedBox(height: 12),
-          Text(name, style: GoogleFonts.spaceGrotesk(color: const Color(0xFFF9FAFB), fontSize: 20, fontWeight: FontWeight.w700)),
+          Text(
+            name,
+            style: GoogleFonts.spaceGrotesk(
+              color: const Color(0xFFF9FAFB),
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
           const SizedBox(height: 12),
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -1097,7 +1234,10 @@ class _TierCard extends StatelessWidget {
                   padding: const EdgeInsets.only(bottom: 8),
                   child: Text(
                     period,
-                    style: GoogleFonts.ibmPlexSans(color: const Color(0xFF9CA3AF), fontSize: 14),
+                    style: GoogleFonts.ibmPlexSans(
+                      color: const Color(0xFF9CA3AF),
+                      fontSize: 14,
+                    ),
                   ),
                 ),
               ],
@@ -1110,12 +1250,20 @@ class _TierCard extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.check_circle_outline_rounded, size: 18, color: Color(0xFF2563EB)),
+                  const Icon(
+                    Icons.check_circle_outline_rounded,
+                    size: 18,
+                    color: Color(0xFF2563EB),
+                  ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
                       f,
-                      style: GoogleFonts.ibmPlexSans(color: const Color(0xFF9CA3AF), fontSize: 14, height: 1.4),
+                      style: GoogleFonts.ibmPlexSans(
+                        color: const Color(0xFF9CA3AF),
+                        fontSize: 14,
+                        height: 1.4,
+                      ),
                     ),
                   ),
                 ],
@@ -1127,10 +1275,14 @@ class _TierCard extends StatelessWidget {
             child: FilledButton(
               onPressed: onCta,
               style: FilledButton.styleFrom(
-                backgroundColor: highlight ? const Color(0xFF2563EB) : const Color(0xFF1E293B),
+                backgroundColor: highlight
+                    ? const Color(0xFF2563EB)
+                    : const Color(0xFF1E293B),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
               child: Text(ctaLabel),
             ),
@@ -1163,7 +1315,11 @@ class _ContactSectionState extends State<_ContactSection> {
             final left = Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _Eyebrow(icon: Icons.mail_outline, text: l10n.t('pub_contact_eyebrow'), center: false),
+                _Eyebrow(
+                  icon: Icons.mail_outline,
+                  text: l10n.t('pub_contact_eyebrow'),
+                  center: false,
+                ),
                 const SizedBox(height: 10),
                 Text(
                   l10n.t('pub_contact_title'),
@@ -1177,7 +1333,11 @@ class _ContactSectionState extends State<_ContactSection> {
                 const SizedBox(height: 18),
                 Text(
                   l10n.t('pub_contact_subtitle'),
-                  style: GoogleFonts.ibmPlexSans(color: const Color(0xFF9CA3AF), fontSize: 18, height: 1.6),
+                  style: GoogleFonts.ibmPlexSans(
+                    color: const Color(0xFF9CA3AF),
+                    fontSize: 18,
+                    height: 1.6,
+                  ),
                 ),
               ],
             );
@@ -1198,7 +1358,11 @@ class _ContactSectionState extends State<_ContactSection> {
             }
             return Row(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [Expanded(child: left), const SizedBox(width: 40), Expanded(child: right)],
+              children: [
+                Expanded(child: left),
+                const SizedBox(width: 40),
+                Expanded(child: right),
+              ],
             );
           },
         ),
@@ -1238,17 +1402,32 @@ class _ContactFormCard extends StatelessWidget {
               children: [
                 Text(
                   l10n.t('pub_contact_form_title'),
-                  style: GoogleFonts.spaceGrotesk(color: const Color(0xFFF9FAFB), fontSize: 18, fontWeight: FontWeight.w600),
+                  style: GoogleFonts.spaceGrotesk(
+                    color: const Color(0xFFF9FAFB),
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   l10n.t('pub_contact_form_lead'),
-                  style: GoogleFonts.ibmPlexSans(color: const Color(0xFF9CA3AF), fontSize: 14),
+                  style: GoogleFonts.ibmPlexSans(
+                    color: const Color(0xFF9CA3AF),
+                    fontSize: 14,
+                  ),
                 ),
                 const SizedBox(height: 20),
-                _formField(context, l10n.t('pub_contact_name'), validator: _req(l10n)),
+                _formField(
+                  context,
+                  l10n.t('pub_contact_name'),
+                  validator: _req(l10n),
+                ),
                 const SizedBox(height: 14),
-                _formField(context, l10n.t('pub_contact_email'), validator: _email(l10n)),
+                _formField(
+                  context,
+                  l10n.t('pub_contact_email'),
+                  validator: _email(l10n),
+                ),
                 const SizedBox(height: 14),
                 _formField(context, l10n.t('pub_contact_company')),
                 const SizedBox(height: 14),
@@ -1261,7 +1440,9 @@ class _ContactFormCard extends StatelessWidget {
                     style: FilledButton.styleFrom(
                       backgroundColor: const Color(0xFF2563EB),
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                     child: Text(l10n.t('pub_contact_send')),
                   ),
@@ -1279,7 +1460,10 @@ class _ContactFormCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
               color: const Color(0xFF0F172A),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: const Color(0xFF1F2937)),
@@ -1287,11 +1471,18 @@ class _ContactFormCard extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 18),
+                    const Icon(
+                      Icons.check_circle_rounded,
+                      color: Color(0xFF10B981),
+                      size: 18,
+                    ),
                     const SizedBox(width: 8),
                     Text(
                       l10n.t('pub_contact_snackbar'),
-                      style: GoogleFonts.ibmPlexSans(color: const Color(0xFFF9FAFB), fontSize: 13),
+                      style: GoogleFonts.ibmPlexSans(
+                        color: const Color(0xFFF9FAFB),
+                        fontSize: 13,
+                      ),
                     ),
                   ],
                 ),
@@ -1311,7 +1502,14 @@ class _ContactFormCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: GoogleFonts.ibmPlexSans(color: const Color(0xFFF9FAFB), fontSize: 14, fontWeight: FontWeight.w500)),
+        Text(
+          label,
+          style: GoogleFonts.ibmPlexSans(
+            color: const Color(0xFFF9FAFB),
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
         const SizedBox(height: 8),
         TextFormField(
           maxLines: maxLines,
@@ -1340,13 +1538,19 @@ class _ContactFormCard extends StatelessWidget {
   }
 
   String? Function(String?) _req(AppLocalizations l10n) {
-    return (v) => (v == null || v.trim().isEmpty) ? l10n.t('pub_contact_err_required') : null;
+    return (v) => (v == null || v.trim().isEmpty)
+        ? l10n.t('pub_contact_err_required')
+        : null;
   }
 
   String? Function(String?) _email(AppLocalizations l10n) {
     return (v) {
-      if (v == null || v.trim().isEmpty) return l10n.t('pub_contact_err_required');
-      if (!v.contains('@')) return l10n.t('pub_contact_err_email');
+      if (v == null || v.trim().isEmpty) {
+        return l10n.t('pub_contact_err_required');
+      }
+      if (!v.contains('@')) {
+        return l10n.t('pub_contact_err_email');
+      }
       return null;
     };
   }
@@ -1371,7 +1575,10 @@ class _FaqSection extends StatelessWidget {
           children: [
             _Eyebrow(icon: Icons.help_outline, text: l10n.t('pub_faq_eyebrow')),
             const SizedBox(height: 14),
-            _SectionTitle(title: l10n.t('pub_faq_title'), subtitle: l10n.t('pub_faq_subtitle')),
+            _SectionTitle(
+              title: l10n.t('pub_faq_title'),
+              subtitle: l10n.t('pub_faq_subtitle'),
+            ),
             const SizedBox(height: 28),
             ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 820),
@@ -1388,15 +1595,26 @@ class _FaqSection extends StatelessWidget {
                       collapsedIconColor: const Color(0xFF9CA3AF),
                       title: Text(
                         faq[i].$1,
-                        style: GoogleFonts.ibmPlexSans(color: const Color(0xFFF9FAFB), fontSize: 17, fontWeight: FontWeight.w600),
+                        style: GoogleFonts.ibmPlexSans(
+                          color: const Color(0xFFF9FAFB),
+                          fontSize: 17,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                      subtitle: const Divider(color: Color(0xFF1F2937), height: 1),
+                      subtitle: const Divider(
+                        color: Color(0xFF1F2937),
+                        height: 1,
+                      ),
                       children: [
                         Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
                             faq[i].$2,
-                            style: GoogleFonts.ibmPlexSans(color: const Color(0xFF9CA3AF), fontSize: 15, height: 1.6),
+                            style: GoogleFonts.ibmPlexSans(
+                              color: const Color(0xFF9CA3AF),
+                              fontSize: 15,
+                              height: 1.6,
+                            ),
                           ),
                         ),
                       ],
@@ -1422,9 +1640,15 @@ class _LegalLinksSection extends StatelessWidget {
       child: _PageContainer(
         child: Column(
           children: [
-            _Eyebrow(icon: Icons.balance_outlined, text: l10n.t('pub_legal_eyebrow')),
+            _Eyebrow(
+              icon: Icons.balance_outlined,
+              text: l10n.t('pub_legal_eyebrow'),
+            ),
             const SizedBox(height: 14),
-            _SectionTitle(title: l10n.t('pub_legal_main_title'), subtitle: l10n.t('pub_legal_subtitle')),
+            _SectionTitle(
+              title: l10n.t('pub_legal_main_title'),
+              subtitle: l10n.t('pub_legal_subtitle'),
+            ),
             const SizedBox(height: 28),
             Wrap(
               spacing: 12,
@@ -1448,13 +1672,20 @@ class _LegalLinksSection extends StatelessWidget {
             const SizedBox(height: 24),
             Text(
               l10n.t('pub_legal_updated'),
-              style: GoogleFonts.ibmPlexSans(color: const Color(0xFF6B7280), fontSize: 13),
+              style: GoogleFonts.ibmPlexSans(
+                color: const Color(0xFF6B7280),
+                fontSize: 13,
+              ),
             ),
             const SizedBox(height: 16),
             Text(
               l10n.t('pub_legal_placeholder'),
               textAlign: TextAlign.center,
-              style: GoogleFonts.ibmPlexSans(color: const Color(0xFF9CA3AF), fontSize: 14, height: 1.6),
+              style: GoogleFonts.ibmPlexSans(
+                color: const Color(0xFF9CA3AF),
+                fontSize: 14,
+                height: 1.6,
+              ),
             ),
           ],
         ),
@@ -1483,7 +1714,10 @@ class _FinalCtaSection extends StatelessWidget {
       child: _PageContainer(
         child: Column(
           children: [
-            _SectionTitle(title: l10n.t('pub_mfg_final_title'), subtitle: l10n.t('pub_mfg_final_subtitle')),
+            _SectionTitle(
+              title: l10n.t('pub_mfg_final_title'),
+              subtitle: l10n.t('pub_mfg_final_subtitle'),
+            ),
             const SizedBox(height: 28),
             Wrap(
               spacing: 12,
@@ -1494,8 +1728,13 @@ class _FinalCtaSection extends StatelessWidget {
                   onPressed: onDemo,
                   style: FilledButton.styleFrom(
                     backgroundColor: const Color(0xFF2563EB),
-                    padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 26,
+                      vertical: 16,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                   child: Text(l10n.t('pub_mfg_final_cta2')),
                 ),
@@ -1504,8 +1743,13 @@ class _FinalCtaSection extends StatelessWidget {
                   style: FilledButton.styleFrom(
                     foregroundColor: const Color(0xFFEAF2FF),
                     backgroundColor: const Color(0xFF1E293B),
-                    padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 26,
+                      vertical: 16,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                   child: Text(l10n.t('pub_mfg_final_cta1')),
                 ),
@@ -1514,8 +1758,13 @@ class _FinalCtaSection extends StatelessWidget {
                   style: OutlinedButton.styleFrom(
                     foregroundColor: const Color(0xFFF9FAFB),
                     side: const BorderSide(color: Color(0xFF1F2937)),
-                    padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 26,
+                      vertical: 16,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                   child: Text(l10n.t('pub_mfg_final_cta3')),
                 ),

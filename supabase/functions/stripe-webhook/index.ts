@@ -8,6 +8,80 @@ const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', {
 });
 const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET') ?? '';
 
+async function sendRenewalEmail(params: {
+  supabase: any;
+  companyId: string;
+  subscriptionId: string;
+  trialEnd?: number;
+}) {
+  const resendKey = Deno.env.get('RESEND_API_KEY') ?? '';
+  const fromEmail = Deno.env.get('RESEND_FROM_EMAIL') ?? '';
+  if (!resendKey || !fromEmail) {
+    console.warn('Renewal email skipped: missing RESEND_API_KEY or RESEND_FROM_EMAIL');
+    return;
+  }
+
+  const { data: recipient } = await params.supabase
+    .from('users')
+    .select('email, full_name')
+    .eq('company_id', params.companyId)
+    .eq('role', 'admin')
+    .maybeSingle();
+
+  if (!recipient?.email) {
+    console.warn(`Renewal email skipped: no admin email found for company ${params.companyId}`);
+    return;
+  }
+
+  const appUrl = Deno.env.get('APP_BASE_URL') ?? 'http://localhost:3000';
+  const renewalUrl = `${appUrl.replace(/\/$/, '')}/app/billing`;
+  const trialEndText = params.trialEnd
+    ? new Intl.DateTimeFormat('it-IT', { dateStyle: 'long' }).format(
+        new Date(params.trialEnd * 1000),
+      )
+    : '';
+
+  const subject = 'Il tuo abbonamento FabricOS va rinnovato';
+  const html = `
+    <div style="font-family: Arial, sans-serif; line-height: 1.5; color: #0f172a;">
+      <h2 style="margin: 0 0 12px;">La prova gratuita è terminata</h2>
+      <p style="margin: 0 0 12px;">
+        Il tuo abbonamento FabricOS ${trialEndText ? `è scaduto il ${trialEndText}` : 'ha raggiunto la fine della prova gratuita'}.
+        Per mantenere l'accesso, apri il pannello Billing e completa il rinnovo con Stripe.
+      </p>
+      <p style="margin: 0 0 20px;">
+        Se hai già una carta salvata, Stripe ti porterà direttamente al rinnovo. Altrimenti potrai aggiornare il metodo di pagamento.
+      </p>
+      <a href="${renewalUrl}" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;padding:12px 18px;border-radius:8px;">
+        Rinnova con Stripe
+      </a>
+    </div>
+  `;
+
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${resendKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from: fromEmail,
+      to: [recipient.email],
+      subject,
+      html,
+      text:
+        `La prova gratuita di FabricOS è terminata. Apri ${renewalUrl} per rinnovare con Stripe.`,
+      headers: {
+        'X-Subscription-Id': params.subscriptionId,
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Renewal email failed (${response.status}): ${await response.text()}`);
+  }
+}
+
 serve(async (req) => {
   const signature = req.headers.get('stripe-signature');
   if (!signature || !webhookSecret) {
@@ -27,6 +101,17 @@ serve(async (req) => {
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
   );
   const companyTable = await resolveCompanyTable(supabase);
+
+  const { data: existingEvent } = await supabase
+    .from('subscription_events')
+    .select('id')
+    .eq('stripe_event_id', event.id)
+    .maybeSingle();
+  if (existingEvent) {
+    return new Response(JSON.stringify({ received: true, duplicate: true }), {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
 
   try {
     switch (event.type) {
@@ -89,7 +174,25 @@ serve(async (req) => {
             current_period_end: new Date(sub.current_period_end * 1000).toISOString(),
             cancel_at_period_end: sub.cancel_at_period_end,
             updated_at: new Date().toISOString(),
-          }, { onConflict: 'stripe_subscription_id' });
+            }, { onConflict: 'stripe_subscription_id' });
+
+          const previousAttributes = (
+            event.data as {
+              previous_attributes?: { status?: string };
+            }
+          ).previous_attributes;
+          if (
+            event.type === 'customer.subscription.updated' &&
+            previousAttributes?.status === 'trialing' &&
+            sub.status !== 'trialing'
+          ) {
+            await sendRenewalEmail({
+              supabase,
+              companyId,
+              subscriptionId: sub.id,
+              trialEnd: sub.trial_end ?? undefined,
+            });
+          }
         }
         break;
       }

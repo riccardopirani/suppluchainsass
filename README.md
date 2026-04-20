@@ -156,6 +156,7 @@ Copy **`.env.example`** → **`.env`** and set at least:
 
 - Supabase URL and anon/publishable key (`SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_ANON_KEY` or aliases in `.env.example`)
 - For deploy scripts: `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_ACCESS_TOKEN`, `SUPABASE_DB_PASSWORD`, `SUPABASE_PROJECT_REF`
+- For renewal reminder emails: `RESEND_API_KEY` and `RESEND_FROM_EMAIL`
 
 ### 3) Run Flutter (recommended)
 

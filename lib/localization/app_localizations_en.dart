@@ -177,13 +177,20 @@ const Map<String, String> appLocalizationsEn = {
   'validation_email_required': 'Email required',
   'validation_password_min': 'Min 6 characters',
   'billing_trial_toggle_title': 'Start with 30-day trial',
-  'billing_trial_toggle_subtitle': 'You can use all features and activate subscription later.',
+  'billing_trial_toggle_subtitle':
+      'You can use all features and activate subscription later.',
   'billing_trial_30_days': '30-day trial',
   'billing_no_trial': 'No trial',
   'billing_subscribe_now': 'Subscribe now',
   'billing_seat_summary': 'Your subscription',
   'billing_required_title': 'Subscription required',
-  'billing_required_subtitle': 'Activate a subscription to continue using the private app area.',
+  'billing_required_subtitle':
+      'Activate a subscription to continue using the private app area.',
+  'billing_trial_expired_title': 'Trial expired',
+  'billing_trial_expired_subtitle':
+      'Your 30-day trial ended. Renew with Stripe to keep access.',
+  'billing_renew_with_stripe': 'Renew with Stripe',
+  'billing_renewal_email_notice': 'We sent a renewal email to',
   'billing_open_page': 'Open billing and activate plan',
   'billing_active': 'Active subscription',
   'billing_trial_until': 'Trial active until',
@@ -248,7 +255,8 @@ const Map<String, String> appLocalizationsEn = {
   'exec_rec_inventory': 'Validate coverage on A-class SKUs',
   'exec_email_template': 'Email template (copy for leadership)',
   'billing_plan_pick': 'Choose your plan',
-  'billing_plan_subtitle': 'Flat monthly pricing — upgrade or downgrade anytime.',
+  'billing_plan_subtitle':
+      'Flat monthly pricing — upgrade or downgrade anytime.',
   'billing_annual': 'Annual billing (~17% off)',
   'billing_checkout': 'Continue to secure checkout',
   'billing_iap_continue': 'Subscribe with App Store / Google Play',
@@ -256,8 +264,10 @@ const Map<String, String> appLocalizationsEn = {
       'Manage or cancel this subscription in your App Store or Google Play account settings.',
   'billing_restore_purchases': 'Restore purchases',
   'billing_purchase_success': 'Subscription activated.',
-  'billing_iap_timeout': 'Purchase is taking too long. You can finish subscribing from Billing in settings.',
-  'billing_enterprise_note': 'Enterprise includes SSO, API and white-label — talk to sales.',
+  'billing_iap_timeout':
+      'Purchase is taking too long. You can finish subscribing from Billing in settings.',
+  'billing_enterprise_note':
+      'Enterprise includes SSO, API and white-label — talk to sales.',
   'app_menu_executive': 'CEO report',
   'app_menu_simulation': 'What-if lab',
   'app_menu_control_tower': 'AI Control Tower',
@@ -288,7 +298,8 @@ const Map<String, String> appLocalizationsEn = {
       '30 minutes with our team: map your plants, pain points, and a realistic 30-day rollout.',
   'book_demo_cta_calendar': 'Open calendar',
   'book_demo_cta_form': 'Prefer a form? Contact us',
-  'book_demo_footnote': 'Replace the calendar link with your Cal.com, Calendly or HubSpot meeting URL.',
+  'book_demo_footnote':
+      'Replace the calendar link with your Cal.com, Calendly or HubSpot meeting URL.',
   'onboarding_intro_body':
       'Answer a few questions so we can tailor ROI and your workspace — about two minutes.',
   'onboarding_step_welcome': 'Welcome',
