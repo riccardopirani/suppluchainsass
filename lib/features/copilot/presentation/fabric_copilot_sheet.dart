@@ -1,5 +1,6 @@
 import 'package:fabricos/features/app_shell/providers/fabricos_provider.dart';
 import 'package:fabricos/features/copilot/data/copilot_service.dart';
+import 'package:fabricos/core/theme/intelligence_theme.dart';
 import 'package:fabricos/localization/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,7 +9,7 @@ void openFabricCopilotSheet(BuildContext context) {
   showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
-    backgroundColor: const Color(0xFF0B1220),
+    backgroundColor: IntelligenceTheme.background,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
     ),
@@ -31,14 +32,14 @@ class FabricCopilotFab extends ConsumerWidget {
         },
         icon: const Icon(Icons.lock_outline),
         label: Text(context.l10n.t('copilot_locked')),
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: IntelligenceTheme.panelStrong,
       );
     }
     return FloatingActionButton.extended(
       onPressed: () => openFabricCopilotSheet(context),
       icon: const Icon(Icons.smart_toy_outlined),
       label: Text(context.l10n.t('copilot_title')),
-      backgroundColor: const Color(0xFF2563EB),
+      backgroundColor: IntelligenceTheme.accentStrong,
     );
   }
 }
@@ -88,7 +89,12 @@ class _CopilotSheetState extends ConsumerState<_CopilotSheet> {
     final l10n = context.l10n;
     final pad = MediaQuery.paddingOf(context);
     return Padding(
-      padding: EdgeInsets.only(left: 20, right: 20, top: 16, bottom: pad.bottom + 20),
+      padding: EdgeInsets.only(
+        left: 20,
+        right: 20,
+        top: 16,
+        bottom: pad.bottom + 20,
+      ),
       child: DraggableScrollableSheet(
         expand: false,
         initialChildSize: 0.55,
@@ -112,7 +118,7 @@ class _CopilotSheetState extends ConsumerState<_CopilotSheet> {
               Text(
                 l10n.t('copilot_title'),
                 style: const TextStyle(
-                  color: Color(0xFFEAF2FF),
+                  color: IntelligenceTheme.textPrimary,
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
                 ),
@@ -120,33 +126,54 @@ class _CopilotSheetState extends ConsumerState<_CopilotSheet> {
               const SizedBox(height: 6),
               Text(
                 l10n.t('copilot_subtitle'),
-                style: const TextStyle(color: Color(0xFF8EA3C2), fontSize: 13, height: 1.4),
+                style: const TextStyle(
+                  color: IntelligenceTheme.textSecondary,
+                  fontSize: 13,
+                  height: 1.4,
+                ),
               ),
               const SizedBox(height: 16),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  _chip(l10n.t('copilot_q1'), () => _ctrl.text = l10n.t('copilot_q1')),
-                  _chip(l10n.t('copilot_q2'), () => _ctrl.text = l10n.t('copilot_q2')),
-                  _chip(l10n.t('copilot_q3'), () => _ctrl.text = l10n.t('copilot_q3')),
-                  _chip(l10n.t('copilot_q4'), () => _ctrl.text = l10n.t('copilot_q4')),
-                  _chip(l10n.t('copilot_q5'), () => _ctrl.text = l10n.t('copilot_q5')),
+                  _chip(
+                    l10n.t('copilot_q1'),
+                    () => _ctrl.text = l10n.t('copilot_q1'),
+                  ),
+                  _chip(
+                    l10n.t('copilot_q2'),
+                    () => _ctrl.text = l10n.t('copilot_q2'),
+                  ),
+                  _chip(
+                    l10n.t('copilot_q3'),
+                    () => _ctrl.text = l10n.t('copilot_q3'),
+                  ),
+                  _chip(
+                    l10n.t('copilot_q4'),
+                    () => _ctrl.text = l10n.t('copilot_q4'),
+                  ),
+                  _chip(
+                    l10n.t('copilot_q5'),
+                    () => _ctrl.text = l10n.t('copilot_q5'),
+                  ),
                 ],
               ),
               const SizedBox(height: 16),
               TextField(
                 controller: _ctrl,
                 maxLines: 3,
-                style: const TextStyle(color: Color(0xFFEAF2FF)),
+                style: const TextStyle(color: IntelligenceTheme.textPrimary),
                 decoration: InputDecoration(
                   hintText: l10n.t('copilot_hint'),
-                  hintStyle: const TextStyle(color: Color(0xFF64748B)),
+                  hintStyle: const TextStyle(color: IntelligenceTheme.textDim),
                   filled: true,
-                  fillColor: const Color(0xFF111827),
+                  fillColor: IntelligenceTheme.panelStrong,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFF1F2937)),
+                    borderSide: const BorderSide(
+                      color: IntelligenceTheme.border,
+                    ),
                   ),
                 ),
               ),
@@ -157,7 +184,10 @@ class _CopilotSheetState extends ConsumerState<_CopilotSheet> {
                     ? const SizedBox(
                         width: 18,
                         height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
                       )
                     : const Icon(Icons.send_rounded),
                 label: Text(l10n.t('copilot_ask')),
@@ -166,7 +196,11 @@ class _CopilotSheetState extends ConsumerState<_CopilotSheet> {
                 const SizedBox(height: 20),
                 Text(
                   _reply,
-                  style: const TextStyle(color: Color(0xFFCBD5E1), fontSize: 14, height: 1.5),
+                  style: const TextStyle(
+                    color: IntelligenceTheme.textSecondary,
+                    fontSize: 14,
+                    height: 1.5,
+                  ),
                 ),
               ],
             ],
@@ -180,8 +214,8 @@ class _CopilotSheetState extends ConsumerState<_CopilotSheet> {
     return ActionChip(
       label: Text(label, style: const TextStyle(fontSize: 12)),
       onPressed: onTap,
-      backgroundColor: const Color(0xFF1E293B),
-      side: const BorderSide(color: Color(0xFF334155)),
+      backgroundColor: IntelligenceTheme.panelStrong,
+      side: const BorderSide(color: IntelligenceTheme.borderStrong),
     );
   }
 }

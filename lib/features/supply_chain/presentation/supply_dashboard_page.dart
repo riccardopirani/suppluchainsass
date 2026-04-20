@@ -1,3 +1,4 @@
+import 'package:fabricos/core/theme/intelligence_theme.dart';
 import 'package:fabricos/features/app_shell/providers/fabricos_provider.dart';
 import 'package:fabricos/features/supply_chain/data/supply_chain_ai_service.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -8,7 +9,8 @@ class SupplyDashboardPage extends ConsumerStatefulWidget {
   const SupplyDashboardPage({super.key});
 
   @override
-  ConsumerState<SupplyDashboardPage> createState() => _SupplyDashboardPageState();
+  ConsumerState<SupplyDashboardPage> createState() =>
+      _SupplyDashboardPageState();
 }
 
 class _SupplyDashboardPageState extends ConsumerState<SupplyDashboardPage> {
@@ -25,19 +27,27 @@ class _SupplyDashboardPageState extends ConsumerState<SupplyDashboardPage> {
     final companyIdAsync = ref.watch(currentCompanyIdProvider);
 
     return Scaffold(
+      backgroundColor: IntelligenceTheme.background,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Supply Chain Visibility', style: Theme.of(context).textTheme.headlineMedium),
+              Text(
+                'Supply Chain Visibility',
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  color: IntelligenceTheme.textPrimary,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
               const SizedBox(height: 6),
               Text(
                 'AI-first command center for demand, inventory, risk and disruptions.',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+                  color: IntelligenceTheme.textSecondary,
+                  height: 1.45,
+                ),
               ),
               const SizedBox(height: 12),
               companyIdAsync.when(
@@ -49,9 +59,11 @@ class _SupplyDashboardPageState extends ConsumerState<SupplyDashboardPage> {
                       onPressed: _busy
                           ? null
                           : () => _runAction(() async {
-                                await ref.read(supplyChainAiServiceProvider).predictDemand(companyId);
-                                ref.invalidate(demandForecastProvider);
-                              }),
+                              await ref
+                                  .read(supplyChainAiServiceProvider)
+                                  .predictDemand(companyId);
+                              ref.invalidate(demandForecastProvider);
+                            }),
                       icon: const Icon(Icons.trending_up_outlined),
                       label: const Text('Predict demand'),
                     ),
@@ -59,9 +71,11 @@ class _SupplyDashboardPageState extends ConsumerState<SupplyDashboardPage> {
                       onPressed: _busy
                           ? null
                           : () => _runAction(() async {
-                                await ref.read(supplyChainAiServiceProvider).detectDisruptions(companyId);
-                                ref.invalidate(disruptionsProvider);
-                              }),
+                              await ref
+                                  .read(supplyChainAiServiceProvider)
+                                  .detectDisruptions(companyId);
+                              ref.invalidate(disruptionsProvider);
+                            }),
                       icon: const Icon(Icons.warning_amber_outlined),
                       label: const Text('Detect disruptions'),
                     ),
@@ -69,13 +83,16 @@ class _SupplyDashboardPageState extends ConsumerState<SupplyDashboardPage> {
                       onPressed: _busy
                           ? null
                           : () => _runAction(() async {
-                                final data = await ref.read(supplyChainAiServiceProvider).optimizeCosts(companyId);
-                                final suggestions = (data['suggestions'] as List? ?? const [])
-                                    .whereType<Map>()
-                                    .map((e) => e.cast<String, dynamic>())
-                                    .toList();
-                                setState(() => _costSuggestions = suggestions);
-                              }),
+                              final data = await ref
+                                  .read(supplyChainAiServiceProvider)
+                                  .optimizeCosts(companyId);
+                              final suggestions =
+                                  (data['suggestions'] as List? ?? const [])
+                                      .whereType<Map>()
+                                      .map((e) => e.cast<String, dynamic>())
+                                      .toList();
+                              setState(() => _costSuggestions = suggestions);
+                            }),
                       icon: const Icon(Icons.euro_outlined),
                       label: const Text('Optimize costs'),
                     ),
@@ -89,17 +106,30 @@ class _SupplyDashboardPageState extends ConsumerState<SupplyDashboardPage> {
                 spacing: 12,
                 runSpacing: 12,
                 children: [
-                  _kpiCard(context, 'Total orders', ordersAsync.valueOrNull?.length.toString() ?? '-', Icons.fact_check_outlined),
+                  _kpiCard(
+                    context,
+                    'Total orders',
+                    ordersAsync.valueOrNull?.length.toString() ?? '-',
+                    Icons.fact_check_outlined,
+                  ),
                   _kpiCard(
                     context,
                     'Delayed shipments',
-                    ((ordersAsync.valueOrNull ?? const []).where((o) => ((o['delay_days'] as num?)?.toInt() ?? 0) > 0).length).toString(),
+                    ((ordersAsync.valueOrNull ?? const [])
+                            .where(
+                              (o) =>
+                                  ((o['delay_days'] as num?)?.toInt() ?? 0) > 0,
+                            )
+                            .length)
+                        .toString(),
                     Icons.local_shipping_outlined,
                   ),
                   _kpiCard(
                     context,
                     'Supplier risk avg',
-                    _supplierRiskAvg(suppliersAsync.valueOrNull).toStringAsFixed(1),
+                    _supplierRiskAvg(
+                      suppliersAsync.valueOrNull,
+                    ).toStringAsFixed(1),
                     Icons.insights_outlined,
                   ),
                   _kpiCard(
@@ -112,13 +142,20 @@ class _SupplyDashboardPageState extends ConsumerState<SupplyDashboardPage> {
               ),
               const SizedBox(height: 16),
               Card(
+                color: IntelligenceTheme.panel,
+                surfaceTintColor: Colors.transparent,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  side: const BorderSide(color: IntelligenceTheme.border),
+                ),
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: SizedBox(
                     height: 220,
                     child: forecastAsync.when(
                       data: (rows) => _forecastChart(context, rows),
-                      loading: () => const Center(child: CircularProgressIndicator()),
+                      loading: () =>
+                          const Center(child: CircularProgressIndicator()),
                       error: (e, _) => Text('Forecast unavailable: $e'),
                     ),
                   ),
@@ -127,48 +164,105 @@ class _SupplyDashboardPageState extends ConsumerState<SupplyDashboardPage> {
               const SizedBox(height: 12),
               if (_costSuggestions.isNotEmpty)
                 Card(
+                  color: IntelligenceTheme.panel,
+                  surfaceTintColor: Colors.transparent,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    side: const BorderSide(color: IntelligenceTheme.border),
+                  ),
                   child: Padding(
                     padding: const EdgeInsets.all(12),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Cost Optimization Insights', style: Theme.of(context).textTheme.titleMedium),
+                        Text(
+                          'Cost Optimization Insights',
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(
+                                color: IntelligenceTheme.textPrimary,
+                                fontWeight: FontWeight.w700,
+                              ),
+                        ),
                         const SizedBox(height: 8),
-                        ..._costSuggestions.map((s) => ListTile(
-                              dense: true,
-                              title: Text(s['message']?.toString() ?? ''),
-                              trailing: Text('€${(s['estimated_saving'] as num?)?.toStringAsFixed(0) ?? '-'}'),
-                            )),
+                        ..._costSuggestions.map(
+                          (s) => ListTile(
+                            dense: true,
+                            title: Text(
+                              s['message']?.toString() ?? '',
+                              style: const TextStyle(
+                                color: IntelligenceTheme.textSecondary,
+                              ),
+                            ),
+                            trailing: Text(
+                              '€${(s['estimated_saving'] as num?)?.toStringAsFixed(0) ?? '-'}',
+                              style: const TextStyle(
+                                color: IntelligenceTheme.textPrimary,
+                              ),
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
                 ),
               const SizedBox(height: 16),
               Card(
+                color: IntelligenceTheme.panel,
+                surfaceTintColor: Colors.transparent,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  side: const BorderSide(color: IntelligenceTheme.border),
+                ),
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: disruptionsAsync.when(
                     data: (rows) {
-                      if (rows.isEmpty) return const Text('No disruptions detected.');
+                      if (rows.isEmpty) {
+                        return const Text(
+                          'No disruptions detected.',
+                          style: TextStyle(
+                            color: IntelligenceTheme.textSecondary,
+                          ),
+                        );
+                      }
                       return Column(
                         children: rows.take(8).map((d) {
                           final severity = (d['severity'] ?? 'info').toString();
                           final color = severity == 'critical'
                               ? const Color(0xFFDC2626)
                               : severity == 'warning'
-                                  ? const Color(0xFFD97706)
-                                  : const Color(0xFF0E7490);
+                              ? const Color(0xFFD97706)
+                              : const Color(0xFF0E7490);
                           return ListTile(
                             dense: true,
-                            leading: Icon(Icons.warning_amber_rounded, color: color),
-                            title: Text(d['message']?.toString() ?? ''),
-                            subtitle: Text('${d['type']} · ${d['created_at'] ?? ''}'),
+                            leading: Icon(
+                              Icons.warning_amber_rounded,
+                              color: color,
+                            ),
+                            title: Text(
+                              d['message']?.toString() ?? '',
+                              style: const TextStyle(
+                                color: IntelligenceTheme.textPrimary,
+                              ),
+                            ),
+                            subtitle: Text(
+                              '${d['type']} · ${d['created_at'] ?? ''}',
+                              style: const TextStyle(
+                                color: IntelligenceTheme.textSecondary,
+                              ),
+                            ),
                           );
                         }).toList(),
                       );
                     },
-                    loading: () => const Center(child: CircularProgressIndicator()),
-                    error: (e, _) => Text('Disruptions unavailable: $e'),
+                    loading: () =>
+                        const Center(child: CircularProgressIndicator()),
+                    error: (e, _) => Text(
+                      'Disruptions unavailable: $e',
+                      style: const TextStyle(
+                        color: IntelligenceTheme.textSecondary,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -188,20 +282,33 @@ class _SupplyDashboardPageState extends ConsumerState<SupplyDashboardPage> {
     }
   }
 
-  static Widget _forecastChart(BuildContext context, List<Map<String, dynamic>> rows) {
+  static Widget _forecastChart(
+    BuildContext context,
+    List<Map<String, dynamic>> rows,
+  ) {
     final grouped = <String, double>{};
     for (final row in rows.take(30)) {
       final day = row['forecast_date']?.toString() ?? '';
-      grouped[day] = (grouped[day] ?? 0) + ((row['predicted_quantity'] as num?)?.toDouble() ?? 0);
+      grouped[day] =
+          (grouped[day] ?? 0) +
+          ((row['predicted_quantity'] as num?)?.toDouble() ?? 0);
     }
-    final entries = grouped.entries.toList()..sort((a, b) => a.key.compareTo(b.key));
+    final entries = grouped.entries.toList()
+      ..sort((a, b) => a.key.compareTo(b.key));
     final spots = <FlSpot>[
-      for (int i = 0; i < entries.length; i++) FlSpot(i.toDouble(), entries[i].value),
+      for (int i = 0; i < entries.length; i++)
+        FlSpot(i.toDouble(), entries[i].value),
     ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Demand Forecast (next 30 days)', style: Theme.of(context).textTheme.titleMedium),
+        Text(
+          'Demand Forecast (next 30 days)',
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            color: IntelligenceTheme.textPrimary,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
         const SizedBox(height: 12),
         Expanded(
           child: LineChart(
@@ -209,17 +316,25 @@ class _SupplyDashboardPageState extends ConsumerState<SupplyDashboardPage> {
               gridData: const FlGridData(show: false),
               borderData: FlBorderData(show: false),
               titlesData: const FlTitlesData(
-                leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                leftTitles: AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                rightTitles: AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                topTitles: AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                bottomTitles: AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
               ),
               lineBarsData: [
                 LineChartBarData(
                   spots: spots,
                   isCurved: true,
                   barWidth: 3,
-                  color: const Color(0xFF2563EB),
+                  color: IntelligenceTheme.accentStrong,
                   dotData: const FlDotData(show: false),
                 ),
               ],
@@ -230,21 +345,43 @@ class _SupplyDashboardPageState extends ConsumerState<SupplyDashboardPage> {
     );
   }
 
-  static Widget _kpiCard(BuildContext context, String label, String value, IconData icon) {
+  static Widget _kpiCard(
+    BuildContext context,
+    String label,
+    String value,
+    IconData icon,
+  ) {
     return SizedBox(
       width: 220,
       child: Card(
+        color: IntelligenceTheme.panel,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: const BorderSide(color: IntelligenceTheme.border),
+        ),
         child: Padding(
           padding: const EdgeInsets.all(14),
           child: Row(
             children: [
-              Icon(icon),
+              Icon(icon, color: IntelligenceTheme.accent),
               const SizedBox(width: 10),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(label),
-                  Text(value, style: Theme.of(context).textTheme.titleLarge),
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      color: IntelligenceTheme.textSecondary,
+                    ),
+                  ),
+                  Text(
+                    value,
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      color: IntelligenceTheme.textPrimary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ],
               ),
             ],

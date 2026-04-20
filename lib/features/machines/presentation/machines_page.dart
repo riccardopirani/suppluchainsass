@@ -25,56 +25,88 @@ class _MachinesPageState extends ConsumerState<MachinesPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('New machine'),
-        content: SizedBox(
-          width: 460,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameController,
-                decoration: const InputDecoration(labelText: 'Name'),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: typeController,
-                decoration: const InputDecoration(labelText: 'Type'),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: countryController,
-                decoration: const InputDecoration(labelText: 'Country'),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: cityController,
-                decoration: const InputDecoration(labelText: 'City'),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: addressController,
-                decoration: const InputDecoration(labelText: 'Address'),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: latitudeController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(labelText: 'Latitude'),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: TextField(
-                      controller: longitudeController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(labelText: 'Longitude'),
-                    ),
-                  ),
-                ],
-              ),
-            ],
+        content: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 460),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nameController,
+                  decoration: const InputDecoration(labelText: 'Name'),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: typeController,
+                  decoration: const InputDecoration(labelText: 'Type'),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: countryController,
+                  decoration: const InputDecoration(labelText: 'Country'),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: cityController,
+                  decoration: const InputDecoration(labelText: 'City'),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: addressController,
+                  decoration: const InputDecoration(labelText: 'Address'),
+                ),
+                const SizedBox(height: 8),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final stack = constraints.maxWidth < 360;
+                    if (stack) {
+                      return Column(
+                        children: [
+                          TextField(
+                            controller: latitudeController,
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(
+                              labelText: 'Latitude',
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          TextField(
+                            controller: longitudeController,
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(
+                              labelText: 'Longitude',
+                            ),
+                          ),
+                        ],
+                      );
+                    }
+                    return Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: latitudeController,
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(
+                              labelText: 'Latitude',
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: TextField(
+                            controller: longitudeController,
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(
+                              labelText: 'Longitude',
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
         ),
         actions: [
@@ -174,24 +206,23 @@ class _MachinesPageState extends ConsumerState<MachinesPage> {
     if (ok != true || !mounted) return;
     setState(() => _busy = true);
     try {
-      await ref.read(fabricosRepositoryProvider).deleteMachine(
-            companyId: companyId,
-            machineId: machineId,
-          );
+      await ref
+          .read(fabricosRepositoryProvider)
+          .deleteMachine(companyId: companyId, machineId: machineId);
       ref.invalidate(machinesProvider);
       ref.invalidate(maintenanceLogsProvider);
       ref.invalidate(alertsProvider);
       ref.invalidate(dashboardSnapshotProvider);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Machine removed.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Machine removed.')));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not delete machine: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Could not delete machine: $e')));
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -209,25 +240,30 @@ class _MachinesPageState extends ConsumerState<MachinesPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Add maintenance log'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: notesController,
-              decoration: const InputDecoration(labelText: 'Notes'),
+        content: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 460),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: notesController,
+                  decoration: const InputDecoration(labelText: 'Notes'),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: technicianController,
+                  decoration: const InputDecoration(labelText: 'Technician'),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: costController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: 'Cost'),
+                ),
+              ],
             ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: technicianController,
-              decoration: const InputDecoration(labelText: 'Technician'),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: costController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Cost'),
-            ),
-          ],
+          ),
         ),
         actions: [
           TextButton(
@@ -269,11 +305,13 @@ class _MachinesPageState extends ConsumerState<MachinesPage> {
     final companyIdAsync = ref.watch(currentCompanyIdProvider);
     final machinesAsync = ref.watch(machinesProvider);
     final logsAsync = ref.watch(maintenanceLogsProvider);
+    final width = MediaQuery.sizeOf(context).width;
+    final compact = width < 700;
 
     return Scaffold(
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(compact ? 16 : 24),
           child: companyIdAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (err, _) =>
@@ -281,19 +319,37 @@ class _MachinesPageState extends ConsumerState<MachinesPage> {
             data: (companyId) => Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final stackHeader = constraints.maxWidth < 520;
+                    final title = Text(
                       'Predictive Maintenance',
                       style: Theme.of(context).textTheme.headlineMedium,
-                    ),
-                    FilledButton.icon(
-                      onPressed: _busy ? null : () => _createMachine(companyId),
-                      icon: const Icon(Icons.add),
-                      label: const Text('New machine'),
-                    ),
-                  ],
+                    );
+                    final action = SizedBox(
+                      width: stackHeader ? double.infinity : null,
+                      child: FilledButton.icon(
+                        onPressed: _busy
+                            ? null
+                            : () => _createMachine(companyId),
+                        icon: const Icon(Icons.add),
+                        label: const Text('New machine'),
+                      ),
+                    );
+                    if (stackHeader) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [title, const SizedBox(height: 12), action],
+                      );
+                    }
+                    return Row(
+                      children: [
+                        Expanded(child: title),
+                        const SizedBox(width: 12),
+                        action,
+                      ],
+                    );
+                  },
                 ),
                 const SizedBox(height: 6),
                 Text(
@@ -303,193 +359,130 @@ class _MachinesPageState extends ConsumerState<MachinesPage> {
                   ),
                 ),
                 const SizedBox(height: 18),
+                const SizedBox(height: 18),
                 Expanded(
-                  child: Row(
-                    children: [
-                      Expanded(
-                        flex: 3,
-                        child: Card(
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: machinesAsync.when(
-                              loading: () => const Center(
-                                child: CircularProgressIndicator(),
-                              ),
-                              error: (err, _) =>
-                                  Text('Failed to load machines: $err'),
-                              data: (machines) {
-                                if (machines.isEmpty) {
-                                  return const Center(
-                                    child: Text(
-                                      'No machines yet. Add one to start monitoring.',
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final stackPanels = constraints.maxWidth < 980;
+                      final machinesCard = Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: machinesAsync.when(
+                            loading: () => const Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                            error: (err, _) =>
+                                Text('Failed to load machines: $err'),
+                            data: (machines) {
+                              if (machines.isEmpty) {
+                                return const Center(
+                                  child: Text(
+                                    'No machines yet. Add one to start monitoring.',
+                                  ),
+                                );
+                              }
+
+                              return ListView.separated(
+                                itemCount: machines.length,
+                                separatorBuilder: (_, __) =>
+                                    const Divider(height: 1),
+                                itemBuilder: (context, index) {
+                                  final machine = machines[index];
+                                  return _MachineListItem(
+                                    machine: machine,
+                                    busy: _busy,
+                                    compact: compact,
+                                    onSimulate: () => _simulate(
+                                      companyId,
+                                      machine['id'].toString(),
+                                    ),
+                                    onLogMaintenance: () => _logMaintenance(
+                                      companyId,
+                                      machine['id'].toString(),
+                                    ),
+                                    onDelete: () => _deleteMachine(
+                                      companyId,
+                                      machine['id'].toString(),
+                                      machine['name']?.toString() ?? 'Machine',
                                     ),
                                   );
-                                }
+                                },
+                              );
+                            },
+                          ),
+                        ),
+                      );
 
-                                return ListView.separated(
-                                  itemCount: machines.length,
-                                  separatorBuilder: (_, __) =>
-                                      const Divider(height: 1),
-                                  itemBuilder: (context, index) {
-                                    final machine = machines[index];
-                                    final risk =
-                                        ((machine['failure_risk'] as num?)
-                                                ?.toDouble() ??
-                                            0) *
-                                        100;
-                                    final status =
-                                        machine['status']?.toString() ??
-                                        'running';
-                                    final city = machine['city']?.toString();
-                                    final country = machine['country']
-                                        ?.toString();
-                                    final location = [
-                                      if (city != null && city.isNotEmpty) city,
-                                      if (country != null && country.isNotEmpty)
-                                        country,
-                                    ].join(', ');
-
-                                    return ListTile(
-                                      contentPadding:
-                                          const EdgeInsets.symmetric(
-                                            vertical: 8,
-                                            horizontal: 6,
+                      final logsCard = Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Recent maintenance logs',
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                              const SizedBox(height: 8),
+                              Expanded(
+                                child: logsAsync.when(
+                                  loading: () => const Center(
+                                    child: CircularProgressIndicator(),
+                                  ),
+                                  error: (err, _) =>
+                                      Text('Failed to load logs: $err'),
+                                  data: (logs) {
+                                    if (logs.isEmpty) {
+                                      return const Text('No logs available.');
+                                    }
+                                    return ListView.builder(
+                                      itemCount: logs.length,
+                                      itemBuilder: (context, index) {
+                                        final log = logs[index];
+                                        final machine =
+                                            log['machines']
+                                                as Map<String, dynamic>?;
+                                        return ListTile(
+                                          dense: true,
+                                          title: Text(
+                                            machine?['name']?.toString() ??
+                                                'Machine',
                                           ),
-                                      leading: CircleAvatar(
-                                        backgroundColor: _statusColor(
-                                          status,
-                                        ).withValues(alpha: 0.15),
-                                        child: Icon(
-                                          Icons.memory_rounded,
-                                          color: _statusColor(status),
-                                        ),
-                                      ),
-                                      title: Text(
-                                        '${machine['name']} · ${machine['type']}',
-                                      ),
-                                      subtitle: Text(
-                                        'Last maintenance: ${_formatDate(machine['last_maintenance_at'])} | Risk ${risk.toStringAsFixed(1)}%${location.isNotEmpty ? ' | $location' : ''}',
-                                      ),
-                                      trailing: Wrap(
-                                        spacing: 8,
-                                        children: [
-                                          Chip(
-                                            label: Text(status.toUpperCase()),
-                                            backgroundColor: _statusColor(
-                                              status,
-                                            ).withValues(alpha: 0.15),
+                                          subtitle: Text(
+                                            '${formatMachineDate(log['performed_at'])} · ${log['technician'] ?? 'Technician'}',
                                           ),
-                                          IconButton(
-                                            tooltip: 'Simulate IoT data',
-                                            onPressed: _busy
-                                                ? null
-                                                : () => _simulate(
-                                                    companyId,
-                                                    machine['id'].toString(),
-                                                  ),
-                                            icon: const Icon(
-                                              Icons.bolt_outlined,
-                                            ),
+                                          trailing: Text(
+                                            '€${((log['cost'] as num?)?.toDouble() ?? 0).toStringAsFixed(0)}',
                                           ),
-                                          IconButton(
-                                            tooltip: 'Log maintenance',
-                                            onPressed: _busy
-                                                ? null
-                                                : () => _logMaintenance(
-                                                    companyId,
-                                                    machine['id'].toString(),
-                                                  ),
-                                            icon: const Icon(
-                                              Icons.build_outlined,
-                                            ),
-                                          ),
-                                          IconButton(
-                                            tooltip: 'Delete machine',
-                                            onPressed: _busy
-                                                ? null
-                                                : () => _deleteMachine(
-                                                      companyId,
-                                                      machine['id'].toString(),
-                                                      machine
-                                                              ['name']
-                                                              ?.toString() ??
-                                                          'Machine',
-                                                    ),
-                                            icon: Icon(
-                                              Icons.delete_outline,
-                                              color: Theme.of(
-                                                context,
-                                              ).colorScheme.error,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
+                                        );
+                                      },
                                     );
                                   },
-                                );
-                              },
-                            ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        flex: 2,
-                        child: Card(
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Recent maintenance logs',
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.titleMedium,
-                                ),
-                                const SizedBox(height: 8),
-                                Expanded(
-                                  child: logsAsync.when(
-                                    loading: () => const Center(
-                                      child: CircularProgressIndicator(),
-                                    ),
-                                    error: (err, _) =>
-                                        Text('Failed to load logs: $err'),
-                                    data: (logs) {
-                                      if (logs.isEmpty) {
-                                        return const Text('No logs available.');
-                                      }
-                                      return ListView.builder(
-                                        itemCount: logs.length,
-                                        itemBuilder: (context, index) {
-                                          final log = logs[index];
-                                          final machine =
-                                              log['machines']
-                                                  as Map<String, dynamic>?;
-                                          return ListTile(
-                                            dense: true,
-                                            title: Text(
-                                              machine?['name']?.toString() ??
-                                                  'Machine',
-                                            ),
-                                            subtitle: Text(
-                                              '${_formatDate(log['performed_at'])} · ${log['technician'] ?? 'Technician'}',
-                                            ),
-                                            trailing: Text(
-                                              '€${((log['cost'] as num?)?.toDouble() ?? 0).toStringAsFixed(0)}',
-                                            ),
-                                          );
-                                        },
-                                      );
-                                    },
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+                      );
+
+                      if (stackPanels) {
+                        return Column(
+                          children: [
+                            SizedBox(height: 380, child: machinesCard),
+                            const SizedBox(height: 16),
+                            SizedBox(height: 300, child: logsCard),
+                          ],
+                        );
+                      }
+
+                      return Row(
+                        children: [
+                          Expanded(flex: 3, child: machinesCard),
+                          const SizedBox(width: 16),
+                          Expanded(flex: 2, child: logsCard),
+                        ],
+                      );
+                    },
                   ),
                 ),
               ],
@@ -499,21 +492,138 @@ class _MachinesPageState extends ConsumerState<MachinesPage> {
       ),
     );
   }
+}
 
-  static String _formatDate(dynamic value) {
-    final date = DateTime.tryParse(value?.toString() ?? '');
-    if (date == null) return '-';
-    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-  }
+class _MachineListItem extends StatelessWidget {
+  const _MachineListItem({
+    required this.machine,
+    required this.busy,
+    required this.compact,
+    required this.onSimulate,
+    required this.onLogMaintenance,
+    required this.onDelete,
+  });
 
-  static Color _statusColor(String status) {
-    switch (status) {
-      case 'warning':
-        return const Color(0xFFD97706);
-      case 'stopped':
-        return const Color(0xFFDC2626);
-      default:
-        return const Color(0xFF15803D);
+  final Map<String, dynamic> machine;
+  final bool busy;
+  final bool compact;
+  final VoidCallback onSimulate;
+  final VoidCallback onLogMaintenance;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    final risk = ((machine['failure_risk'] as num?)?.toDouble() ?? 0) * 100;
+    final status = machine['status']?.toString() ?? 'running';
+    final city = machine['city']?.toString();
+    final country = machine['country']?.toString();
+    final location = [
+      if (city != null && city.isNotEmpty) city,
+      if (country != null && country.isNotEmpty) country,
+    ].join(', ');
+    final statusChip = Chip(
+      label: Text(status.toUpperCase()),
+      backgroundColor: machineStatusColor(status).withValues(alpha: 0.15),
+    );
+    final actions = Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      alignment: compact ? WrapAlignment.start : WrapAlignment.end,
+      children: [
+        statusChip,
+        IconButton(
+          tooltip: 'Simulate IoT data',
+          onPressed: busy ? null : onSimulate,
+          icon: const Icon(Icons.bolt_outlined),
+        ),
+        IconButton(
+          tooltip: 'Log maintenance',
+          onPressed: busy ? null : onLogMaintenance,
+          icon: const Icon(Icons.build_outlined),
+        ),
+        IconButton(
+          tooltip: 'Delete machine',
+          onPressed: busy ? null : onDelete,
+          icon: Icon(
+            Icons.delete_outline,
+            color: Theme.of(context).colorScheme.error,
+          ),
+        ),
+      ],
+    );
+
+    if (compact) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CircleAvatar(
+                  backgroundColor: machineStatusColor(
+                    status,
+                  ).withValues(alpha: 0.15),
+                  child: Icon(
+                    Icons.memory_rounded,
+                    color: machineStatusColor(status),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${machine['name']} · ${machine['type']}',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Last maintenance: ${formatMachineDate(machine['last_maintenance_at'])} | Risk ${risk.toStringAsFixed(1)}%${location.isNotEmpty ? ' | $location' : ''}',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            actions,
+          ],
+        ),
+      );
     }
+
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+      leading: CircleAvatar(
+        backgroundColor: machineStatusColor(status).withValues(alpha: 0.15),
+        child: Icon(Icons.memory_rounded, color: machineStatusColor(status)),
+      ),
+      title: Text('${machine['name']} · ${machine['type']}'),
+      subtitle: Text(
+        'Last maintenance: ${formatMachineDate(machine['last_maintenance_at'])} | Risk ${risk.toStringAsFixed(1)}%${location.isNotEmpty ? ' | $location' : ''}',
+      ),
+      trailing: actions,
+    );
+  }
+}
+
+String formatMachineDate(dynamic value) {
+  final date = DateTime.tryParse(value?.toString() ?? '');
+  if (date == null) return '-';
+  return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+}
+
+Color machineStatusColor(String status) {
+  switch (status) {
+    case 'warning':
+      return const Color(0xFFD97706);
+    case 'stopped':
+      return const Color(0xFFDC2626);
+    default:
+      return const Color(0xFF15803D);
   }
 }

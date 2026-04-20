@@ -1,3 +1,4 @@
+import 'package:fabricos/core/theme/intelligence_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fabricos/localization/app_localizations.dart';
@@ -13,6 +14,7 @@ class AnalyticsPage extends ConsumerWidget {
     final reorderAsync = ref.watch(reorderRecommendationsProvider);
 
     return Scaffold(
+      backgroundColor: IntelligenceTheme.background,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -21,7 +23,10 @@ class AnalyticsPage extends ConsumerWidget {
             children: [
               Text(
                 context.l10n.t('analytics'),
-                style: Theme.of(context).textTheme.headlineMedium,
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  color: IntelligenceTheme.textPrimary,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
               const SizedBox(height: 24),
               productsAsync.when(
@@ -107,14 +112,31 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      color: IntelligenceTheme.panel,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: const BorderSide(color: IntelligenceTheme.border),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title, style: Theme.of(context).textTheme.bodyMedium),
+            Text(
+              title,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: IntelligenceTheme.textSecondary,
+              ),
+            ),
             const SizedBox(height: 8),
-            Text(value, style: Theme.of(context).textTheme.headlineSmall),
+            Text(
+              value,
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                color: IntelligenceTheme.textPrimary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
           ],
         ),
       ),

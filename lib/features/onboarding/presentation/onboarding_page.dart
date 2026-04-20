@@ -105,7 +105,9 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
     final plan = GoRouterState.of(context).uri.queryParameters['plan'];
 
     try {
-      await ref.read(fabricosRepositoryProvider).createCompanyAndAssignUser(
+      await ref
+          .read(fabricosRepositoryProvider)
+          .createCompanyAndAssignUser(
             companyName: companyName,
             sizeBand: _sizeBand,
             plan: plan != null && plan.isNotEmpty ? plan : null,
@@ -118,7 +120,9 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
 
       if (!_startTrial && companyId != null) {
         if (kUseMobileStoreBilling) {
-          final tier = PlanCatalog.tryParseTier(plan ?? '') ?? SubscriptionPlanTier.growth;
+          final tier =
+              PlanCatalog.tryParseTier(plan ?? '') ??
+              SubscriptionPlanTier.growth;
           if (tier == SubscriptionPlanTier.enterprise) {
             if (mounted) context.go('/contact');
             return;
@@ -130,14 +134,20 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
             if (!done.isCompleted) done.complete();
           };
           iap.onError = (m) {
-            if (!done.isCompleted) done.completeError(Exception(m ?? 'Purchase failed'));
+            if (!done.isCompleted) {
+              done.completeError(Exception(m ?? 'Purchase failed'));
+            }
           };
           iap.onCanceled = () {
             canceled = true;
             if (!done.isCompleted) done.complete();
           };
           try {
-            await iap.startPurchase(companyId: companyId, tier: tier, annual: false);
+            await iap.startPurchase(
+              companyId: companyId,
+              tier: tier,
+              annual: false,
+            );
             await done.future.timeout(
               const Duration(minutes: 3),
               onTimeout: () => throw TimeoutException('iap'),
@@ -162,7 +172,9 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
         }
         final origin = _appOrigin();
         final unitCents = SeatPricing.unitCentsForQuantity(_seats);
-        final url = await ref.read(fabricosRepositoryProvider).createCheckoutSession(
+        final url = await ref
+            .read(fabricosRepositoryProvider)
+            .createCheckoutSession(
               companyId: companyId,
               quantity: _seats,
               unitAmountCents: unitCents,
@@ -192,23 +204,26 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
       final parsed = int.tryParse(seatsParam);
       if (parsed != null && parsed >= 1) _seats = parsed;
     }
-    _startTrial = (uri.queryParameters['trial'] ?? (_startTrial ? '1' : '0')) == '1';
+    _startTrial =
+        (uri.queryParameters['trial'] ?? (_startTrial ? '1' : '0')) == '1';
 
     final l10n = context.l10n;
     final total = SeatPricing.monthlyTotal(_seats);
     final unitPrice = SeatPricing.unitPrice(_seats);
     final roi = _roiPreview();
+    final width = MediaQuery.sizeOf(context).width;
+    final compact = width < 560;
 
     return Scaffold(
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+            padding: EdgeInsets.all(compact ? 16 : 24),
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 520),
+              constraints: const BoxConstraints(maxWidth: 560),
               child: Card(
                 child: Padding(
-                  padding: const EdgeInsets.all(24),
+                  padding: EdgeInsets.all(compact ? 18 : 24),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -226,8 +241,11 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                           4 => l10n.t('onboarding_step_pain'),
                           _ => l10n.t('onboarding_step_roi'),
                         }} · ${_step + 1}/$_steps',
-                        style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        style: Theme.of(context).textTheme.labelMedium
+                            ?.copyWith(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
                             ),
                       ),
                       const SizedBox(height: 20),
@@ -239,8 +257,11 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                         const SizedBox(height: 8),
                         Text(
                           l10n.t('onboarding_intro_body'),
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
                               ),
                         ),
                       ],
@@ -260,9 +281,18 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                         DropdownButtonFormField<String>(
                           initialValue: _sizeBand,
                           items: [
-                            DropdownMenuItem(value: '10-50', child: Text('10-50 ${l10n.t('pricing_users')}')),
-                            DropdownMenuItem(value: '51-200', child: Text('51-200 ${l10n.t('pricing_users')}')),
-                            DropdownMenuItem(value: '201-500', child: Text('201-500 ${l10n.t('pricing_users')}')),
+                            DropdownMenuItem(
+                              value: '10-50',
+                              child: Text('10-50 ${l10n.t('pricing_users')}'),
+                            ),
+                            DropdownMenuItem(
+                              value: '51-200',
+                              child: Text('51-200 ${l10n.t('pricing_users')}'),
+                            ),
+                            DropdownMenuItem(
+                              value: '201-500',
+                              child: Text('201-500 ${l10n.t('pricing_users')}'),
+                            ),
                           ],
                           onChanged: (value) {
                             if (value == null) return;
@@ -283,10 +313,17 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                           initialValue: _plantsBand,
                           items: const [
                             DropdownMenuItem(value: '1', child: Text('1 site')),
-                            DropdownMenuItem(value: '2-3', child: Text('2–3 sites')),
-                            DropdownMenuItem(value: '4+', child: Text('4+ sites')),
+                            DropdownMenuItem(
+                              value: '2-3',
+                              child: Text('2–3 sites'),
+                            ),
+                            DropdownMenuItem(
+                              value: '4+',
+                              child: Text('4+ sites'),
+                            ),
                           ],
-                          onChanged: (v) => setState(() => _plantsBand = v ?? '1'),
+                          onChanged: (v) =>
+                              setState(() => _plantsBand = v ?? '1'),
                           decoration: InputDecoration(
                             labelText: l10n.t('onboarding_plants_label'),
                           ),
@@ -301,12 +338,25 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                         DropdownButtonFormField<String>(
                           initialValue: _machinesBand,
                           items: [
-                            DropdownMenuItem(value: '<10', child: Text('<10 machines')),
-                            DropdownMenuItem(value: '10-50', child: Text('10–50 machines')),
-                            DropdownMenuItem(value: '51-200', child: Text('51–200 machines')),
-                            DropdownMenuItem(value: '200+', child: Text('200+ machines')),
+                            DropdownMenuItem(
+                              value: '<10',
+                              child: Text('<10 machines'),
+                            ),
+                            DropdownMenuItem(
+                              value: '10-50',
+                              child: Text('10–50 machines'),
+                            ),
+                            DropdownMenuItem(
+                              value: '51-200',
+                              child: Text('51–200 machines'),
+                            ),
+                            DropdownMenuItem(
+                              value: '200+',
+                              child: Text('200+ machines'),
+                            ),
                           ],
-                          onChanged: (v) => setState(() => _machinesBand = v ?? '10-50'),
+                          onChanged: (v) =>
+                              setState(() => _machinesBand = v ?? '10-50'),
                           decoration: InputDecoration(
                             labelText: l10n.t('onboarding_machines_label'),
                           ),
@@ -330,22 +380,26 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                             ChoiceChip(
                               label: Text(l10n.t('onboarding_pain_downtime')),
                               selected: _pain == 'downtime',
-                              onSelected: (_) => setState(() => _pain = 'downtime'),
+                              onSelected: (_) =>
+                                  setState(() => _pain = 'downtime'),
                             ),
                             ChoiceChip(
                               label: Text(l10n.t('onboarding_pain_delays')),
                               selected: _pain == 'delays',
-                              onSelected: (_) => setState(() => _pain = 'delays'),
+                              onSelected: (_) =>
+                                  setState(() => _pain = 'delays'),
                             ),
                             ChoiceChip(
                               label: Text(l10n.t('onboarding_pain_inventory')),
                               selected: _pain == 'inventory',
-                              onSelected: (_) => setState(() => _pain = 'inventory'),
+                              onSelected: (_) =>
+                                  setState(() => _pain = 'inventory'),
                             ),
                             ChoiceChip(
                               label: Text(l10n.t('onboarding_pain_visibility')),
                               selected: _pain == 'visibility',
-                              onSelected: (_) => setState(() => _pain = 'visibility'),
+                              onSelected: (_) =>
+                                  setState(() => _pain = 'visibility'),
                             ),
                           ],
                         ),
@@ -360,7 +414,10 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                           width: double.infinity,
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                            color: Theme.of(context)
+                                .colorScheme
+                                .surfaceContainerHighest
+                                .withValues(alpha: 0.5),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Column(
@@ -368,15 +425,17 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                             children: [
                               Text(
                                 '€${roi.estimatedMonthlySavings.round()}${l10n.t('per_month')} · est. savings',
-                                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                      fontWeight: FontWeight.w700,
-                                    ),
+                                style: Theme.of(context).textTheme.headlineSmall
+                                    ?.copyWith(fontWeight: FontWeight.w700),
                               ),
                               const SizedBox(height: 8),
                               Text(
                                 l10n.t('onboarding_roi_blurb'),
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
                                     ),
                               ),
                             ],
@@ -391,8 +450,11 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                         Text(
                           '$_seats ${l10n.t('pricing_users')} · €${unitPrice.toStringAsFixed(2)} ${l10n.t('pricing_per_user_month')} · €${total.toStringAsFixed(0)}${l10n.t('per_month')}'
                           '${_startTrial ? ' · ${l10n.t('billing_trial_30_days')}' : ''}',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
                               ),
                         ),
                       ],
@@ -408,48 +470,83 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                           child: Text(
                             _error!,
                             style: TextStyle(
-                              color: Theme.of(context).colorScheme.onErrorContainer,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onErrorContainer,
                             ),
                           ),
                         ),
                       ],
                       const SizedBox(height: 24),
-                      Row(
-                        children: [
-                          if (_step > 0)
-                            OutlinedButton(
-                              onPressed: _loading ? null : () => setState(() => _step -= 1),
-                              child: Text(l10n.t('onboarding_back')),
-                            ),
-                          const Spacer(),
-                          if (_step < _steps - 1)
-                            FilledButton(
-                              onPressed: _loading
-                                  ? null
-                                  : () {
-                                      if (_step == 1 && _companyController.text.trim().isEmpty) {
-                                        setState(() => _error = l10n.t('validation_name_required'));
-                                        return;
-                                      }
-                                      setState(() {
-                                        _error = null;
-                                        _step += 1;
-                                      });
-                                    },
-                              child: Text(l10n.t('onboarding_next')),
-                            )
-                          else
-                            FilledButton(
-                              onPressed: _loading ? null : _complete,
-                              child: _loading
-                                  ? const SizedBox(
-                                      width: 18,
-                                      height: 18,
-                                      child: CircularProgressIndicator(strokeWidth: 2),
-                                    )
-                                  : Text(l10n.t('create_workspace_continue')),
-                            ),
-                        ],
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          final stackButtons = constraints.maxWidth < 420;
+                          final backButton = _step > 0
+                              ? OutlinedButton(
+                                  onPressed: _loading
+                                      ? null
+                                      : () => setState(() => _step -= 1),
+                                  child: Text(l10n.t('onboarding_back')),
+                                )
+                              : null;
+                          final nextButton = _step < _steps - 1
+                              ? FilledButton(
+                                  onPressed: _loading
+                                      ? null
+                                      : () {
+                                          if (_step == 1 &&
+                                              _companyController.text
+                                                  .trim()
+                                                  .isEmpty) {
+                                            setState(
+                                              () => _error = l10n.t(
+                                                'validation_name_required',
+                                              ),
+                                            );
+                                            return;
+                                          }
+                                          setState(() {
+                                            _error = null;
+                                            _step += 1;
+                                          });
+                                        },
+                                  child: Text(l10n.t('onboarding_next')),
+                                )
+                              : FilledButton(
+                                  onPressed: _loading ? null : _complete,
+                                  child: _loading
+                                      ? const SizedBox(
+                                          width: 18,
+                                          height: 18,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                          ),
+                                        )
+                                      : Text(
+                                          l10n.t('create_workspace_continue'),
+                                        ),
+                                );
+
+                          if (stackButtons) {
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                if (backButton != null) backButton,
+                                if (backButton != null)
+                                  const SizedBox(height: 12),
+                                nextButton,
+                              ],
+                            );
+                          }
+
+                          return Row(
+                            children: [
+                              if (backButton != null) backButton,
+                              const Spacer(),
+                              nextButton,
+                            ],
+                          );
+                        },
                       ),
                     ],
                   ),

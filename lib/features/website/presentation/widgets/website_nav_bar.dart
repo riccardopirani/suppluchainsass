@@ -19,6 +19,8 @@ class WebsiteNavBar extends StatelessWidget implements PreferredSizeWidget {
     final w = MediaQuery.sizeOf(context).width;
     // Keep in sync with [WebsiteLayout._drawerBreakpoint]
     final isWide = w >= 960;
+    final isCompact = w < 560;
+    final isUltraCompact = w < 420;
     final compactActions = onOpenMobileMenu != null;
     const navBg = Color(0xEE030712);
     const navBorder = Color(0xFF1F2937);
@@ -28,14 +30,15 @@ class WebsiteNavBar extends StatelessWidget implements PreferredSizeWidget {
       color: navBg,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          border: Border(
-            bottom: const BorderSide(color: navBorder),
-          ),
+          border: Border(bottom: const BorderSide(color: navBorder)),
         ),
         child: SafeArea(
           bottom: false,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            padding: EdgeInsets.symmetric(
+              horizontal: isUltraCompact ? 10 : 8,
+              vertical: isCompact ? 2 : 4,
+            ),
             child: Row(
               children: [
                 if (compactActions)
@@ -43,13 +46,18 @@ class WebsiteNavBar extends StatelessWidget implements PreferredSizeWidget {
                     padding: const EdgeInsets.only(right: 4),
                     icon: const Icon(Icons.menu_rounded, color: textPrimary),
                     onPressed: onOpenMobileMenu,
-                    tooltip: MaterialLocalizations.of(context).openAppDrawerTooltip,
+                    tooltip: MaterialLocalizations.of(
+                      context,
+                    ).openAppDrawerTooltip,
                   ),
                 Expanded(
                   child: GestureDetector(
                     onTap: () => context.go('/'),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 8,
+                      ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -81,22 +89,49 @@ class WebsiteNavBar extends StatelessWidget implements PreferredSizeWidget {
                   ),
                 ),
                 if (isWide) ...[
-                  _NavLink(label: l10n.t('nav_features'), onTap: () => context.go('/features')),
-                  _NavLink(label: l10n.t('nav_pricing'), onTap: () => context.go('/pricing')),
-                  _NavLink(label: l10n.t('nav_roi'), onTap: () => context.go('/roi-calculator')),
-                  _NavLink(label: l10n.t('nav_factory_audit'), onTap: () => context.go('/factory-score')),
-                  _NavLink(label: l10n.t('nav_book_demo'), onTap: () => context.go('/book-demo')),
-                  _NavLink(label: l10n.t('nav_case_studies'), onTap: () => context.go('/case-studies')),
-                  _NavLink(label: l10n.t('nav_contact'), onTap: () => context.go('/contact')),
-                  _NavLink(label: l10n.t('nav_faq'), onTap: () => context.go('/faq')),
+                  _NavLink(
+                    label: l10n.t('nav_features'),
+                    onTap: () => context.go('/features'),
+                  ),
+                  _NavLink(
+                    label: l10n.t('nav_pricing'),
+                    onTap: () => context.go('/pricing'),
+                  ),
+                  _NavLink(
+                    label: l10n.t('nav_roi'),
+                    onTap: () => context.go('/roi-calculator'),
+                  ),
+                  _NavLink(
+                    label: l10n.t('nav_factory_audit'),
+                    onTap: () => context.go('/factory-score'),
+                  ),
+                  _NavLink(
+                    label: l10n.t('nav_book_demo'),
+                    onTap: () => context.go('/book-demo'),
+                  ),
+                  _NavLink(
+                    label: l10n.t('nav_case_studies'),
+                    onTap: () => context.go('/case-studies'),
+                  ),
+                  _NavLink(
+                    label: l10n.t('nav_contact'),
+                    onTap: () => context.go('/contact'),
+                  ),
+                  _NavLink(
+                    label: l10n.t('nav_faq'),
+                    onTap: () => context.go('/faq'),
+                  ),
                   const SizedBox(width: 8),
                 ],
-                const LanguageSelector(),
+                if (!isUltraCompact) const LanguageSelector(),
                 if (!compactActions) ...[
                   const SizedBox(width: 6),
                   OutlinedButton(
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -115,7 +150,10 @@ class WebsiteNavBar extends StatelessWidget implements PreferredSizeWidget {
                   const SizedBox(width: 8),
                   OutlinedButton(
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -139,8 +177,10 @@ class WebsiteNavBar extends StatelessWidget implements PreferredSizeWidget {
                     backgroundColor: const Color(0xFF2563EB),
                     foregroundColor: Colors.white,
                     padding: EdgeInsets.symmetric(
-                      horizontal: compactActions ? 12 : 18,
-                      vertical: 12,
+                      horizontal: compactActions
+                          ? (isUltraCompact ? 10 : 12)
+                          : 18,
+                      vertical: isCompact ? 10 : 12,
                     ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -153,7 +193,9 @@ class WebsiteNavBar extends StatelessWidget implements PreferredSizeWidget {
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.ibmPlexSans(
                       fontWeight: FontWeight.w700,
-                      fontSize: compactActions ? 13 : 14,
+                      fontSize: compactActions
+                          ? (isUltraCompact ? 12 : 13)
+                          : 14,
                     ),
                   ),
                 ),

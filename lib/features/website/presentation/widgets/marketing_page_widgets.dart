@@ -78,14 +78,12 @@ class MarketingPageIntro extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final accent = isDark ? AppColorsDark.primary : AppColorsLight.primary;
+    final width = MediaQuery.sizeOf(context).width;
+    final narrow = width < 560;
     final bgGradient = isDark
         ? AppColorsDark.heroGradient
         : const LinearGradient(
-            colors: [
-              Color(0xFF0C1222),
-              Color(0xFF111A2E),
-              Color(0xFF0D1F24),
-            ],
+            colors: [Color(0xFF0C1222), Color(0xFF111A2E), Color(0xFF0D1F24)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           );
@@ -108,14 +106,19 @@ class MarketingPageIntro extends StatelessWidget {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(24, 44, 24, 48),
+            padding: EdgeInsets.fromLTRB(
+              narrow ? 16 : 24,
+              narrow ? 32 : 44,
+              narrow ? 16 : 24,
+              narrow ? 36 : 48,
+            ),
             child: Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 1200),
                 child: LayoutBuilder(
                   builder: (context, bc) {
-                    final narrow = bc.maxWidth < 520;
-                    final titleSize = narrow ? 28.0 : 36.0;
+                    final compact = bc.maxWidth < 520;
+                    final titleSize = compact ? 28.0 : 36.0;
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -144,7 +147,7 @@ class MarketingPageIntro extends StatelessWidget {
                           Text(
                             subtitle!,
                             style: GoogleFonts.ibmPlexSans(
-                              fontSize: narrow ? 15 : 16,
+                              fontSize: compact ? 15 : 16,
                               height: 1.5,
                               color: _onHero.withValues(alpha: 0.72),
                             ),
@@ -178,8 +181,16 @@ class MarketingBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.sizeOf(context).width;
+    final horizontal = width < 560 ? 16.0 : 24.0;
+    final vertical = width < 560 ? 36.0 : 56.0;
     return Padding(
-      padding: padding,
+      padding: EdgeInsets.fromLTRB(
+        padding.left == 24 ? horizontal : padding.left,
+        padding.top == 56 ? vertical : padding.top,
+        padding.right == 24 ? horizontal : padding.right,
+        padding.bottom == 56 ? vertical : padding.bottom,
+      ),
       child: Center(
         child: ConstrainedBox(
           constraints: BoxConstraints(maxWidth: maxWidth),
@@ -208,60 +219,101 @@ class MarketingBentoTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
-        child: Ink(
-          decoration: BoxDecoration(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compact = constraints.maxWidth < 520;
+        final content = compact
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(14),
+                      color: scheme.primary.withValues(alpha: 0.12),
+                    ),
+                    child: Icon(icon, color: scheme.primary, size: 26),
+                  ),
+                  const SizedBox(height: 14),
+                  Text(
+                    title,
+                    style: GoogleFonts.spaceGrotesk(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      height: 1.2,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    description,
+                    style: GoogleFonts.ibmPlexSans(
+                      fontSize: 14,
+                      height: 1.5,
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              )
+            : Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(14),
+                      color: scheme.primary.withValues(alpha: 0.12),
+                    ),
+                    child: Icon(icon, color: scheme.primary, size: 26),
+                  ),
+                  const SizedBox(width: 18),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: GoogleFonts.spaceGrotesk(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            height: 1.2,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          description,
+                          style: GoogleFonts.ibmPlexSans(
+                            fontSize: 14,
+                            height: 1.5,
+                            color: scheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+
+        return Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: scheme.outline.withValues(alpha: 0.35)),
-            color: scheme.surfaceContainerHighest.withValues(alpha: 0.35),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(22),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(14),
-                    color: scheme.primary.withValues(alpha: 0.12),
-                  ),
-                  child: Icon(icon, color: scheme.primary, size: 26),
+            child: Ink(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: scheme.outline.withValues(alpha: 0.35),
                 ),
-                const SizedBox(width: 18),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: GoogleFonts.spaceGrotesk(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          height: 1.2,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        description,
-                        style: GoogleFonts.ibmPlexSans(
-                          fontSize: 14,
-                          height: 1.5,
-                          color: scheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+                color: scheme.surfaceContainerHighest.withValues(alpha: 0.35),
+              ),
+              child: Padding(
+                padding: EdgeInsets.all(compact ? 18 : 22),
+                child: content,
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
@@ -285,10 +337,7 @@ class MarketingGlassPanel extends StatelessWidget {
             border: Border.all(color: scheme.outline.withValues(alpha: 0.35)),
             color: scheme.surface.withValues(alpha: 0.85),
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(28),
-            child: child,
-          ),
+          child: Padding(padding: const EdgeInsets.all(28), child: child),
         ),
       ),
     );

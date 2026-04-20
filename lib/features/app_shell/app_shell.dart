@@ -1,3 +1,4 @@
+import 'package:fabricos/core/theme/intelligence_theme.dart';
 import 'package:fabricos/features/app_shell/providers/fabricos_provider.dart';
 import 'package:fabricos/features/billing/presentation/subscription_gate_page.dart';
 import 'package:fabricos/features/copilot/presentation/fabric_copilot_sheet.dart';
@@ -69,29 +70,38 @@ class AppShell extends ConsumerWidget {
 
         if (!isBillingRoute) {
           return billing.when(
-            loading: () =>
-                const Scaffold(body: Center(child: CircularProgressIndicator())),
+            loading: () => const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            ),
             error: (error, _) => Scaffold(
               body: Center(
                 child: Text('Unable to load billing status: $error'),
               ),
             ),
             data: (b) => b.canAccessApp
-                ? _buildShell(context, child, ctx.companyName ?? 'FabricOS Workspace')
+                ? _buildShell(
+                    context,
+                    child,
+                    ctx.companyName ?? 'FabricOS Workspace',
+                  )
                 : const SubscriptionGatePage(),
           );
         }
 
-        return _buildShell(context, child, ctx.companyName ?? 'FabricOS Workspace');
+        return _buildShell(
+          context,
+          child,
+          ctx.companyName ?? 'FabricOS Workspace',
+        );
       },
     );
   }
 
   Widget _buildShell(BuildContext context, Widget child, String companyName) {
     final isWide = MediaQuery.sizeOf(context).width >= 1024;
-    const shellBackground = Color(0xFF050914);
-    const shellBorder = Color(0xFF1A2436);
-    const panelBackground = Color(0xFF08111F);
+    const shellBackground = IntelligenceTheme.background;
+    const shellBorder = IntelligenceTheme.border;
+    const panelBackground = IntelligenceTheme.panel;
 
     if (isWide) {
       return Stack(
@@ -124,10 +134,17 @@ class AppShell extends ConsumerWidget {
                           const _TopBar(),
                           Expanded(
                             child: Padding(
-                              padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+                              padding: const EdgeInsets.fromLTRB(
+                                20,
+                                20,
+                                20,
+                                20,
+                              ),
                               child: DecoratedBox(
                                 decoration: BoxDecoration(
-                                  color: panelBackground.withValues(alpha: 0.88),
+                                  color: panelBackground.withValues(
+                                    alpha: 0.88,
+                                  ),
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(
                                     color: shellBorder.withValues(alpha: 0.8),
@@ -148,11 +165,7 @@ class AppShell extends ConsumerWidget {
               ),
             ),
           ),
-          const Positioned(
-            right: 32,
-            bottom: 32,
-            child: FabricCopilotFab(),
-          ),
+          const Positioned(right: 32, bottom: 32, child: FabricCopilotFab()),
         ],
       );
     }
@@ -178,7 +191,12 @@ class _Sidebar extends ConsumerWidget {
   );
 
   static const _operations = <(String, IconData, String, String)>[
-    ('machines', Icons.precision_manufacturing_outlined, 'Machines', '/app/machines'),
+    (
+      'machines',
+      Icons.precision_manufacturing_outlined,
+      'Machines',
+      '/app/machines',
+    ),
     ('orders', Icons.fact_check_outlined, 'Orders', '/app/orders'),
   ];
 
@@ -190,9 +208,24 @@ class _Sidebar extends ConsumerWidget {
   ];
 
   static const _intelligence = <(String, IconData, String, String)>[
-    ('control_tower', Icons.hub_outlined, 'AI Control Tower', '/app/control-tower'),
-    ('executive_report', Icons.insights_outlined, 'CEO report', '/app/executive-report'),
-    ('forecasting', Icons.trending_up_outlined, 'Forecasts', '/app/forecasting'),
+    (
+      'control_tower',
+      Icons.hub_outlined,
+      'AI Control Tower',
+      '/app/control-tower',
+    ),
+    (
+      'executive_report',
+      Icons.insights_outlined,
+      'CEO report',
+      '/app/executive-report',
+    ),
+    (
+      'forecasting',
+      Icons.trending_up_outlined,
+      'Forecasts',
+      '/app/forecasting',
+    ),
     ('simulation', Icons.science_outlined, 'What-if lab', '/app/simulation'),
     ('reports', Icons.description_outlined, 'Reports', '/app/reports'),
   ];
@@ -225,9 +258,13 @@ class _Sidebar extends ConsumerWidget {
         dense: true,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
-          side: currentPath == item.$4 ? const BorderSide(color: Color(0x227DD3FC)) : BorderSide.none,
+          side: currentPath == item.$4
+              ? const BorderSide(color: Color(0x227DD3FC))
+              : BorderSide.none,
         ),
-        tileColor: currentPath == item.$4 ? sidebarPrimary.withValues(alpha: 0.8) : Colors.transparent,
+        tileColor: currentPath == item.$4
+            ? sidebarPrimary.withValues(alpha: 0.8)
+            : Colors.transparent,
         textColor: sidebarForeground,
         iconColor: sidebarForeground,
         leading: Icon(item.$2, size: 20),
@@ -268,10 +305,10 @@ class _Sidebar extends ConsumerWidget {
 
     final allowedRoutes = isAdmin ? null : permsAsync?.valueOrNull;
     final currentPath = GoRouterState.of(context).uri.path;
-    const sidebarForeground = Color(0xFFC7D6F3);
-    const mutedForeground = Color(0xFF8EA3C2);
-    const sidebarPrimary = Color(0xFF0D1B30);
-    const border = Color(0xFF1A2436);
+    const sidebarForeground = IntelligenceTheme.textPrimary;
+    const mutedForeground = IntelligenceTheme.textDim;
+    const sidebarPrimary = IntelligenceTheme.panelStrong;
+    const border = IntelligenceTheme.border;
 
     final children = <Widget>[
       Padding(
@@ -286,7 +323,7 @@ class _Sidebar extends ConsumerWidget {
                 gradient: const LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [Color(0xFF7DD3FC), Color(0x337DD3FC)],
+                  colors: [IntelligenceTheme.accent, Color(0x337DD3FC)],
                 ),
               ),
               child: const Icon(Icons.radar_rounded, color: Color(0xFF03111E)),
@@ -299,7 +336,7 @@ class _Sidebar extends ConsumerWidget {
                   const Text(
                     'FabricOS',
                     style: TextStyle(
-                      color: Color(0xFFEAF2FF),
+                      color: IntelligenceTheme.textPrimary,
                       fontWeight: FontWeight.w600,
                       fontSize: 16,
                       letterSpacing: -0.3,
@@ -326,7 +363,7 @@ class _Sidebar extends ConsumerWidget {
               child: const Text(
                 'Live',
                 style: TextStyle(
-                  color: Color(0xFF34D399),
+                  color: IntelligenceTheme.success,
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                 ),
@@ -424,11 +461,9 @@ class _Sidebar extends ConsumerWidget {
         gradient: const LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Color(0xFF040A14), Color(0xEE040A14)],
+          colors: [IntelligenceTheme.background, Color(0xEE040A14)],
         ),
-        border: Border(
-          right: BorderSide(color: border.withValues(alpha: 0.9)),
-        ),
+        border: Border(right: BorderSide(color: border.withValues(alpha: 0.9))),
       ),
       child: ListView(
         padding: const EdgeInsets.fromLTRB(14, 18, 14, 14),
@@ -439,7 +474,7 @@ class _Sidebar extends ConsumerWidget {
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10),
-              color: const Color(0xF20C1628),
+              color: IntelligenceTheme.panel,
               border: Border.all(color: border),
             ),
             child: const Column(
@@ -448,7 +483,7 @@ class _Sidebar extends ConsumerWidget {
                 Text(
                   'Access logic',
                   style: TextStyle(
-                    color: Color(0xFFEAF2FF),
+                    color: IntelligenceTheme.textPrimary,
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                   ),
@@ -472,7 +507,9 @@ class _Sidebar extends ConsumerWidget {
             iconColor: sidebarForeground,
             textColor: sidebarForeground,
             title: const Text('Sign out', style: TextStyle(fontSize: 14)),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
             onTap: () async {
               await Supabase.instance.client.auth.signOut();
               if (context.mounted) context.go('/');
@@ -520,8 +557,14 @@ class _TopBar extends ConsumerWidget {
               spacing: 8,
               runSpacing: 8,
               children: [
-                _HeaderTag(text: context.l10n.t('topbar_chip_roi'), icon: Icons.rocket_launch_outlined),
-                _HeaderTag(text: context.l10n.t('topbar_chip_alerts'), icon: Icons.notifications_active_outlined),
+                _HeaderTag(
+                  text: context.l10n.t('topbar_chip_roi'),
+                  icon: Icons.rocket_launch_outlined,
+                ),
+                _HeaderTag(
+                  text: context.l10n.t('topbar_chip_alerts'),
+                  icon: Icons.notifications_active_outlined,
+                ),
               ],
             ),
             const SizedBox(height: 10),
@@ -541,7 +584,11 @@ class _TopBar extends ConsumerWidget {
               context.l10n.t('topbar_tagline'),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: Color(0xFF8EA3C2), fontSize: 13, height: 1.35),
+              style: const TextStyle(
+                color: Color(0xFF8EA3C2),
+                fontSize: 13,
+                height: 1.35,
+              ),
             ),
           ],
         );
@@ -556,9 +603,16 @@ class _TopBar extends ConsumerWidget {
           child: const Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.warning_amber_rounded, size: 16, color: Color(0xFFEAF2FF)),
+              Icon(
+                Icons.warning_amber_rounded,
+                size: 16,
+                color: Color(0xFFEAF2FF),
+              ),
               SizedBox(width: 8),
-              Text('4 alerts', style: TextStyle(color: Color(0xFFEAF2FF), fontSize: 13)),
+              Text(
+                '4 alerts',
+                style: TextStyle(color: Color(0xFFEAF2FF), fontSize: 13),
+              ),
             ],
           ),
         );
@@ -577,7 +631,11 @@ class _TopBar extends ConsumerWidget {
               const CircleAvatar(
                 radius: 16,
                 backgroundColor: Color(0xFF0D1B30),
-                child: Icon(Icons.person_outline, color: Color(0xFF8EA3C2), size: 16),
+                child: Icon(
+                  Icons.person_outline,
+                  color: Color(0xFF8EA3C2),
+                  size: 16,
+                ),
               ),
               const SizedBox(width: 8),
               Flexible(
@@ -600,7 +658,10 @@ class _TopBar extends ConsumerWidget {
                       userCtx?.role ?? 'operator',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(color: Color(0xFF8EA3C2), fontSize: 11),
+                      style: const TextStyle(
+                        color: Color(0xFF8EA3C2),
+                        fontSize: 11,
+                      ),
                     ),
                   ],
                 ),
@@ -612,9 +673,11 @@ class _TopBar extends ConsumerWidget {
         return Container(
           padding: const EdgeInsets.fromLTRB(24, 18, 24, 18),
           decoration: BoxDecoration(
-            color: const Color(0xD1050914),
+            color: IntelligenceTheme.background.withValues(alpha: 0.82),
             border: Border(
-              bottom: BorderSide(color: const Color(0xFF1A2436).withValues(alpha: 0.8)),
+              bottom: BorderSide(
+                color: const Color(0xFF1A2436).withValues(alpha: 0.8),
+              ),
             ),
           ),
           child: stackHeader
@@ -664,12 +727,12 @@ class _HeaderTag extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 13, color: const Color(0xFF7DD3FC)),
+          Icon(icon, size: 13, color: IntelligenceTheme.accent),
           const SizedBox(width: 6),
           Text(
             text,
             style: const TextStyle(
-              color: Color(0xFF7DD3FC),
+              color: IntelligenceTheme.accent,
               fontSize: 12,
               fontWeight: FontWeight.w600,
             ),

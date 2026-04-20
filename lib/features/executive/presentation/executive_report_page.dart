@@ -1,3 +1,4 @@
+import 'package:fabricos/core/theme/intelligence_theme.dart';
 import 'package:fabricos/features/app_shell/providers/fabricos_provider.dart';
 import 'package:fabricos/features/supply_chain/data/supply_chain_ai_service.dart';
 import 'package:fabricos/localization/app_localizations.dart';
@@ -16,19 +17,28 @@ class ExecutiveReportPage extends ConsumerWidget {
     final invAsync = ref.watch(inventoryProvider);
 
     return Scaffold(
+      backgroundColor: IntelligenceTheme.background,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: snapAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, _) => Text('$e'),
+            error: (e, _) => Text(
+              '$e',
+              style: const TextStyle(color: IntelligenceTheme.textSecondary),
+            ),
             data: (snap) {
               final alerts = alertsAsync.valueOrNull ?? const [];
               final inv = invAsync.valueOrNull ?? const [];
-              final critical = alerts.where((a) => a['severity'] == 'critical').length;
-              final estLoss = (snap.delayedSuppliers * 4200 + snap.openAlerts * 900).toDouble();
+              final critical = alerts
+                  .where((a) => a['severity'] == 'critical')
+                  .length;
+              final estLoss =
+                  (snap.delayedSuppliers * 4200 + snap.openAlerts * 900)
+                      .toDouble();
 
-              final emailBody = '''
+              final emailBody =
+                  '''
 FabricOS — Daily CEO Report
 Date: ${DateTime.now().toIso8601String().split('T').first}
 
@@ -52,14 +62,17 @@ Recommended actions:
                   Text(
                     l10n.t('exec_report_title'),
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          color: const Color(0xFFEAF2FF),
-                          fontWeight: FontWeight.w700,
-                        ),
+                      color: IntelligenceTheme.textPrimary,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     l10n.t('exec_report_subtitle'),
-                    style: const TextStyle(color: Color(0xFF8EA3C2)),
+                    style: const TextStyle(
+                      color: IntelligenceTheme.textSecondary,
+                      height: 1.45,
+                    ),
                   ),
                   const SizedBox(height: 24),
                   _glassCard(
@@ -69,8 +82,13 @@ Recommended actions:
                         Text(l10n.t('exec_risk_today'), style: _h),
                         const SizedBox(height: 8),
                         Text(
-                          critical > 0 ? l10n.t('exec_risk_elevated') : l10n.t('exec_risk_normal'),
-                          style: const TextStyle(color: Color(0xFFEAF2FF), fontSize: 16),
+                          critical > 0
+                              ? l10n.t('exec_risk_elevated')
+                              : l10n.t('exec_risk_normal'),
+                          style: const TextStyle(
+                            color: IntelligenceTheme.textPrimary,
+                            fontSize: 16,
+                          ),
                         ),
                       ],
                     ),
@@ -84,7 +102,11 @@ Recommended actions:
                         const SizedBox(height: 8),
                         Text(
                           '€${estLoss.toStringAsFixed(0)} ${l10n.t('exec_money_footnote')}',
-                          style: const TextStyle(color: Color(0xFFFBBF24), fontSize: 18, fontWeight: FontWeight.w600),
+                          style: const TextStyle(
+                            color: IntelligenceTheme.warning,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ],
                     ),
@@ -97,19 +119,35 @@ Recommended actions:
                         Text(l10n.t('exec_top_issues'), style: _h),
                         const SizedBox(height: 8),
                         if (alerts.isEmpty)
-                          Text(l10n.t('exec_no_alerts'), style: const TextStyle(color: Color(0xFF8EA3C2)))
+                          Text(
+                            l10n.t('exec_no_alerts'),
+                            style: const TextStyle(
+                              color: IntelligenceTheme.textSecondary,
+                            ),
+                          )
                         else
-                          ...alerts.take(6).map(
+                          ...alerts
+                              .take(6)
+                              .map(
                                 (a) => Padding(
                                   padding: const EdgeInsets.only(bottom: 10),
                                   child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      const Icon(Icons.chevron_right, color: Color(0xFF7DD3FC), size: 18),
+                                      const Icon(
+                                        Icons.chevron_right,
+                                        color: IntelligenceTheme.accent,
+                                        size: 18,
+                                      ),
                                       Expanded(
                                         child: Text(
                                           '${a['title'] ?? 'Alert'} — ${a['message'] ?? ''}',
-                                          style: const TextStyle(color: Color(0xFFCBD5E1), height: 1.4),
+                                          style: const TextStyle(
+                                            color:
+                                                IntelligenceTheme.textSecondary,
+                                            height: 1.4,
+                                          ),
                                         ),
                                       ),
                                     ],
@@ -130,7 +168,10 @@ Recommended actions:
                           '• ${l10n.t('exec_rec_suppliers')} (${snap.delayedSuppliers})\n'
                           '• ${l10n.t('exec_rec_alerts')} (${snap.openAlerts})\n'
                           '• ${l10n.t('exec_rec_inventory')}',
-                          style: const TextStyle(color: Color(0xFFCBD5E1), height: 1.5),
+                          style: const TextStyle(
+                            color: IntelligenceTheme.textSecondary,
+                            height: 1.5,
+                          ),
                         ),
                       ],
                     ),
@@ -140,7 +181,11 @@ Recommended actions:
                   const SizedBox(height: 8),
                   SelectableText(
                     emailBody,
-                    style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12, height: 1.45),
+                    style: const TextStyle(
+                      color: IntelligenceTheme.textDim,
+                      fontSize: 12,
+                      height: 1.45,
+                    ),
                   ),
                 ],
               );
@@ -151,15 +196,19 @@ Recommended actions:
     );
   }
 
-  static const _h = TextStyle(color: Color(0xFFEAF2FF), fontSize: 15, fontWeight: FontWeight.w600);
+  static const _h = TextStyle(
+    color: IntelligenceTheme.textPrimary,
+    fontSize: 15,
+    fontWeight: FontWeight.w600,
+  );
 
   static Widget _glassCard({required Widget child}) {
     return DecoratedBox(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF1F2937)),
+        border: Border.all(color: IntelligenceTheme.border),
         gradient: const LinearGradient(
-          colors: [Color(0xE60F172A), Color(0xCC0B1220)],
+          colors: [IntelligenceTheme.panelAlt, IntelligenceTheme.panel],
         ),
       ),
       child: Padding(padding: const EdgeInsets.all(18), child: child),

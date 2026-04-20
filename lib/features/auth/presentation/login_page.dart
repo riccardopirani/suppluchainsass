@@ -69,11 +69,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final isWeb = MediaQuery.sizeOf(context).width > 600;
+    final width = MediaQuery.sizeOf(context).width;
+    final showSplit = width >= 900;
 
     return Scaffold(
       backgroundColor: const Color(0xFF030712),
-      body: isWeb
+      body: showSplit
           ? Row(
               children: [
                 Expanded(
@@ -117,14 +118,16 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   Widget _buildForm(BuildContext context, AppLocalizations l10n) {
+    final width = MediaQuery.sizeOf(context).width;
+    final compact = width < 560;
     return SafeArea(
       child: Center(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(compact ? 16 : 24),
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 400),
+            constraints: const BoxConstraints(maxWidth: 420),
             child: Container(
-              padding: const EdgeInsets.all(28),
+              padding: EdgeInsets.all(compact ? 20 : 28),
               decoration: BoxDecoration(
                 color: const Color(0xFF0F172A),
                 borderRadius: BorderRadius.circular(12),
@@ -140,7 +143,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       l10n.t('login_title'),
                       style: const TextStyle(
                         color: Color(0xFFF9FAFB),
-                        fontSize: 34,
+                        fontSize: 30,
                         fontWeight: FontWeight.w700,
                         letterSpacing: -0.8,
                       ),
@@ -148,10 +151,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     const SizedBox(height: 8),
                     const Text(
                       'Accedi al tuo account',
-                      style: TextStyle(
-                        color: Color(0xFF9CA3AF),
-                        fontSize: 15,
-                      ),
+                      style: TextStyle(color: Color(0xFF9CA3AF), fontSize: 15),
                     ),
                     const SizedBox(height: 24),
                     if (_error != null) ...[

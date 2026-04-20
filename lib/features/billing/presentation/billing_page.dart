@@ -38,9 +38,9 @@ class _BillingPageState extends ConsumerState<BillingPage> {
   void _attachIapHandlers(FabricIapCoordinator iap) {
     iap.onError = (m) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(m ?? 'Error')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(m ?? 'Error')));
     };
     iap.onSuccess = () {
       ref.invalidate(billingStatusProvider);
@@ -57,7 +57,11 @@ class _BillingPageState extends ConsumerState<BillingPage> {
     final iap = ref.read(fabricIapCoordinatorProvider);
     _attachIapHandlers(iap);
     try {
-      await iap.startPurchase(companyId: companyId, tier: _tier, annual: _annual);
+      await iap.startPurchase(
+        companyId: companyId,
+        tier: _tier,
+        annual: _annual,
+      );
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -68,7 +72,9 @@ class _BillingPageState extends ConsumerState<BillingPage> {
     setState(() => _busy = true);
     try {
       final origin = _appOrigin();
-      final url = await ref.read(fabricosRepositoryProvider).createCheckoutSession(
+      final url = await ref
+          .read(fabricosRepositoryProvider)
+          .createCheckoutSession(
             companyId: companyId,
             quantity: 1,
             unitAmountCents: cents,
@@ -89,7 +95,9 @@ class _BillingPageState extends ConsumerState<BillingPage> {
     setState(() => _busy = true);
     try {
       final origin = _appOrigin();
-      final url = await ref.read(fabricosRepositoryProvider).createCheckoutSession(
+      final url = await ref
+          .read(fabricosRepositoryProvider)
+          .createCheckoutSession(
             companyId: companyId,
             quantity: qty,
             unitAmountCents: unitCents,
@@ -109,7 +117,9 @@ class _BillingPageState extends ConsumerState<BillingPage> {
     setState(() => _busy = true);
     try {
       final origin = _appOrigin();
-      final url = await ref.read(fabricosRepositoryProvider).createPortalSession(
+      final url = await ref
+          .read(fabricosRepositoryProvider)
+          .createPortalSession(
             companyId: companyId,
             returnUrl: '$origin/app/billing',
           );
@@ -127,25 +137,30 @@ class _BillingPageState extends ConsumerState<BillingPage> {
     final companyIdAsync = ref.watch(currentCompanyIdProvider);
     final billingAsync = ref.watch(billingStatusProvider);
     final historyAsync = ref.watch(paymentHistoryProvider);
+    final width = MediaQuery.sizeOf(context).width;
+    final compact = width < 560;
 
     return Scaffold(
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(compact ? 16 : 24),
           child: companyIdAsync.when(
             data: (companyId) => SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(l10n.t('billing'), style: Theme.of(context).textTheme.headlineMedium),
+                  Text(
+                    l10n.t('billing'),
+                    style: Theme.of(context).textTheme.headlineMedium,
+                  ),
                   const SizedBox(height: 12),
                   billingAsync.when(
                     data: (billing) => Text(
                       billing.hasActiveSubscription
                           ? '${l10n.t('billing_active')} · ${billing.resolvedTier.name}'
                           : billing.inTrial
-                              ? '${l10n.t('billing_trial_until')} ${billing.trialEndsAt?.toLocal().toString().split(' ').first ?? ''}'
-                              : l10n.t('billing_no_active'),
+                          ? '${l10n.t('billing_trial_until')} ${billing.trialEndsAt?.toLocal().toString().split(' ').first ?? ''}'
+                          : l10n.t('billing_no_active'),
                     ),
                     loading: () => const LinearProgressIndicator(),
                     error: (e, _) => Text('$e'),
@@ -158,7 +173,10 @@ class _BillingPageState extends ConsumerState<BillingPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           if (!hasSubscription) ...[
-                            Text(l10n.t('billing_plan_pick'), style: Theme.of(context).textTheme.titleLarge),
+                            Text(
+                              l10n.t('billing_plan_pick'),
+                              style: Theme.of(context).textTheme.titleLarge,
+                            ),
                             const SizedBox(height: 6),
                             Text(l10n.t('billing_plan_subtitle')),
                             const SizedBox(height: 16),
@@ -173,51 +191,85 @@ class _BillingPageState extends ConsumerState<BillingPage> {
                               spacing: 12,
                               runSpacing: 12,
                               children: [
-                                _planChip(context, SubscriptionPlanTier.starter, l10n.t('plan_starter')),
-                                _planChip(context, SubscriptionPlanTier.growth, l10n.t('plan_growth')),
-                                _planChip(context, SubscriptionPlanTier.pro, l10n.t('plan_pro')),
-                                _planChip(context, SubscriptionPlanTier.enterprise, l10n.t('plan_enterprise')),
+                                _planChip(
+                                  context,
+                                  SubscriptionPlanTier.starter,
+                                  l10n.t('plan_starter'),
+                                ),
+                                _planChip(
+                                  context,
+                                  SubscriptionPlanTier.growth,
+                                  l10n.t('plan_growth'),
+                                ),
+                                _planChip(
+                                  context,
+                                  SubscriptionPlanTier.pro,
+                                  l10n.t('plan_pro'),
+                                ),
+                                _planChip(
+                                  context,
+                                  SubscriptionPlanTier.enterprise,
+                                  l10n.t('plan_enterprise'),
+                                ),
                               ],
                             ),
                             const SizedBox(height: 20),
                             _PlanSummaryCard(tier: _tier, annual: _annual),
                             const SizedBox(height: 16),
                             if (_tier == SubscriptionPlanTier.enterprise)
-                              Text(l10n.t('billing_enterprise_note'), style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                              Text(
+                                l10n.t('billing_enterprise_note'),
+                                style: TextStyle(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
+                              ),
                             if (_tier == SubscriptionPlanTier.enterprise)
                               const SizedBox(height: 12),
-                            SizedBox(
-                              width: 360,
-                              child: FilledButton(
-                                onPressed: _busy
-                                    ? null
-                                    : () {
-                                        if (_tier == SubscriptionPlanTier.enterprise) {
-                                          context.go('/contact');
-                                        } else if (kUseMobileStoreBilling) {
-                                          _startMobilePlanPurchase(companyId);
-                                        } else {
-                                          _openCheckoutPlan(companyId);
-                                        }
-                                      },
-                                child: _busy
-                                    ? const SizedBox(
-                                        width: 20,
-                                        height: 20,
-                                        child: CircularProgressIndicator(strokeWidth: 2),
-                                      )
-                                    : Text(
-                                        _tier == SubscriptionPlanTier.enterprise
-                                            ? l10n.t('contact_sales')
-                                            : kUseMobileStoreBilling
-                                                ? l10n.t('billing_iap_continue')
-                                                : l10n.t('billing_checkout'),
-                                      ),
+                            ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 360),
+                              child: SizedBox(
+                                width: double.infinity,
+                                child: FilledButton(
+                                  onPressed: _busy
+                                      ? null
+                                      : () {
+                                          if (_tier ==
+                                              SubscriptionPlanTier.enterprise) {
+                                            context.go('/contact');
+                                          } else if (kUseMobileStoreBilling) {
+                                            _startMobilePlanPurchase(companyId);
+                                          } else {
+                                            _openCheckoutPlan(companyId);
+                                          }
+                                        },
+                                  child: _busy
+                                      ? const SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                          ),
+                                        )
+                                      : Text(
+                                          _tier ==
+                                                  SubscriptionPlanTier
+                                                      .enterprise
+                                              ? l10n.t('contact_sales')
+                                              : kUseMobileStoreBilling
+                                              ? l10n.t('billing_iap_continue')
+                                              : l10n.t('billing_checkout'),
+                                        ),
+                                ),
                               ),
                             ),
                             if (!kUseMobileStoreBilling) ...[
                               const SizedBox(height: 32),
-                              Text('Legacy seat-based checkout', style: Theme.of(context).textTheme.titleSmall),
+                              Text(
+                                'Legacy seat-based checkout',
+                                style: Theme.of(context).textTheme.titleSmall,
+                              ),
                               const SizedBox(height: 8),
                               Text(
                                 'Per-user pricing still available for grandfathered contracts.',
@@ -225,7 +277,12 @@ class _BillingPageState extends ConsumerState<BillingPage> {
                               ),
                               const SizedBox(height: 8),
                               OutlinedButton(
-                                onPressed: _busy ? null : () => _openCheckoutLegacySeats(companyId, 10),
+                                onPressed: _busy
+                                    ? null
+                                    : () => _openCheckoutLegacySeats(
+                                        companyId,
+                                        10,
+                                      ),
                                 child: const Text('10 seats · checkout'),
                               ),
                             ],
@@ -234,8 +291,11 @@ class _BillingPageState extends ConsumerState<BillingPage> {
                             if (billing.isStoreBillingSubscription) ...[
                               Text(
                                 l10n.t('billing_manage_in_store'),
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
                                     ),
                               ),
                               const SizedBox(height: 12),
@@ -244,19 +304,27 @@ class _BillingPageState extends ConsumerState<BillingPage> {
                                     ? null
                                     : () async {
                                         setState(() => _busy = true);
-                                        final iap = ref.read(fabricIapCoordinatorProvider);
+                                        final iap = ref.read(
+                                          fabricIapCoordinatorProvider,
+                                        );
                                         _attachIapHandlers(iap);
                                         try {
                                           await iap.restorePurchases();
                                         } finally {
-                                          if (mounted) setState(() => _busy = false);
+                                          if (mounted) {
+                                            setState(() => _busy = false);
+                                          }
                                         }
                                       },
-                                child: Text(l10n.t('billing_restore_purchases')),
+                                child: Text(
+                                  l10n.t('billing_restore_purchases'),
+                                ),
                               ),
                             ] else
                               FilledButton.tonal(
-                                onPressed: _busy ? null : () => _openPortal(companyId),
+                                onPressed: _busy
+                                    ? null
+                                    : () => _openPortal(companyId),
                                 child: Text(l10n.t('manage_subscription')),
                               ),
                           ],
@@ -267,7 +335,10 @@ class _BillingPageState extends ConsumerState<BillingPage> {
                     error: (e, _) => Text('$e'),
                   ),
                   const SizedBox(height: 28),
-                  Text(l10n.t('billing_purchase_history'), style: Theme.of(context).textTheme.titleMedium),
+                  Text(
+                    l10n.t('billing_purchase_history'),
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
                   const SizedBox(height: 8),
                   Card(
                     child: historyAsync.when(
@@ -284,7 +355,10 @@ class _BillingPageState extends ConsumerState<BillingPage> {
                                         '€${(row['amount_paid'] as num?)?.toStringAsFixed(2) ?? '-'} ${(row['currency'] ?? '').toString().toUpperCase()}',
                                       ),
                                       subtitle: Text('${row['paid_at'] ?? ''}'),
-                                      trailing: Text(row['stripe_invoice_id']?.toString() ?? ''),
+                                      trailing: Text(
+                                        row['stripe_invoice_id']?.toString() ??
+                                            '',
+                                      ),
                                     ),
                                   )
                                   .toList(),
@@ -310,7 +384,11 @@ class _BillingPageState extends ConsumerState<BillingPage> {
     );
   }
 
-  Widget _planChip(BuildContext context, SubscriptionPlanTier tier, String label) {
+  Widget _planChip(
+    BuildContext context,
+    SubscriptionPlanTier tier,
+    String label,
+  ) {
     final selected = _tier == tier;
     return ChoiceChip(
       label: Text(label),
@@ -338,15 +416,25 @@ class _PlanSummaryCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(d.marketingName, style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              d.marketingName,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const SizedBox(height: 8),
             Text(
-              tier == SubscriptionPlanTier.enterprise ? 'From €${PlanCatalog.enterprise.monthlyEuros.toStringAsFixed(0)}/mo' : '€$eur${context.l10n.t('per_month')}',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
+              tier == SubscriptionPlanTier.enterprise
+                  ? 'From €${PlanCatalog.enterprise.monthlyEuros.toStringAsFixed(0)}/mo'
+                  : '€$eur${context.l10n.t('per_month')}',
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
             ),
             if (annual && tier != SubscriptionPlanTier.enterprise) ...[
               const SizedBox(height: 6),
-              Text('${d.annualDiscountPercent}% discount vs monthly list', style: Theme.of(context).textTheme.bodySmall),
+              Text(
+                '${d.annualDiscountPercent}% discount vs monthly list',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
             ],
           ],
         ),
