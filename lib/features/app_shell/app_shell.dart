@@ -192,6 +192,12 @@ class _Sidebar extends ConsumerWidget {
 
   static const _operations = <(String, IconData, String, String)>[
     (
+      'plant_floor',
+      Icons.tablet_android_outlined,
+      'Plant Floor',
+      '/app/plant-floor',
+    ),
+    (
       'machines',
       Icons.precision_manufacturing_outlined,
       'Machines',
@@ -204,6 +210,12 @@ class _Sidebar extends ConsumerWidget {
     ('supply', Icons.visibility_outlined, 'Supply', '/app/supply'),
     ('inventory', Icons.inventory_2_outlined, 'Inventory', '/app/inventory'),
     ('suppliers', Icons.local_shipping_outlined, 'Suppliers', '/app/suppliers'),
+    (
+      'vendor_portal',
+      Icons.storefront_outlined,
+      'Vendor Portal',
+      '/app/vendor-portal',
+    ),
     ('shipments', Icons.route_outlined, 'Shipments', '/app/shipments'),
   ];
 
@@ -434,6 +446,21 @@ class _Sidebar extends ConsumerWidget {
     if (billing != null) children.add(billing);
 
     children.add(_sectionLabel(context, 'nav_section_workspace'));
+    final offlineSync = _navTile(
+      context: context,
+      item: (
+        'offline_sync',
+        Icons.sync_outlined,
+        'Offline Sync',
+        '/app/offline-sync',
+      ),
+      allowedRoutes: allowedRoutes,
+      currentPath: currentPath,
+      sidebarForeground: sidebarForeground,
+      sidebarPrimary: sidebarPrimary,
+    );
+    if (offlineSync != null) children.add(offlineSync);
+
     final team = _navTile(
       context: context,
       item: ('team', Icons.people_outlined, 'Team', '/app/team'),
@@ -537,9 +564,12 @@ class _TopBar extends ConsumerWidget {
       '/app/inventory' => 'Inventory Command',
       '/app/machines' => 'Machine Control',
       '/app/orders' => 'Orders Control',
+      '/app/plant-floor' => 'Plant Floor Mode',
       '/app/suppliers' => 'Supplier Intelligence',
+      '/app/vendor-portal' => 'Vendor Portal',
       '/app/reports' => 'Mission Reports',
       '/app/shipments' => 'Shipment Tracking',
+      '/app/offline-sync' => 'Offline Sync Monitor',
       '/app/simulation' => context.l10n.t('app_menu_simulation'),
       '/app/team' => 'Team & Permissions',
       '/app/settings' => 'Settings',

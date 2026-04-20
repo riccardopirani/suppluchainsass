@@ -7,7 +7,9 @@ import 'package:fabricos/features/billing/presentation/billing_page.dart';
 import 'package:fabricos/features/dashboard/presentation/dashboard_page.dart';
 import 'package:fabricos/features/machines/presentation/machines_page.dart';
 import 'package:fabricos/features/onboarding/presentation/onboarding_page.dart';
+import 'package:fabricos/features/offline_sync/presentation/offline_sync_page.dart';
 import 'package:fabricos/features/orders/presentation/orders_page.dart';
+import 'package:fabricos/features/plant_floor/presentation/plant_floor_page.dart';
 import 'package:fabricos/features/reports/presentation/reports_page.dart';
 import 'package:fabricos/features/settings/presentation/settings_page.dart';
 import 'package:fabricos/features/team/presentation/team_page.dart';
@@ -16,6 +18,7 @@ import 'package:fabricos/features/supply_chain/presentation/shipments_page.dart'
 import 'package:fabricos/features/supply_chain/presentation/simulation_page.dart';
 import 'package:fabricos/features/supply_chain/presentation/supply_dashboard_page.dart';
 import 'package:fabricos/features/suppliers/presentation/suppliers_page.dart';
+import 'package:fabricos/features/vendor_portal/presentation/vendor_portal_page.dart';
 import 'package:fabricos/features/suppliers/presentation/supplier_detail_page.dart';
 import 'package:fabricos/features/control_tower/presentation/control_tower_page.dart';
 import 'package:fabricos/features/executive/presentation/executive_report_page.dart';
@@ -189,6 +192,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     const NoTransitionPage(child: OrdersPage()),
               ),
               GoRoute(
+                path: 'plant-floor',
+                pageBuilder: (context, state) =>
+                    const NoTransitionPage(child: PlantFloorPage()),
+              ),
+              GoRoute(
                 path: 'suppliers',
                 pageBuilder: (context, state) =>
                     const NoTransitionPage(child: SuppliersPage()),
@@ -227,6 +235,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'shipments',
                 pageBuilder: (context, state) =>
                     const NoTransitionPage(child: ShipmentsPage()),
+              ),
+              GoRoute(
+                path: 'vendor-portal',
+                pageBuilder: (context, state) =>
+                    const NoTransitionPage(child: VendorPortalPage()),
+              ),
+              GoRoute(
+                path: 'offline-sync',
+                pageBuilder: (context, state) =>
+                    const NoTransitionPage(child: OfflineSyncPage()),
               ),
               GoRoute(
                 path: 'simulation',

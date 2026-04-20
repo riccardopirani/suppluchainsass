@@ -171,6 +171,46 @@ final maintenanceLogsProvider = FutureProvider<List<Map<String, dynamic>>>((
       .limit(50);
 });
 
+final productionQuickLogsProvider = StreamProvider<List<Map<String, dynamic>>>((
+  ref,
+) async* {
+  final client = ref.watch(fabricSupabaseClientProvider);
+  final companyId = await ref.watch(currentCompanyIdProvider.future);
+
+  yield* client
+      .from('production_quick_logs')
+      .stream(primaryKey: ['id'])
+      .eq('company_id', companyId)
+      .order('happened_at', ascending: false);
+});
+
+final vendorOrderConfirmationsProvider =
+    FutureProvider<List<Map<String, dynamic>>>((ref) async {
+      final client = ref.watch(fabricSupabaseClientProvider);
+      final companyId = await ref.watch(currentCompanyIdProvider.future);
+
+      return client
+          .from('vendor_order_confirmations')
+          .select()
+          .eq('company_id', companyId)
+          .order('created_at', ascending: false)
+          .limit(100);
+    });
+
+final offlineSyncQueueProvider = FutureProvider<List<Map<String, dynamic>>>((
+  ref,
+) async {
+  final client = ref.watch(fabricSupabaseClientProvider);
+  final companyId = await ref.watch(currentCompanyIdProvider.future);
+
+  return client
+      .from('offline_sync_queue')
+      .select()
+      .eq('company_id', companyId)
+      .order('queued_at', ascending: false)
+      .limit(100);
+});
+
 final esgReportsProvider = FutureProvider<List<Map<String, dynamic>>>((
   ref,
 ) async {
@@ -694,6 +734,185 @@ class FabricOSRepository {
       'contact_email': contactEmail,
       'avg_delay_days': 0,
     });
+  }
+
+  Future<void> submitQuickLog({
+    required String companyId,
+    required String eventType,
+    required double quantity,
+    String? notes,
+    String? machineId,
+  }) async {
+    try {
+      final response = await _client.functions.invoke(
+        'submit-quick-log',
+        body: {
+          'companyId': companyId,
+          'eventType': eventType,
+          'quantity': quantity,
+          'notes': notes,
+          'machineId': machineId,
+        },
+      );
+      if (response.status < 400) return;
+    } catch (_) {
+      // Fallback below.
+    }
+
+    await _client.from('production_quick_logs').insert({
+      'company_id': companyId,
+      'machine_id': machineId,
+      'event_type': eventType,
+      'quantity': quantity,
+      'notes': notes,
+      'happened_at': DateTime.now().toIso8601String(),
+    });
+  }
+
+  Future<void> signShift({
+    required String companyId,
+    required String shiftCode,
+    required String signerName,
+  }) async {
+    await _client.from('shift_signatures').insert({
+      'company_id': companyId,
+      'shift_code': shiftCode,
+      'signer_name': signerName,
+      'signature_payload': {
+        'signed_from': 'plant_floor_mode',
+        'device_time': DateTime.now().toIso8601String(),
+      },
+      'signed_at': DateTime.now().toIso8601String(),
+    });
+  }
+
+  Future<void> createVendorConfirmation({
+    required String companyId,
+    required String supplierId,
+    required String orderId,
+    required double confirmedQuantity,
+    String status = 'confirmed',
+    String? notes,
+  }) async {
+    await _client.from('vendor_order_confirmations').insert({
+      'company_id': companyId,
+      'supplier_id': supplierId,
+      'order_id': orderId,
+      'confirmed_quantity': confirmedQuantity,
+      'status': status,
+      'notes': notes,
+      'promised_delivery_date': DateTime.now()
+          .add(const Duration(days: 5))
+          .toIso8601String(),
+    });
+    try {
+      await _client.functions.invoke(
+        'compute-vendor-score',
+        body: {'companyId': companyId},
+      );
+    } catch (_) {
+      // non-blocking
+    }
+  }
+
+  Future<void> enqueueOfflineOperation({
+    required String companyId,
+    required String entityType,
+    required String operationType,
+    required Map<String, dynamic> payload,
+  }) async {
+    final opId = '${DateTime.now().millisecondsSinceEpoch}-${Random().nextInt(9999)}';
+    await _client.from('offline_sync_queue').insert({
+      'company_id': companyId,
+      'entity_type': entityType,
+      'operation_type': operationType,
+      'payload': payload,
+      'client_operation_id': opId,
+      'status': 'pending',
+      'queued_at': DateTime.now().toIso8601String(),
+    });
+  }
+
+  Future<void> applyOfflineSyncBatch({required String companyId}) async {
+    final pending = await _client
+        .from('offline_sync_queue')
+        .select('client_operation_id,entity_type,operation_type,payload')
+        .eq('company_id', companyId)
+        .eq('status', 'pending')
+        .order('queued_at', ascending: true)
+        .limit(50);
+
+    if (pending.isEmpty) return;
+
+    try {
+      final response = await _client.functions.invoke(
+        'sync-batch-apply',
+        body: {
+          'companyId': companyId,
+          'operations': pending.map((row) {
+            return {
+              'clientOperationId': row['client_operation_id'],
+              'entityType': row['entity_type'],
+              'operationType': row['operation_type'],
+              'payload': row['payload'],
+            };
+          }).toList(),
+        },
+      );
+      if (response.status < 400) return;
+    } catch (_) {
+      // Fallback below.
+    }
+
+    for (final row in pending) {
+      final entityType = row['entity_type']?.toString() ?? '';
+      final operationType = row['operation_type']?.toString() ?? '';
+      final payload = (row['payload'] as Map?)?.cast<String, dynamic>() ?? {};
+      final opId = row['client_operation_id']?.toString() ?? '';
+      try {
+        if (entityType == 'production_quick_logs' && operationType == 'insert') {
+          await _client.from('production_quick_logs').insert({
+            'company_id': companyId,
+            'machine_id': payload['machineId'],
+            'event_type': payload['eventType'] ?? 'production',
+            'quantity': payload['quantity'] ?? 0,
+            'notes': payload['notes'],
+            'qr_code': payload['qrCode'],
+            'happened_at':
+                payload['happenedAt'] ?? DateTime.now().toIso8601String(),
+          });
+          await _client
+              .from('offline_sync_queue')
+              .update({
+                'status': 'applied',
+                'applied_at': DateTime.now().toIso8601String(),
+                'updated_at': DateTime.now().toIso8601String(),
+              })
+              .eq('company_id', companyId)
+              .eq('client_operation_id', opId);
+        } else {
+          await _client
+              .from('offline_sync_queue')
+              .update({
+                'status': 'conflict',
+                'conflict_reason': 'unsupported_operation',
+                'updated_at': DateTime.now().toIso8601String(),
+              })
+              .eq('company_id', companyId)
+              .eq('client_operation_id', opId);
+        }
+      } catch (e) {
+        await _client
+            .from('offline_sync_queue')
+            .update({
+              'status': 'failed',
+              'conflict_reason': e.toString(),
+              'updated_at': DateTime.now().toIso8601String(),
+            })
+            .eq('company_id', companyId)
+            .eq('client_operation_id', opId);
+      }
+    }
   }
 
   Future<Map<String, dynamic>> generateEsgReport({
