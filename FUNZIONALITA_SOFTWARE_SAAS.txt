@@ -1,0 +1,117 @@
+FABRICOS - FUNZIONALITA DEL SOFTWARE SAAS
+=========================================
+
+1) A COSA SERVE IL SOFTWARE
+- FabricOS aiuta aziende manifatturiere (circa 10-500 dipendenti) a controllare
+  operazioni, supply chain, inventario, manutenzione e reporting in un'unica piattaforma.
+- Obiettivo: ridurre ritardi, fermo macchina, stock-out, extra-costi e mancanza di visibilita.
+- Il prodotto e pensato per team operativi, management e direzione.
+
+2) PIATTAFORMA E ACCESSO
+- Applicazione Flutter multi-piattaforma: Web responsive + iOS + Android.
+- Autenticazione utenti (login, registrazione, reset password).
+- Struttura multi-tenant: ogni azienda ha il proprio workspace separato.
+- Ruoli e permessi per gestione team.
+- Onboarding guidato per configurare rapidamente azienda e dati iniziali.
+
+3) SITO PUBBLICO (MARKETING)
+- Home, Features, Pricing, Contact.
+- FAQ, Privacy, Terms, Cookies.
+- ROI Calculator.
+- Factory Score / Audit.
+- Book Demo.
+- Case Studies.
+
+4) MODULI CORE NELL'AREA APP
+
+4.1 Dashboard Operativa
+- KPI principali: ordini, macchine, fornitori, alert.
+- Grafici e insight per monitoraggio rapido dello stato operativo.
+- Azioni rapide per passare ai moduli critici.
+
+4.2 Supply Chain e Inventario
+- Supply dashboard con vista end-to-end.
+- Inventario con soglie di sicurezza e punti di riordino.
+- Tracking spedizioni.
+- Simulazioni what-if per analisi scenari.
+
+4.3 Macchine e Manutenzione
+- Registro macchine.
+- Stato macchine e telemetria simulata.
+- Log manutenzioni.
+- Predizione rischio guasto (moduli AI/Edge Function dedicati).
+
+4.4 Ordini e Fornitori
+- Gestione ordini con monitoraggio ritardi.
+- Analisi rischio ordini.
+- Directory fornitori con dettaglio performance/rischio.
+- Analisi rischio fornitori.
+
+4.5 AI e Automazione
+- AI Control Tower come hub centralizzato dei rischi.
+- Forecasting domanda/metriche.
+- Copilot interno nell'app per supporto operativo.
+- Auto-actions e suggerimenti automatici (es. riordino, manutenzione).
+
+4.6 Reporting e Direzione
+- Report operativi e ESG/compliance.
+- Export PDF.
+- Executive / CEO report per sintesi manageriale.
+
+4.7 Organizzazione
+- Team & permissions.
+- Settings applicativi.
+
+5) BILLING E MONETIZZAZIONE
+- Piani a tier: Starter, Growth, Pro, Enterprise.
+- Subscription gate: accesso ai moduli privati legato a trial/abbonamento.
+- Web: pagamento via Stripe Checkout + Customer Portal.
+- Mobile (iOS/Android): pagamento via In-App Purchase (StoreKit/Google Play).
+- Registrazione acquisti mobile lato backend con funzione dedicata:
+  register-mobile-purchase.
+
+6) BACKEND E DATI
+- Backend su Supabase: Postgres, Auth, Realtime, Storage, Edge Functions.
+- Tabelle principali: companies, users, machines, machine_telemetry,
+  maintenance_logs, orders, suppliers, alerts, esg_reports, subscriptions.
+- Realtime attivo su entita chiave (es. alert, macchine).
+- Migrazioni SQL versionate per aggiornamenti schema.
+
+7) EDGE FUNCTIONS DISPONIBILI (PRINCIPALI)
+- bootstrap-company
+- invite-user / accept-invitation
+- analyze-order-risks
+- analyze-supplier-risk
+- predict-maintenance-risk
+- predict-demand
+- generate-forecast
+- generate-esg-report
+- generate-reorder-recommendations
+- auto-replenishment
+- optimize-inventory
+- optimize-costs
+- detect-disruptions
+- run-simulation
+- process-import
+- sync-warehouse-inventory
+- send-alerts
+- seed-demo-workspace
+- create-stripe-checkout-session
+- create-stripe-portal-session
+- stripe-webhook
+- submit-contact-form
+- register-mobile-purchase
+
+8) BENEFICI ATTESI
+- Miglior visibilita operativa cross-funzionale.
+- Riduzione di ritardi e costi legati a inefficienze supply chain.
+- Migliore pianificazione grazie a forecasting e simulazioni.
+- Decisioni piu rapide con dashboard e report esecutivi.
+- Scalabilita: architettura pronta per integrazioni IoT/ERP e AI avanzata.
+
+9) NOTE TECNICHE
+- Supporto multi-lingua (EN, IT, ES, FR, DE, RU, ZH).
+- Dark mode e UI responsive.
+- Configurazione ambiente via .env e script helper.
+- Deploy backend via Supabase CLI con script dedicati.
+

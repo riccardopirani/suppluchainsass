@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { sendCriticalAlertEmail } from '../_shared/email.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -47,6 +48,7 @@ serve(async (req) => {
     }
 
     const now = new Date();
+    const criticalAlerts: string[] = [];
 
     const { data: orders } = await supabase
       .from('orders')
@@ -67,6 +69,7 @@ serve(async (req) => {
       const normalizedDelay = delay > 0 ? delay : 0;
 
       if (normalizedDelay > 0) {
+        const severity = normalizedDelay >= 7 ? 'critical' : 'warning';
         await supabase
           .from('orders')
           .update({ delay_days: normalizedDelay, updated_at: new Date().toISOString() })
@@ -77,11 +80,17 @@ serve(async (req) => {
           order_id: order.id,
           supplier_id: order.supplier_id,
           type: 'order_delay_risk',
-          severity: normalizedDelay >= 7 ? 'critical' : 'warning',
+          severity,
           title: 'Order risk delay',
           message: `Order ${order.order_number} is delayed by ${normalizedDelay} day(s).`,
           ai_generated: true,
         });
+
+        if (severity === 'critical') {
+          criticalAlerts.push(
+            `Ordine ${order.order_number} in ritardo di ${normalizedDelay} giorno/i.`,
+          );
+        }
 
         created += 1;
       }
@@ -106,6 +115,24 @@ serve(async (req) => {
         })
         .eq('id', supplierId)
         .eq('company_id', companyId);
+    }
+
+    if (criticalAlerts.length > 0) {
+      try {
+        await sendCriticalAlertEmail({
+          supabase,
+          companyId,
+          subject: 'Allarme critico ordini FabricOS',
+          bodyTitle: 'Ci sono ritardi critici negli ordini',
+          bodyText:
+            'Alcuni ordini hanno superato la soglia critica e richiedono attenzione immediata.',
+          details: criticalAlerts,
+          linkLabel: 'Apri gli ordini',
+          linkPath: '/app/orders',
+        });
+      } catch (emailError) {
+        console.error('Critical order email failed', emailError);
+      }
     }
 
     return json({ companyId, created, analyzedOrders: orders?.length ?? 0 });

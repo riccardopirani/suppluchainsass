@@ -1,4 +1,5 @@
 import 'package:fabricos/config/stripe_plans.dart';
+import 'package:fabricos/features/auth/presentation/widgets/auth_shell.dart';
 import 'package:fabricos/localization/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -122,235 +123,267 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     final qty = _qty;
     final unitPrice = SeatPricing.unitPrice(qty);
     final total = SeatPricing.monthlyTotal(qty);
-    final width = MediaQuery.sizeOf(context).width;
-    final compact = width < 560;
+    return AuthPageShell(
+      eyebrow: 'Crea account',
+      title: 'Attiva il trial e metti il controllo operativo in moto',
+      subtitle:
+          'Registra la tua azienda, avvia i 30 giorni di prova e prepara il rinnovo in Stripe senza cambiare flusso.',
+      bullets: const [
+        (icon: Icons.verified_outlined, text: 'Trial di 30 giorni'),
+        (icon: Icons.payments_outlined, text: 'Rinnovo Stripe integrato'),
+        (icon: Icons.mail_outline, text: 'Email di onboarding e alert'),
+      ],
+      form: _buildFormCard(context, l10n, qty, unitPrice, total),
+    );
+  }
 
-    return Scaffold(
-      backgroundColor: const Color(0xFF030712),
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: EdgeInsets.all(compact ? 16 : 24),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 460),
-              child: Container(
-                padding: EdgeInsets.all(compact ? 20 : 28),
+  Widget _buildFormCard(
+    BuildContext context,
+    AppLocalizations l10n,
+    int qty,
+    double unitPrice,
+    double total,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(28),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0F172A),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFF1F2937)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x40000000),
+            blurRadius: 32,
+            offset: Offset(0, 20),
+          ),
+        ],
+      ),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              l10n.t('register_title'),
+              style: const TextStyle(
+                color: Color(0xFFF9FAFB),
+                fontSize: 32,
+                fontWeight: FontWeight.w700,
+                letterSpacing: -0.8,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              l10n.t('register_subtitle'),
+              style: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 15),
+            ),
+            const SizedBox(height: 28),
+            if (_error != null) ...[
+              Container(
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF0F172A),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFF1F2937)),
+                  color: const Color(0x1AFB7185),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0x66FB7185)),
                 ),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                child: Text(
+                  _error!,
+                  style: const TextStyle(color: Color(0xFFF9FAFB)),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+            TextFormField(
+              controller: _nameController,
+              style: const TextStyle(color: Color(0xFFF9FAFB)),
+              decoration: _inputDecoration(l10n.t('register_name')),
+              textInputAction: TextInputAction.next,
+              validator: (v) => (v == null || v.isEmpty)
+                  ? l10n.t('validation_name_required')
+                  : null,
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _emailController,
+              style: const TextStyle(color: Color(0xFFF9FAFB)),
+              decoration: _inputDecoration(l10n.t('login_email')),
+              keyboardType: TextInputType.emailAddress,
+              textInputAction: TextInputAction.next,
+              validator: (v) => (v == null || v.isEmpty)
+                  ? l10n.t('validation_email_required')
+                  : null,
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _passwordController,
+              style: const TextStyle(color: Color(0xFFF9FAFB)),
+              decoration: _inputDecoration(l10n.t('login_password')),
+              obscureText: true,
+              validator: (v) => (v == null || v.length < 6)
+                  ? l10n.t('validation_password_min')
+                  : null,
+            ),
+            const SizedBox(height: 20),
+            Text(
+              l10n.t('pricing_how_many_users'),
+              style: const TextStyle(
+                color: Color(0xFFF9FAFB),
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 4),
+            LayoutBuilder(
+              builder: (context, rc) {
+                final stackSeats = rc.maxWidth < 400;
+                if (stackSeats) {
+                  return Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Text(
-                        l10n.t('register_title'),
-                        style: const TextStyle(
-                          color: Color(0xFFF9FAFB),
-                          fontSize: 32,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: -0.8,
-                        ),
+                      Row(
+                        children: [
+                          _seatsCountField(),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              l10n.t('pricing_users'),
+                              style: const TextStyle(color: Color(0xFFF9FAFB)),
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        l10n.t('register_subtitle'),
+                        '€${total.toStringAsFixed(0)}${l10n.t('per_month')}',
                         style: const TextStyle(
-                          color: Color(0xFF9CA3AF),
+                          color: Color(0xFFF9FAFB),
+                          fontWeight: FontWeight.w700,
                           fontSize: 15,
                         ),
                       ),
-                      const SizedBox(height: 28),
-                      if (_error != null) ...[
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: const Color(0x1AFB7185),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: const Color(0x66FB7185)),
-                          ),
-                          child: Text(
-                            _error!,
-                            style: const TextStyle(color: Color(0xFFF9FAFB)),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                      ],
-                      TextFormField(
-                        controller: _nameController,
+                    ],
+                  );
+                }
+                return Row(
+                  children: [
+                    _seatsCountField(),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        l10n.t('pricing_users'),
                         style: const TextStyle(color: Color(0xFFF9FAFB)),
-                        decoration: _inputDecoration(l10n.t('register_name')),
-                        textInputAction: TextInputAction.next,
-                        validator: (v) => (v == null || v.isEmpty)
-                            ? l10n.t('validation_name_required')
-                            : null,
                       ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _emailController,
-                        style: const TextStyle(color: Color(0xFFF9FAFB)),
-                        decoration: _inputDecoration(l10n.t('login_email')),
-                        keyboardType: TextInputType.emailAddress,
-                        textInputAction: TextInputAction.next,
-                        validator: (v) => (v == null || v.isEmpty)
-                            ? l10n.t('validation_email_required')
-                            : null,
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _passwordController,
-                        style: const TextStyle(color: Color(0xFFF9FAFB)),
-                        decoration: _inputDecoration(l10n.t('login_password')),
-                        obscureText: true,
-                        validator: (v) => (v == null || v.length < 6)
-                            ? l10n.t('validation_password_min')
-                            : null,
-                      ),
-                      const SizedBox(height: 20),
-                      Text(
-                        l10n.t('pricing_how_many_users'),
+                    ),
+                    Flexible(
+                      child: Text(
+                        '€${total.toStringAsFixed(0)}${l10n.t('per_month')}',
+                        textAlign: TextAlign.end,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           color: Color(0xFFF9FAFB),
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 15,
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      LayoutBuilder(
-                        builder: (context, rc) {
-                          final stackSeats = rc.maxWidth < 400;
-                          if (stackSeats) {
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                Row(
-                                  children: [
-                                    _seatsCountField(),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: Text(
-                                        l10n.t('pricing_users'),
-                                        style: const TextStyle(
-                                          color: Color(0xFFF9FAFB),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  '€${total.toStringAsFixed(0)}${l10n.t('per_month')}',
-                                  style: const TextStyle(
-                                    color: Color(0xFFF9FAFB),
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 15,
-                                  ),
-                                ),
-                              ],
-                            );
-                          }
-                          return Row(
-                            children: [
-                              _seatsCountField(),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  l10n.t('pricing_users'),
-                                  style: const TextStyle(
-                                    color: Color(0xFFF9FAFB),
-                                  ),
-                                ),
-                              ),
-                              Flexible(
-                                child: Text(
-                                  '€${total.toStringAsFixed(0)}${l10n.t('per_month')}',
-                                  textAlign: TextAlign.end,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    color: Color(0xFFF9FAFB),
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 15,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          );
-                        },
-                      ),
-                      Slider(
-                        min: 1,
-                        max: 500,
-                        divisions: 499,
-                        value: _sliderVal.clamp(1, 500),
-                        label: '${_sliderVal.round()}',
-                        onChanged: (v) {
-                          setState(() {
-                            _sliderVal = v;
-                            _seatsController.text = '${v.round()}';
-                          });
-                        },
-                      ),
-                      Text(
-                        '€${unitPrice.toStringAsFixed(2)} ${l10n.t('pricing_per_user_month')}',
-                        style: const TextStyle(
-                          color: Color(0xFF9CA3AF),
-                          fontSize: 12,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      SwitchListTile(
-                        value: _startWithTrial,
-                        onChanged: (v) => setState(() => _startWithTrial = v),
-                        title: Text(l10n.t('billing_trial_toggle_title')),
-                        subtitle: Text(l10n.t('billing_trial_toggle_subtitle')),
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                      const SizedBox(height: 24),
-                      FilledButton(
-                        style: FilledButton.styleFrom(
-                          backgroundColor: const Color(0xFF2563EB),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                    ),
+                  ],
+                );
+              },
+            ),
+            Slider(
+              min: 1,
+              max: 500,
+              divisions: 499,
+              value: _sliderVal.clamp(1, 500),
+              label: '${_sliderVal.round()}',
+              onChanged: (v) {
+                setState(() {
+                  _sliderVal = v;
+                  _seatsController.text = '${v.round()}';
+                });
+              },
+            ),
+            Text(
+              '€${unitPrice.toStringAsFixed(2)} ${l10n.t('pricing_per_user_month')}',
+              style: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 12),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0x08FFFFFF),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFF1F2937)),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          l10n.t('billing_trial_toggle_title'),
+                          style: const TextStyle(
+                            color: Color(0xFFF9FAFB),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
-                        onPressed: _loading
-                            ? null
-                            : () {
-                                if (_formKey.currentState?.validate() ??
-                                    false) {
-                                  _submit();
-                                }
-                              },
-                        child: _loading
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : Text(l10n.t('cta_sign_up')),
-                      ),
-                      const SizedBox(height: 16),
-                      TextButton(
-                        onPressed: () => context.go('/login'),
-                        child: Text(
-                          l10n.t('cta_sign_in'),
-                          style: const TextStyle(color: Color(0xFF9CA3AF)),
+                        const SizedBox(height: 4),
+                        Text(
+                          l10n.t('billing_trial_toggle_subtitle'),
+                          style: const TextStyle(
+                            color: Color(0xFFCBD5E1),
+                            fontSize: 12.5,
+                            height: 1.4,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
+                  Switch(
+                    value: _startWithTrial,
+                    onChanged: (v) => setState(() => _startWithTrial = v),
+                  ),
+                ],
               ),
             ),
-          ),
+            const SizedBox(height: 24),
+            FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF2563EB),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              onPressed: _loading
+                  ? null
+                  : () {
+                      if (_formKey.currentState?.validate() ?? false) {
+                        _submit();
+                      }
+                    },
+              child: _loading
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Text(l10n.t('cta_sign_up')),
+            ),
+            const SizedBox(height: 16),
+            TextButton(
+              onPressed: () => context.go('/login'),
+              child: Text(
+                l10n.t('cta_sign_in'),
+                style: const TextStyle(color: Color(0xFF9CA3AF)),
+              ),
+            ),
+          ],
         ),
       ),
     );

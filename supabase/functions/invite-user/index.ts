@@ -1,6 +1,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { resolveCompanyTable } from '../_shared/company_table.ts';
+import { getAppBaseUrl, sendEmail } from '../_shared/email.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -68,7 +69,7 @@ serve(async (req) => {
     const companyTable = await resolveCompanyTable(admin);
     const { data: company } = await admin
       .from(companyTable)
-      .select('seat_limit')
+      .select('seat_limit, name')
       .eq('id', companyId)
       .single();
 
@@ -147,6 +148,32 @@ serve(async (req) => {
 
     if (memberErr) {
       return json({ error: memberErr.message }, 500);
+    }
+
+    try {
+      const teamUrl = `${getAppBaseUrl()}/login`;
+      await sendEmail({
+        to: email.toLowerCase(),
+        subject: `Sei stato invitato in FabricOS${company?.name ? ` · ${company.name}` : ''}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; line-height: 1.5; color: #0f172a;">
+            <h2 style="margin: 0 0 12px;">Invito al team FabricOS</h2>
+            <p style="margin: 0 0 12px;">
+              Sei stato aggiunto al workspace${company?.name ? ` ${company.name}` : ''} con ruolo <strong>${memberRole}</strong>.
+            </p>
+            <p style="margin: 0 0 20px;">
+              Se non hai ancora impostato la password, usa il recupero password dalla pagina di accesso per entrare nel tuo account.
+            </p>
+            <a href="${teamUrl}" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;padding:12px 18px;border-radius:8px;">
+              Accedi a FabricOS
+            </a>
+          </div>
+        `,
+        text:
+          `Sei stato aggiunto a FabricOS${company?.name ? ` per ${company.name}` : ''} con ruolo ${memberRole}. Apri ${teamUrl} per accedere.`,
+      });
+    } catch (emailError) {
+      console.error('Team invite email failed', emailError);
     }
 
     if (invitedUserId && !matchedUser) {

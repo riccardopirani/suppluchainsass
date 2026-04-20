@@ -291,9 +291,16 @@ class _PricingPageState extends State<PricingPage> {
     ];
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: scheme.outline.withValues(alpha: 0.3)),
-        color: scheme.surfaceContainerHighest.withValues(alpha: 0.35),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFF334155)),
+        color: const Color(0xFF0F172A),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x33000000),
+            blurRadius: 24,
+            offset: Offset(0, 12),
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -301,9 +308,9 @@ class _PricingPageState extends State<PricingPage> {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
             decoration: BoxDecoration(
-              color: scheme.surfaceContainerHighest.withValues(alpha: 0.5),
+              color: const Color(0xFF111827),
               borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(16),
+                top: Radius.circular(18),
               ),
             ),
             child: Text(
@@ -311,6 +318,7 @@ class _PricingPageState extends State<PricingPage> {
               style: GoogleFonts.spaceGrotesk(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
+                color: const Color(0xFFF9FAFB),
               ),
             ),
           ),
@@ -347,7 +355,11 @@ class _PricingPageState extends State<PricingPage> {
                 children: [
                   Text(
                     '$range $usersLabel',
-                    style: GoogleFonts.ibmPlexSans(fontSize: 14, height: 1.4),
+                    style: GoogleFonts.ibmPlexSans(
+                      fontSize: 14,
+                      height: 1.4,
+                      color: const Color(0xFFE2E8F0),
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -355,7 +367,7 @@ class _PricingPageState extends State<PricingPage> {
                     style: GoogleFonts.ibmPlexSans(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: scheme.primary,
+                      color: const Color(0xFF34D399),
                     ),
                   ),
                 ],
@@ -365,7 +377,11 @@ class _PricingPageState extends State<PricingPage> {
                   Expanded(
                     child: Text(
                       '$range $usersLabel',
-                      style: GoogleFonts.ibmPlexSans(fontSize: 14, height: 1.4),
+                      style: GoogleFonts.ibmPlexSans(
+                        fontSize: 14,
+                        height: 1.4,
+                        color: const Color(0xFFE2E8F0),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -374,7 +390,7 @@ class _PricingPageState extends State<PricingPage> {
                     style: GoogleFonts.ibmPlexSans(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: scheme.primary,
+                      color: const Color(0xFF34D399),
                     ),
                   ),
                 ],
@@ -388,7 +404,7 @@ class _PricingPageState extends State<PricingPage> {
                 ? null
                 : Border(
                     bottom: BorderSide(
-                      color: scheme.outline.withValues(alpha: 0.15),
+                      color: const Color(0xFF334155).withValues(alpha: 0.75),
                     ),
                   ),
           ),
@@ -417,9 +433,16 @@ class _PricingPageState extends State<PricingPage> {
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: scheme.outline.withValues(alpha: 0.3)),
-        color: scheme.surfaceContainerHighest.withValues(alpha: 0.28),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFF334155)),
+        color: const Color(0xFF0F172A),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x22000000),
+            blurRadius: 20,
+            offset: Offset(0, 10),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -429,6 +452,7 @@ class _PricingPageState extends State<PricingPage> {
             style: GoogleFonts.spaceGrotesk(
               fontSize: 16,
               fontWeight: FontWeight.w700,
+              color: const Color(0xFFF9FAFB),
             ),
           ),
           const SizedBox(height: 14),
@@ -446,7 +470,13 @@ class _PricingPageState extends State<PricingPage> {
                         color: scheme.primary,
                       ),
                       const SizedBox(width: 8),
-                      Text(f, style: GoogleFonts.ibmPlexSans(fontSize: 14)),
+                      Text(
+                        f,
+                        style: GoogleFonts.ibmPlexSans(
+                          fontSize: 14,
+                          color: const Color(0xFFE2E8F0),
+                        ),
+                      ),
                     ],
                   ),
                 )

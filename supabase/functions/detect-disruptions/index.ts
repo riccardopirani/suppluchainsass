@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { sendCriticalAlertEmail } from '../_shared/email.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -38,6 +39,7 @@ serve(async (req) => {
     ]);
 
     const disruptions: Array<{ type: string; severity: string; message: string }> = [];
+    const criticalMessages: string[] = [];
     for (const order of ordersRes.data ?? []) {
       const delay = Number(order.delay_days ?? 0);
       if (delay > 0) disruptions.push({
@@ -45,6 +47,9 @@ serve(async (req) => {
         severity: delay >= 7 ? 'critical' : 'warning',
         message: `Order ${order.order_number} delayed by ${delay} day(s).`,
       });
+      if (delay >= 7) {
+        criticalMessages.push(`Ordine ${order.order_number} in ritardo di ${delay} giorno/i.`);
+      }
     }
     for (const supplier of suppliersRes.data ?? []) {
       const score = Number(supplier.risk_score ?? 50);
@@ -54,6 +59,9 @@ serve(async (req) => {
         severity: score > 85 ? 'critical' : 'warning',
         message: `Supplier ${supplier.name} performance anomaly detected.`,
       });
+      if (score > 85) {
+        criticalMessages.push(`Fornitore ${supplier.name} con anomalia critica (score ${score.toFixed(1)}).`);
+      }
     }
     for (const shipment of shipmentsRes.data ?? []) {
       if (shipment.status === 'delayed') disruptions.push({
@@ -66,6 +74,24 @@ serve(async (req) => {
     if (disruptions.length) {
       await supabase.from('supply_disruptions').insert(disruptions.map((d) => ({ ...d, company_id: companyId })));
     }
+
+    if (criticalMessages.length > 0) {
+      try {
+        await sendCriticalAlertEmail({
+          supabase,
+          companyId,
+          subject: 'Allarme critico supply chain FabricOS',
+          bodyTitle: 'Sono state rilevate interruzioni critiche',
+          bodyText: 'Alcuni segnali della supply chain richiedono attenzione immediata.',
+          details: criticalMessages,
+          linkLabel: 'Apri la supply chain',
+          linkPath: '/app/supply',
+        });
+      } catch (emailError) {
+        console.error('Critical disruption email failed', emailError);
+      }
+    }
+
     return json({ companyId, created: disruptions.length });
   } catch (error) {
     return json({ error: String(error) }, 500);

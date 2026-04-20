@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { escapeHtml, getAdminContactEmail, sendEmail } from '../_shared/email.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -42,6 +43,36 @@ serve(async (req) => {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
+    }
+
+    try {
+      const adminEmail = getAdminContactEmail();
+      const bodyHtml = `
+        <div style="font-family: Arial, sans-serif; line-height: 1.5; color: #0f172a;">
+          <h2 style="margin: 0 0 12px;">Nuovo contatto dal sito FabricOS</h2>
+          <p style="margin: 0 0 8px;"><strong>Nome:</strong> ${escapeHtml(name ?? '-')}</p>
+          <p style="margin: 0 0 8px;"><strong>Email:</strong> ${escapeHtml(email)}</p>
+          <p style="margin: 0 0 8px;"><strong>Azienda:</strong> ${escapeHtml(company ?? '-')}</p>
+          <p style="margin: 16px 0 8px;"><strong>Messaggio:</strong></p>
+          <div style="white-space: pre-wrap; background: #f8fafc; border: 1px solid #e2e8f0; padding: 14px; border-radius: 8px;">
+            ${escapeHtml(message ?? '')}
+          </div>
+        </div>
+      `;
+      await sendEmail({
+        to: adminEmail,
+        subject: 'Nuovo contatto ricevuto da FabricOS',
+        html: bodyHtml,
+        text: [
+          'Nuovo contatto ricevuto da FabricOS',
+          `Nome: ${name ?? '-'}`,
+          `Email: ${email}`,
+          `Azienda: ${company ?? '-'}`,
+          `Messaggio: ${message ?? ''}`,
+        ].join('\n'),
+      });
+    } catch (emailError) {
+      console.error('Contact email failed', emailError);
     }
 
     return new Response(JSON.stringify({ success: true }), {

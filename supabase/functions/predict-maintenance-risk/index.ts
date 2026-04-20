@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { sendCriticalAlertEmail } from '../_shared/email.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -50,6 +51,7 @@ serve(async (req) => {
     const risk = clamp(tempFactor * 0.35 + vibrationFactor * 0.45 + pressureFactor * 0.2, 0.05, 0.99);
 
     const status = risk >= 0.85 ? 'stopped' : risk >= 0.65 ? 'warning' : 'running';
+    const critical = risk >= 0.85;
 
     await supabase
       .from('machines')
@@ -62,11 +64,32 @@ serve(async (req) => {
         company_id: companyId,
         machine_id: machineId,
         type: 'predictive_maintenance',
-        severity: risk >= 0.85 ? 'critical' : 'warning',
+        severity: critical ? 'critical' : 'warning',
         title: 'Failure risk detected',
         message: `Machine telemetry indicates elevated risk (${(risk * 100).toFixed(1)}%).`,
         ai_generated: true,
       });
+    }
+
+    if (critical) {
+      try {
+        await sendCriticalAlertEmail({
+          supabase,
+          companyId,
+          subject: 'Allarme critico macchina FabricOS',
+          bodyTitle: 'Rischio macchina critico rilevato',
+          bodyText:
+            'La telemetria della macchina ha superato la soglia critica e richiede intervento immediato.',
+          details: [
+            `Machine ID: ${machineId}`,
+            `Risk score: ${(risk * 100).toFixed(1)}%`,
+          ],
+          linkLabel: 'Apri le macchine',
+          linkPath: '/app/machines',
+        });
+      } catch (emailError) {
+        console.error('Critical maintenance email failed', emailError);
+      }
     }
 
     return json({

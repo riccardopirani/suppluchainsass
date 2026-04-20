@@ -1,4 +1,5 @@
 import 'package:fabricos/features/team/data/team_provider.dart';
+import 'package:fabricos/features/auth/presentation/widgets/auth_shell.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -69,175 +70,141 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final width = MediaQuery.sizeOf(context).width;
-    final showSplit = width >= 900;
-
-    return Scaffold(
-      backgroundColor: const Color(0xFF030712),
-      body: showSplit
-          ? Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    color: const Color(0xFF030712),
-                    child: Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(48.0),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              l10n.t('app_name'),
-                              style: const TextStyle(
-                                color: Color(0xFFF9FAFB),
-                                fontSize: 34,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: -0.8,
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              l10n.t('tagline'),
-                              style: const TextStyle(
-                                color: Color(0xFF9CA3AF),
-                                fontSize: 18,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                Expanded(child: _buildForm(context, l10n)),
-              ],
-            )
-          : _buildForm(context, l10n),
+    return AuthPageShell(
+      eyebrow: 'Accesso sicuro',
+      title: 'Controlla produzione, alert e team in un solo posto',
+      subtitle:
+          'Accedi a FabricOS per riprendere il controllo operativo in pochi secondi, con una vista chiara su ordini, task e anomalie.',
+      bullets: const [
+        (
+          icon: Icons.notifications_active_outlined,
+          text: 'Alert in tempo reale',
+        ),
+        (icon: Icons.groups_outlined, text: 'Team e company switch'),
+        (icon: Icons.bar_chart_outlined, text: 'KPI e ROI live'),
+      ],
+      form: _buildFormCard(context, l10n),
     );
   }
 
-  Widget _buildForm(BuildContext context, AppLocalizations l10n) {
+  Widget _buildFormCard(BuildContext context, AppLocalizations l10n) {
     final width = MediaQuery.sizeOf(context).width;
     final compact = width < 560;
-    return SafeArea(
-      child: Center(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.all(compact ? 16 : 24),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 420),
-            child: Container(
-              padding: EdgeInsets.all(compact ? 20 : 28),
-              decoration: BoxDecoration(
-                color: const Color(0xFF0F172A),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFF1F2937)),
+    return Container(
+      padding: EdgeInsets.all(compact ? 20 : 28),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0F172A),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFF1F2937)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x40000000),
+            blurRadius: 32,
+            offset: Offset(0, 20),
+          ),
+        ],
+      ),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              l10n.t('login_title'),
+              style: const TextStyle(
+                color: Color(0xFFF9FAFB),
+                fontSize: 30,
+                fontWeight: FontWeight.w700,
+                letterSpacing: -0.8,
               ),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      l10n.t('login_title'),
-                      style: const TextStyle(
-                        color: Color(0xFFF9FAFB),
-                        fontSize: 30,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: -0.8,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Accedi al tuo account',
-                      style: TextStyle(color: Color(0xFF9CA3AF), fontSize: 15),
-                    ),
-                    const SizedBox(height: 24),
-                    if (_error != null) ...[
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: const Color(0x1AFB7185),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: const Color(0x66FB7185)),
-                        ),
-                        child: Text(
-                          _error!,
-                          style: const TextStyle(color: Color(0xFFF9FAFB)),
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                    ],
-                    TextFormField(
-                      controller: _emailController,
-                      style: const TextStyle(color: Color(0xFFF9FAFB)),
-                      decoration: _inputDecoration(l10n.t('login_email')),
-                      keyboardType: TextInputType.emailAddress,
-                      textInputAction: TextInputAction.next,
-                      validator: (v) =>
-                          (v == null || v.isEmpty) ? 'Email required' : null,
-                    ),
-                    const SizedBox(height: 14),
-                    TextFormField(
-                      controller: _passwordController,
-                      style: const TextStyle(color: Color(0xFFF9FAFB)),
-                      decoration: _inputDecoration(l10n.t('login_password')),
-                      obscureText: true,
-                      textInputAction: TextInputAction.done,
-                      onFieldSubmitted: (_) => _submit(),
-                      validator: (v) =>
-                          (v == null || v.isEmpty) ? 'Password required' : null,
-                    ),
-                    const SizedBox(height: 8),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: () => context.push('/forgot-password'),
-                        child: const Text(
-                          'Password dimenticata?',
-                          style: TextStyle(color: Color(0xFF9CA3AF)),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    FilledButton(
-                      style: FilledButton.styleFrom(
-                        backgroundColor: const Color(0xFF2563EB),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      onPressed: _loading
-                          ? null
-                          : () {
-                              if (_formKey.currentState?.validate() ?? false) {
-                                _submit();
-                              }
-                            },
-                      child: _loading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : Text(l10n.t('cta_sign_in')),
-                    ),
-                    const SizedBox(height: 14),
-                    TextButton(
-                      onPressed: () => context.push('/register'),
-                      child: const Text(
-                        'Registrati',
-                        style: TextStyle(color: Color(0xFF9CA3AF)),
-                      ),
-                    ),
-                  ],
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Accedi al tuo account',
+              style: TextStyle(color: Color(0xFF9CA3AF), fontSize: 15),
+            ),
+            const SizedBox(height: 24),
+            if (_error != null) ...[
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0x1AFB7185),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0x66FB7185)),
+                ),
+                child: Text(
+                  _error!,
+                  style: const TextStyle(color: Color(0xFFF9FAFB)),
+                ),
+              ),
+              const SizedBox(height: 14),
+            ],
+            TextFormField(
+              controller: _emailController,
+              style: const TextStyle(color: Color(0xFFF9FAFB)),
+              decoration: _inputDecoration(l10n.t('login_email')),
+              keyboardType: TextInputType.emailAddress,
+              textInputAction: TextInputAction.next,
+              validator: (v) =>
+                  (v == null || v.isEmpty) ? 'Email required' : null,
+            ),
+            const SizedBox(height: 14),
+            TextFormField(
+              controller: _passwordController,
+              style: const TextStyle(color: Color(0xFFF9FAFB)),
+              decoration: _inputDecoration(l10n.t('login_password')),
+              obscureText: true,
+              textInputAction: TextInputAction.done,
+              onFieldSubmitted: (_) => _submit(),
+              validator: (v) =>
+                  (v == null || v.isEmpty) ? 'Password required' : null,
+            ),
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: () => context.push('/forgot-password'),
+                child: const Text(
+                  'Password dimenticata?',
+                  style: TextStyle(color: Color(0xFF9CA3AF)),
                 ),
               ),
             ),
-          ),
+            const SizedBox(height: 16),
+            FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF2563EB),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              onPressed: _loading
+                  ? null
+                  : () {
+                      if (_formKey.currentState?.validate() ?? false) {
+                        _submit();
+                      }
+                    },
+              child: _loading
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Text(l10n.t('cta_sign_in')),
+            ),
+            const SizedBox(height: 14),
+            TextButton(
+              onPressed: () => context.push('/register'),
+              child: const Text(
+                'Registrati',
+                style: TextStyle(color: Color(0xFF9CA3AF)),
+              ),
+            ),
+          ],
         ),
       ),
     );

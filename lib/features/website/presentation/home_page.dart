@@ -3,6 +3,7 @@ import 'package:fabricos/localization/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -1293,16 +1294,8 @@ class _TierCard extends StatelessWidget {
   }
 }
 
-class _ContactSection extends StatefulWidget {
+class _ContactSection extends StatelessWidget {
   const _ContactSection();
-
-  @override
-  State<_ContactSection> createState() => _ContactSectionState();
-}
-
-class _ContactSectionState extends State<_ContactSection> {
-  final _formKey = GlobalKey<FormState>();
-  bool _sent = false;
 
   @override
   Widget build(BuildContext context) {
@@ -1341,15 +1334,7 @@ class _ContactSectionState extends State<_ContactSection> {
                 ),
               ],
             );
-            final right = _ContactFormCard(
-              formKey: _formKey,
-              sent: _sent,
-              onSend: () {
-                if (_formKey.currentState?.validate() ?? false) {
-                  setState(() => _sent = true);
-                }
-              },
-            );
+            final right = const _ContactFormCard();
             if (compact) {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1371,16 +1356,72 @@ class _ContactSectionState extends State<_ContactSection> {
   }
 }
 
-class _ContactFormCard extends StatelessWidget {
-  const _ContactFormCard({
-    required this.formKey,
-    required this.sent,
-    required this.onSend,
-  });
+class _ContactFormCard extends StatefulWidget {
+  const _ContactFormCard();
 
-  final GlobalKey<FormState> formKey;
-  final bool sent;
-  final VoidCallback onSend;
+  @override
+  State<_ContactFormCard> createState() => _ContactFormCardState();
+}
+
+class _ContactFormCardState extends State<_ContactFormCard> {
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _companyController = TextEditingController();
+  final _messageController = TextEditingController();
+  bool _sent = false;
+  bool _loading = false;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _companyController.dispose();
+    _messageController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _send() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+    setState(() {
+      _loading = true;
+      _sent = false;
+    });
+
+    try {
+      await Supabase.instance.client.functions.invoke(
+        'submit-contact-form',
+        body: {
+          'name': _nameController.text.trim(),
+          'email': _emailController.text.trim(),
+          'company': _companyController.text.trim(),
+          'message': _messageController.text.trim(),
+        },
+      );
+
+      if (!mounted) return;
+      setState(() {
+        _sent = true;
+        _nameController.clear();
+        _emailController.clear();
+        _companyController.clear();
+        _messageController.clear();
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.t('pub_contact_snackbar'))),
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.toString())));
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _loading = false);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1396,7 +1437,7 @@ class _ContactFormCard extends StatelessWidget {
             border: Border.all(color: const Color(0xFF1F2937)),
           ),
           child: Form(
-            key: formKey,
+            key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -1421,22 +1462,33 @@ class _ContactFormCard extends StatelessWidget {
                   context,
                   l10n.t('pub_contact_name'),
                   validator: _req(l10n),
+                  controller: _nameController,
                 ),
                 const SizedBox(height: 14),
                 _formField(
                   context,
                   l10n.t('pub_contact_email'),
                   validator: _email(l10n),
+                  controller: _emailController,
                 ),
                 const SizedBox(height: 14),
-                _formField(context, l10n.t('pub_contact_company')),
+                _formField(
+                  context,
+                  l10n.t('pub_contact_company'),
+                  controller: _companyController,
+                ),
                 const SizedBox(height: 14),
-                _formField(context, l10n.t('pub_contact_message'), maxLines: 4),
+                _formField(
+                  context,
+                  l10n.t('pub_contact_message'),
+                  maxLines: 4,
+                  controller: _messageController,
+                ),
                 const SizedBox(height: 20),
                 SizedBox(
                   width: double.infinity,
                   child: FilledButton(
-                    onPressed: onSend,
+                    onPressed: _loading ? null : _send,
                     style: FilledButton.styleFrom(
                       backgroundColor: const Color(0xFF2563EB),
                       padding: const EdgeInsets.symmetric(vertical: 14),
@@ -1451,7 +1503,7 @@ class _ContactFormCard extends StatelessWidget {
             ),
           ),
         ),
-        if (sent)
+        if (_sent)
           Positioned(
             right: -8,
             bottom: -12,
@@ -1496,6 +1548,7 @@ class _ContactFormCard extends StatelessWidget {
   Widget _formField(
     BuildContext context,
     String label, {
+    required TextEditingController controller,
     String? Function(String?)? validator,
     int maxLines = 1,
   }) {
@@ -1512,6 +1565,7 @@ class _ContactFormCard extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         TextFormField(
+          controller: controller,
           maxLines: maxLines,
           validator: validator,
           style: const TextStyle(color: Color(0xFFF9FAFB)),

@@ -1,6 +1,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { resolveCompanyTable } from '../_shared/company_table.ts';
+import { getAppBaseUrl, sendEmail } from '../_shared/email.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -162,6 +163,40 @@ serve(async (req) => {
       message: 'FabricOS workspace initialized with starter operational data.',
       ai_generated: false,
     });
+
+    try {
+      const trialEndsAt = companyError
+        ? null
+        : trialDays > 0
+          ? new Date(Date.now() + trialDays * 24 * 60 * 60 * 1000).toISOString()
+          : null;
+      const onboardingUrl = `${getAppBaseUrl()}/onboarding`;
+      if (user.email) {
+        await sendEmail({
+          to: user.email,
+          subject: `Benvenuto in FabricOS${companyName ? ` · ${companyName}` : ''}`,
+          html: `
+            <div style="font-family: Arial, sans-serif; line-height: 1.5; color: #0f172a;">
+              <h2 style="margin: 0 0 12px;">Workspace creato con successo</h2>
+              <p style="margin: 0 0 12px;">
+                Il tuo workspace FabricOS è pronto.
+                ${trialEndsAt ? `La prova gratuita di 30 giorni termina il ${trialEndsAt.slice(0, 10)}.` : 'Hai attivato un account senza trial.'}
+              </p>
+              <p style="margin: 0 0 20px;">
+                Completa l'onboarding per finire la configurazione iniziale e iniziare a ricevere alert, report e suggerimenti.
+              </p>
+              <a href="${onboardingUrl}" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;padding:12px 18px;border-radius:8px;">
+                Continua con FabricOS
+              </a>
+            </div>
+          `,
+          text:
+            `Il tuo workspace FabricOS è pronto. Apri ${onboardingUrl} per completare l'onboarding.`,
+        });
+      }
+    } catch (emailError) {
+      console.error('Registration email failed', emailError);
+    }
 
     return json({ companyId: company.id, seeded: true });
   } catch (error) {
