@@ -2,6 +2,7 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import Stripe from 'https://esm.sh/stripe@14.21.0?target=deno';
 import { resolveCompanyTable } from '../_shared/company_table.ts';
+import { fabricEmailLayout, sendEmail } from '../_shared/email.ts';
 
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', {
   apiVersion: '2023-10-16',
@@ -14,13 +15,6 @@ async function sendRenewalEmail(params: {
   subscriptionId: string;
   trialEnd?: number;
 }) {
-  const resendKey = Deno.env.get('RESEND_API_KEY') ?? '';
-  const fromEmail = Deno.env.get('RESEND_FROM_EMAIL') ?? '';
-  if (!resendKey || !fromEmail) {
-    console.warn('Renewal email skipped: missing RESEND_API_KEY or RESEND_FROM_EMAIL');
-    return;
-  }
-
   const { data: recipient } = await params.supabase
     .from('users')
     .select('email, full_name')
@@ -42,43 +36,42 @@ async function sendRenewalEmail(params: {
     : '';
 
   const subject = 'Il tuo abbonamento FabricOS va rinnovato';
-  const html = `
-    <div style="font-family: Arial, sans-serif; line-height: 1.5; color: #0f172a;">
-      <h2 style="margin: 0 0 12px;">La prova gratuita è terminata</h2>
-      <p style="margin: 0 0 12px;">
-        Il tuo abbonamento FabricOS ${trialEndText ? `è scaduto il ${trialEndText}` : 'ha raggiunto la fine della prova gratuita'}.
-        Per mantenere l'accesso, apri il pannello Billing e completa il rinnovo con Stripe.
+  const html = fabricEmailLayout({
+    variant: 'warning',
+    eyebrow: 'Billing',
+    title: 'La prova è terminata',
+    subtitle: 'Rinnova per mantenere FabricOS attivo',
+    bodyHtml: `
+      <p style="margin:0 0 18px;color:#CBD5E1;">
+        Il tuo abbonamento FabricOS
+        ${
+      trialEndText
+        ? ` è scaduto il <strong style="color:#FDE68A;">${trialEndText}</strong>.`
+        : ' ha raggiunto la fine della prova gratuita.'
+    }
+        Per mantenere l’accesso, apri il pannello <strong style="color:#F9FAFB;">Billing</strong> e completa il rinnovo con Stripe.
       </p>
-      <p style="margin: 0 0 20px;">
-        Se hai già una carta salvata, Stripe ti porterà direttamente al rinnovo. Altrimenti potrai aggiornare il metodo di pagamento.
+      <p style="margin:0;color:#94A3B8;font-size:15px;">
+        Con carta già salvata, Stripe guida al rinnovo; altrimenti potrai aggiornare il metodo di pagamento.
       </p>
-      <a href="${renewalUrl}" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;padding:12px 18px;border-radius:8px;">
-        Rinnova con Stripe
-      </a>
-    </div>
-  `;
-
-  const response = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${resendKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      from: fromEmail,
-      to: [recipient.email],
-      subject,
-      html,
-      text:
-        `La prova gratuita di FabricOS è terminata. Apri ${renewalUrl} per rinnovare con Stripe.`,
-      headers: {
-        'X-Subscription-Id': params.subscriptionId,
-      },
-    }),
+    `,
+    primaryCta: { label: 'Rinnova con Stripe', url: renewalUrl },
+    footerNote: `Subscription: ${params.subscriptionId.slice(0, 24)}…`,
   });
 
-  if (!response.ok) {
-    throw new Error(`Renewal email failed (${response.status}): ${await response.text()}`);
+  const sent = await sendEmail({
+    to: recipient.email,
+    subject,
+    html,
+    text:
+      `La prova gratuita di FabricOS è terminata. Apri ${renewalUrl} per rinnovare con Stripe.`,
+    resendHeaders: {
+      'X-Subscription-Id': params.subscriptionId,
+    },
+  });
+
+  if (!sent) {
+    console.warn('Renewal email skipped: no mail provider configured');
   }
 }
 

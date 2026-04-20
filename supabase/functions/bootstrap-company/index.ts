@@ -1,7 +1,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { resolveCompanyTable } from '../_shared/company_table.ts';
-import { getAppBaseUrl, sendEmail } from '../_shared/email.ts';
+import { escapeHtml, fabricEmailLayout, getAppBaseUrl, sendEmail } from '../_shared/email.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -172,24 +172,30 @@ serve(async (req) => {
           : null;
       const onboardingUrl = `${getAppBaseUrl()}/onboarding`;
       if (user.email) {
+        const safeCompany = escapeHtml(companyName);
         await sendEmail({
           to: user.email,
           subject: `Benvenuto in FabricOS${companyName ? ` · ${companyName}` : ''}`,
-          html: `
-            <div style="font-family: Arial, sans-serif; line-height: 1.5; color: #0f172a;">
-              <h2 style="margin: 0 0 12px;">Workspace creato con successo</h2>
-              <p style="margin: 0 0 12px;">
-                Il tuo workspace FabricOS è pronto.
-                ${trialEndsAt ? `La prova gratuita di 30 giorni termina il ${trialEndsAt.slice(0, 10)}.` : 'Hai attivato un account senza trial.'}
+          html: fabricEmailLayout({
+            variant: 'success',
+            eyebrow: 'Workspace',
+            title: 'Creato con successo',
+            subtitle: safeCompany ? safeCompany : 'Il tuo ambiente operativo è pronto',
+            bodyHtml: `
+              <p style="margin:0 0 18px;color:#CBD5E1;">
+                Il workspace <strong style="color:#F9FAFB;">${safeCompany || 'FabricOS'}</strong> è pronto.
+                ${
+              trialEndsAt
+                ? ` La prova gratuita termina il <strong style="color:#6EE7B7;">${escapeHtml(trialEndsAt.slice(0, 10))}</strong>.`
+                : ' Hai attivato un account senza trial.'
+            }
               </p>
-              <p style="margin: 0 0 20px;">
-                Completa l'onboarding per finire la configurazione iniziale e iniziare a ricevere alert, report e suggerimenti.
+              <p style="margin:0;color:#94A3B8;">
+                Completa l’onboarding per alert, report e suggerimenti sulla supply chain.
               </p>
-              <a href="${onboardingUrl}" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;padding:12px 18px;border-radius:8px;">
-                Continua con FabricOS
-              </a>
-            </div>
-          `,
+            `,
+            primaryCta: { label: 'Continua con FabricOS', url: onboardingUrl },
+          }),
           text:
             `Il tuo workspace FabricOS è pronto. Apri ${onboardingUrl} per completare l'onboarding.`,
         });

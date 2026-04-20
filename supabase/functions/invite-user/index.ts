@@ -1,7 +1,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { resolveCompanyTable } from '../_shared/company_table.ts';
-import { getAppBaseUrl, sendEmail } from '../_shared/email.ts';
+import { escapeHtml, fabricEmailLayout, getAppBaseUrl, sendEmail } from '../_shared/email.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -152,23 +152,26 @@ serve(async (req) => {
 
     try {
       const teamUrl = `${getAppBaseUrl()}/login`;
+      const workspaceLabel = company?.name ? escapeHtml(company.name) : 'il tuo workspace';
       await sendEmail({
         to: email.toLowerCase(),
         subject: `Sei stato invitato in FabricOS${company?.name ? ` · ${company.name}` : ''}`,
-        html: `
-          <div style="font-family: Arial, sans-serif; line-height: 1.5; color: #0f172a;">
-            <h2 style="margin: 0 0 12px;">Invito al team FabricOS</h2>
-            <p style="margin: 0 0 12px;">
-              Sei stato aggiunto al workspace${company?.name ? ` ${company.name}` : ''} con ruolo <strong>${memberRole}</strong>.
+        html: fabricEmailLayout({
+          variant: 'success',
+          eyebrow: 'Team',
+          title: 'Sei nel team',
+          subtitle: 'Invito al workspace FabricOS',
+          bodyHtml: `
+            <p style="margin:0 0 18px;color:#CBD5E1;">
+              Sei stato aggiunto a <strong style="color:#F9FAFB;">${workspaceLabel}</strong>
+              con ruolo <strong style="color:#6EE7B7;">${escapeHtml(memberRole)}</strong>.
             </p>
-            <p style="margin: 0 0 20px;">
-              Se non hai ancora impostato la password, usa il recupero password dalla pagina di accesso per entrare nel tuo account.
+            <p style="margin:0;color:#94A3B8;font-size:15px;">
+              Se non hai ancora una password, usa <strong style="color:#CBD5E1;">Recupero password</strong> dalla pagina di accesso.
             </p>
-            <a href="${teamUrl}" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;padding:12px 18px;border-radius:8px;">
-              Accedi a FabricOS
-            </a>
-          </div>
-        `,
+          `,
+          primaryCta: { label: 'Accedi a FabricOS', url: teamUrl },
+        }),
         text:
           `Sei stato aggiunto a FabricOS${company?.name ? ` per ${company.name}` : ''} con ruolo ${memberRole}. Apri ${teamUrl} per accedere.`,
       });

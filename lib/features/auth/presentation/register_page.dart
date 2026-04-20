@@ -77,6 +77,22 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
         final p = _planFromUrl != null && _planFromUrl!.isNotEmpty
             ? _planFromUrl!
             : 'growth';
+        final session = Supabase.instance.client.auth.currentSession;
+        if (session != null) {
+          try {
+            await Supabase.instance.client.functions.invoke(
+              'send-registration-welcome',
+              body: {
+                'fullName': _nameController.text.trim(),
+                'seats': qty,
+                'startTrial': _startWithTrial,
+                'plan': p,
+              },
+            );
+          } catch (_) {
+            // Best-effort: signup and onboarding still proceed if mail fails
+          }
+        }
         context.go(
           '/onboarding?seats=$qty&trial=${_startWithTrial ? '1' : '0'}&plan=$p',
         );

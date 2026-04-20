@@ -1,6 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { escapeHtml, getAdminContactEmail, sendEmail } from '../_shared/email.ts';
+import { escapeHtml, fabricEmailLayout, getAdminContactEmail, sendEmail } from '../_shared/email.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -47,22 +47,30 @@ serve(async (req) => {
 
     try {
       const adminEmail = getAdminContactEmail();
-      const bodyHtml = `
-        <div style="font-family: Arial, sans-serif; line-height: 1.5; color: #0f172a;">
-          <h2 style="margin: 0 0 12px;">Nuovo contatto dal sito FabricOS</h2>
-          <p style="margin: 0 0 8px;"><strong>Nome:</strong> ${escapeHtml(name ?? '-')}</p>
-          <p style="margin: 0 0 8px;"><strong>Email:</strong> ${escapeHtml(email)}</p>
-          <p style="margin: 0 0 8px;"><strong>Azienda:</strong> ${escapeHtml(company ?? '-')}</p>
-          <p style="margin: 16px 0 8px;"><strong>Messaggio:</strong></p>
-          <div style="white-space: pre-wrap; background: #f8fafc; border: 1px solid #e2e8f0; padding: 14px; border-radius: 8px;">
-            ${escapeHtml(message ?? '')}
-          </div>
+      const inner = `
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:0 0 20px;">
+          <tr><td style="padding:8px 0;color:#94A3B8;font-size:13px;">Nome</td></tr>
+          <tr><td style="padding:0 0 14px;color:#F9FAFB;font-weight:600;">${escapeHtml(name ?? '-')}</td></tr>
+          <tr><td style="padding:8px 0;color:#94A3B8;font-size:13px;">Email</td></tr>
+          <tr><td style="padding:0 0 14px;"><a href="mailto:${email.replace(/"/g, '')}" style="color:#93C5FD;font-weight:600;">${escapeHtml(email)}</a></td></tr>
+          <tr><td style="padding:8px 0;color:#94A3B8;font-size:13px;">Azienda</td></tr>
+          <tr><td style="padding:0 0 14px;color:#F9FAFB;">${escapeHtml(company ?? '-')}</td></tr>
+        </table>
+        <p style="margin:0 0 10px;color:#94A3B8;font-size:13px;">Messaggio</p>
+        <div style="white-space:pre-wrap;background:rgba(0,0,0,0.28);border:1px solid rgba(255,255,255,0.12);padding:16px 18px;border-radius:12px;color:#CBD5E1;font-size:15px;line-height:1.55;">
+          ${escapeHtml(message ?? '')}
         </div>
       `;
       await sendEmail({
         to: adminEmail,
         subject: 'Nuovo contatto ricevuto da FabricOS',
-        html: bodyHtml,
+        html: fabricEmailLayout({
+          variant: 'brand',
+          eyebrow: 'Lead',
+          title: 'Nuovo contatto dal sito',
+          subtitle: 'Qualcuno ha compilato il form pubblico',
+          bodyHtml: inner,
+        }),
         text: [
           'Nuovo contatto ricevuto da FabricOS',
           `Nome: ${name ?? '-'}`,
