@@ -452,37 +452,51 @@ class _ProductIllustration extends StatelessWidget {
                                     padding: EdgeInsets.only(
                                       right: index == 7 ? 0 : 8,
                                     ),
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Container(
-                                          height: barMaxHeight * heights[index],
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(
-                                              999,
+                                    child: LayoutBuilder(
+                                      builder: (context, barConstraints) {
+                                        const baselineHeight = 2.0;
+                                        const baselineSpacing = 6.0;
+                                        final availableBarHeight =
+                                            (barConstraints.maxHeight -
+                                                    baselineHeight -
+                                                    baselineSpacing)
+                                                .clamp(0.0, double.infinity);
+                                        final barHeight =
+                                            (barMaxHeight * heights[index])
+                                                .clamp(0.0, availableBarHeight);
+
+                                        return Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.end,
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Container(
+                                              height: barHeight,
+                                              decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(999),
+                                                gradient: const LinearGradient(
+                                                  begin: Alignment.topCenter,
+                                                  end: Alignment.bottomCenter,
+                                                  colors: [
+                                                    Color(0xFF60A5FA),
+                                                    Color(0xFF2563EB),
+                                                  ],
+                                                ),
+                                              ),
                                             ),
-                                            gradient: const LinearGradient(
-                                              begin: Alignment.topCenter,
-                                              end: Alignment.bottomCenter,
-                                              colors: [
-                                                Color(0xFF60A5FA),
-                                                Color(0xFF2563EB),
-                                              ],
+                                            const SizedBox(height: 6),
+                                            Container(
+                                              height: 2,
+                                              decoration: BoxDecoration(
+                                                color: const Color(0xFF334155),
+                                                borderRadius:
+                                                    BorderRadius.circular(999),
+                                              ),
                                             ),
-                                          ),
-                                        ),
-                                        const SizedBox(height: 6),
-                                        Container(
-                                          height: 2,
-                                          decoration: BoxDecoration(
-                                            color: const Color(0xFF334155),
-                                            borderRadius: BorderRadius.circular(
-                                              999,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
+                                          ],
+                                        );
+                                      },
                                     ),
                                   ),
                                 );
