@@ -21,49 +21,73 @@ class AuthPageShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.sizeOf(context).width;
-    final split = width >= 980;
-
     return Scaffold(
       backgroundColor: const Color(0xFF030712),
       body: SafeArea(
-        child: split
-            ? Row(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final split = constraints.maxWidth >= 980;
+            if (split) {
+              return Row(
                 children: [
                   Expanded(
                     flex: 11,
-                    child: _HeroPane(
-                      eyebrow: eyebrow,
-                      title: title,
-                      subtitle: subtitle,
-                      bullets: bullets,
+                    child: _PaneScroll(
+                      child: _HeroPane(
+                        eyebrow: eyebrow,
+                        title: title,
+                        subtitle: subtitle,
+                        bullets: bullets,
+                      ),
                     ),
                   ),
                   Expanded(
                     flex: 9,
-                    child: _FormPane(form: form, maxWidth: formMaxWidth),
+                    child: _PaneScroll(
+                      child: _FormPane(form: form, maxWidth: formMaxWidth),
+                    ),
                   ),
                 ],
-              )
-            : SingleChildScrollView(
-                child: Column(
-                  children: [
-                    _HeroPane(
-                      eyebrow: eyebrow,
-                      title: title,
-                      subtitle: subtitle,
-                      bullets: bullets,
-                      compact: true,
-                    ),
-                    _FormPane(
-                      form: form,
-                      maxWidth: formMaxWidth,
-                      compact: true,
-                    ),
-                  ],
-                ),
+              );
+            }
+            return SingleChildScrollView(
+              child: Column(
+                children: [
+                  _HeroPane(
+                    eyebrow: eyebrow,
+                    title: title,
+                    subtitle: subtitle,
+                    bullets: bullets,
+                    compact: true,
+                  ),
+                  _FormPane(form: form, maxWidth: formMaxWidth, compact: true),
+                ],
               ),
+            );
+          },
+        ),
       ),
+    );
+  }
+}
+
+class _PaneScroll extends StatelessWidget {
+  const _PaneScroll({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          padding: EdgeInsets.zero,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: child,
+          ),
+        );
+      },
     );
   }
 }
@@ -85,13 +109,6 @@ class _HeroPane extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final padding = EdgeInsets.fromLTRB(
-      compact ? 20 : 56,
-      compact ? 28 : 56,
-      compact ? 20 : 40,
-      compact ? 28 : 56,
-    );
-
     return Container(
       width: double.infinity,
       decoration: const BoxDecoration(
@@ -115,73 +132,81 @@ class _HeroPane extends StatelessWidget {
             bottom: -180,
             right: -110,
             child: _GlowOrb(
-              size: compact ? 240 : 360,
+              size: compact ? 220 : 360,
               color: const Color(0x2238BDF8),
             ),
           ),
-          Padding(
-            padding: padding,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0x142563EB),
-                    borderRadius: BorderRadius.circular(999),
-                    border: Border.all(color: const Color(0x332563EB)),
-                  ),
-                  child: Text(
-                    eyebrow,
-                    style: GoogleFonts.ibmPlexSans(
-                      color: const Color(0xFF93C5FD),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.5,
+          Align(
+            alignment: Alignment.topLeft,
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(
+                compact ? 20 : 56,
+                compact ? 28 : 56,
+                compact ? 20 : 40,
+                compact ? 28 : 56,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0x142563EB),
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(color: const Color(0x332563EB)),
+                    ),
+                    child: Text(
+                      eyebrow,
+                      style: GoogleFonts.ibmPlexSans(
+                        color: const Color(0xFF93C5FD),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.5,
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 18),
-                Text(
-                  title,
-                  style: GoogleFonts.spaceGrotesk(
-                    color: const Color(0xFFF9FAFB),
-                    fontSize: compact ? 34 : 58,
-                    fontWeight: FontWeight.w800,
-                    height: 1.04,
-                    letterSpacing: -1.0,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 620),
-                  child: Text(
-                    subtitle,
-                    style: GoogleFonts.ibmPlexSans(
-                      color: const Color(0xFFCBD5E1),
-                      fontSize: compact ? 17 : 19,
-                      height: 1.65,
+                  const SizedBox(height: 18),
+                  Text(
+                    title,
+                    style: GoogleFonts.spaceGrotesk(
+                      color: const Color(0xFFF9FAFB),
+                      fontSize: compact ? 34 : 58,
+                      fontWeight: FontWeight.w800,
+                      height: 1.04,
+                      letterSpacing: -1.0,
                     ),
                   ),
-                ),
-                const SizedBox(height: 24),
-                Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
-                  children: bullets
-                      .map(
-                        (bullet) =>
-                            _BulletChip(icon: bullet.icon, text: bullet.text),
-                      )
-                      .toList(),
-                ),
-                const SizedBox(height: 26),
-                _ProductIllustration(compact: compact),
-              ],
+                  const SizedBox(height: 16),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 620),
+                    child: Text(
+                      subtitle,
+                      style: GoogleFonts.ibmPlexSans(
+                        color: const Color(0xFFCBD5E1),
+                        fontSize: compact ? 17 : 19,
+                        height: 1.65,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: bullets
+                        .map(
+                          (bullet) =>
+                              _BulletChip(icon: bullet.icon, text: bullet.text),
+                        )
+                        .toList(),
+                  ),
+                  const SizedBox(height: 26),
+                  _ProductIllustration(compact: compact),
+                ],
+              ),
             ),
           ),
         ],
@@ -203,7 +228,7 @@ class _FormPane extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
+    return Padding(
       padding: EdgeInsets.symmetric(
         horizontal: compact ? 16 : 24,
         vertical: compact ? 24 : 40,
