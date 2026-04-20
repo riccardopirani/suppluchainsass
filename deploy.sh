@@ -3,7 +3,17 @@
 # Each function must enforce auth/signature in its own code where needed.
 set -euo pipefail
 
-: "${SUPABASE_PROJECT_REF:?Set SUPABASE_PROJECT_REF}"
+ROOT="$(cd "$(dirname "$0")" && pwd)"
+cd "$ROOT"
+
+if [[ -z "${SUPABASE_PROJECT_REF:-}" && -f .env ]]; then
+  set -a
+  # shellcheck source=/dev/null
+  source .env
+  set +a
+fi
+
+: "${SUPABASE_PROJECT_REF:?Set SUPABASE_PROJECT_REF in the environment or in .env (see .env.example)}"
 
 DEPLOY=(supabase functions deploy --project-ref "$SUPABASE_PROJECT_REF" --use-api --no-verify-jwt)
 

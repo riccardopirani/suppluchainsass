@@ -13,10 +13,10 @@ void main() async {
     throw FlutterError.fromParts(<DiagnosticsNode>[
       ErrorSummary('Supabase is not configured.'),
       ErrorDescription(
-        'Pass dart-defines, e.g. '
-        '--dart-define=NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co '
-        '--dart-define=NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_... '
-        'or use SUPABASE_URL / SUPABASE_ANON_KEY. See .env.example.',
+        'Local web: copy .env.example to .env, set SUPABASE_URL and SUPABASE_ANON_KEY, '
+        'then run ./scripts/run_web.sh (or pass --dart-define=SUPABASE_URL=... '
+        '--dart-define=SUPABASE_ANON_KEY=... with flutter run). '
+        'See .env.example.',
       ),
     ]);
   }
