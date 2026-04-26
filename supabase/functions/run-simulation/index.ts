@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { enforceCompanyFeature } from '../_shared/plan_entitlements.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -32,6 +33,15 @@ serve(async (req) => {
     const scenarioType = String(body.scenarioType ?? 'supplier_delay');
     const inputData = (body.inputData ?? {}) as Record<string, unknown>;
     if (!companyId) return json({ error: 'companyId is required' }, 400);
+
+    const denied = await enforceCompanyFeature(
+      supabase,
+      user.id,
+      companyId,
+      'what_if',
+      json,
+    );
+    if (denied) return denied;
 
     let result: Record<string, unknown> = {};
     if (scenarioType === 'supplier_delay') {

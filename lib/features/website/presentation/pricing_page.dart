@@ -1,4 +1,4 @@
-import 'package:fabricos/config/stripe_plans.dart';
+import 'package:fabricos/config/plan_catalog.dart';
 import 'package:fabricos/core/theme/app_colors.dart';
 import 'package:fabricos/features/website/presentation/widgets/marketing_page_widgets.dart';
 import 'package:fabricos/features/website/presentation/widgets/website_footer.dart';
@@ -7,35 +7,13 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class PricingPage extends StatefulWidget {
+class PricingPage extends StatelessWidget {
   const PricingPage({super.key});
-
-  @override
-  State<PricingPage> createState() => _PricingPageState();
-}
-
-class _PricingPageState extends State<PricingPage> {
-  final _seatsController = TextEditingController(text: '10');
-  double _sliderVal = 10;
-
-  int get _qty {
-    final v = int.tryParse(_seatsController.text) ?? 1;
-    return v < 1 ? 1 : v;
-  }
-
-  @override
-  void dispose() {
-    _seatsController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final l10n = context.l10n;
-    final qty = _qty;
-    final unitPrice = SeatPricing.unitPrice(qty);
-    final total = SeatPricing.monthlyTotal(qty);
 
     return SingleChildScrollView(
       child: Column(
@@ -49,44 +27,55 @@ class _PricingPageState extends State<PricingPage> {
           MarketingBody(
             child: LayoutBuilder(
               builder: (context, constraints) {
-                final wide = constraints.maxWidth >= 980;
-                final selectorCard = _selectorCard(
-                  context,
-                  l10n,
-                  scheme,
-                  qty: qty,
-                  unitPrice: unitPrice,
-                  total: total,
-                );
-
-                final supportingContent = Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _tierTable(context, l10n, scheme),
-                    const SizedBox(height: 28),
-                    _featuresList(context, l10n, scheme),
-                  ],
-                );
+                final wide = constraints.maxWidth >= 1000;
+                final cards = _planCards(context, l10n, scheme);
 
                 if (wide) {
                   return Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(flex: 5, child: selectorCard),
-                      const SizedBox(width: 24),
-                      Expanded(flex: 4, child: supportingContent),
+                      for (var i = 0; i < cards.length; i++) ...[
+                        if (i > 0) const SizedBox(width: 16),
+                        Expanded(child: cards[i]),
+                      ],
                     ],
                   );
                 }
 
                 return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    selectorCard,
-                    const SizedBox(height: 28),
-                    supportingContent,
+                    for (var i = 0; i < cards.length; i++) ...[
+                      if (i > 0) const SizedBox(height: 16),
+                      cards[i],
+                    ],
                   ],
                 );
               },
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+            child: Text(
+              l10n.t('pub_price_annual_note'),
+              textAlign: TextAlign.center,
+              style: GoogleFonts.ibmPlexSans(
+                fontSize: 14,
+                height: 1.45,
+                color: scheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
+            child: Text(
+              l10n.t('pub_price_footnote'),
+              textAlign: TextAlign.center,
+              style: GoogleFonts.ibmPlexSans(
+                fontSize: 12,
+                height: 1.45,
+                color: scheme.onSurfaceVariant,
+              ),
             ),
           ),
           const WebsiteFooter(),
@@ -95,395 +84,183 @@ class _PricingPageState extends State<PricingPage> {
     );
   }
 
-  Widget _selectorCard(
+  List<Widget> _planCards(
     BuildContext context,
     AppLocalizations l10n,
-    ColorScheme scheme, {
-    required int qty,
-    required double unitPrice,
-    required double total,
-  }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(28),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          width: 1.4,
-          color: scheme.primary.withValues(alpha: 0.38),
-        ),
-        color: scheme.surfaceContainerHighest.withValues(
-          alpha: isDark ? 0.48 : 0.9,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.22 : 0.08),
-            blurRadius: 32,
-            offset: const Offset(0, 16),
+    ColorScheme scheme,
+  ) {
+    Widget card({
+      required String planKey,
+      required String nameKey,
+      required String priceKey,
+      required List<String> featureKeys,
+      required bool highlight,
+    }) {
+      final isDark = Theme.of(context).brightness == Brightness.dark;
+      final features = featureKeys.map((k) => l10n.t(k)).toList();
+      return Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            width: highlight ? 1.6 : 1.1,
+            color: highlight
+                ? scheme.primary.withValues(alpha: 0.55)
+                : scheme.outline.withValues(alpha: 0.28),
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            l10n.t('pricing_how_many_users'),
-            textAlign: TextAlign.center,
-            style: GoogleFonts.spaceGrotesk(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-              height: 1.2,
-            ),
+          color: scheme.surfaceContainerHighest.withValues(
+            alpha: isDark ? 0.48 : 0.92,
           ),
-          const SizedBox(height: 18),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: scheme.outline.withValues(alpha: 0.22)),
-              color: scheme.surface.withValues(alpha: isDark ? 0.35 : 0.95),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.06),
+              blurRadius: 28,
+              offset: const Offset(0, 14),
             ),
-            child: TextField(
-              controller: _seatsController,
-              keyboardType: TextInputType.number,
-              textAlign: TextAlign.center,
-              style: GoogleFonts.spaceGrotesk(
-                fontSize: 42,
-                fontWeight: FontWeight.w800,
-                color: scheme.primary,
-              ),
-              decoration: InputDecoration(
-                isDense: true,
-                border: InputBorder.none,
-                suffixText: l10n.t('pricing_users'),
-                suffixStyle: GoogleFonts.ibmPlexSans(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: scheme.onSurfaceVariant,
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (highlight)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(999),
+                  color: scheme.primary.withValues(alpha: 0.12),
+                ),
+                child: Text(
+                  l10n.t('pub_price_badge'),
+                  style: GoogleFonts.ibmPlexSans(
+                    color: scheme.primary,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.5,
+                  ),
                 ),
               ),
-              onChanged: (v) {
-                final n = int.tryParse(v);
-                setState(() {
-                  if (n != null && n >= 1 && n <= 500) {
-                    _sliderVal = n.toDouble();
-                  }
-                });
-              },
+            if (highlight) const SizedBox(height: 12),
+            Text(
+              l10n.t(nameKey),
+              style: GoogleFonts.spaceGrotesk(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+              ),
             ),
-          ),
-          const SizedBox(height: 12),
-          Slider(
-            min: 1,
-            max: 500,
-            divisions: 499,
-            value: _sliderVal.clamp(1, 500),
-            label: '${_sliderVal.round()}',
-            onChanged: (v) {
-              setState(() {
-                _sliderVal = v;
-                _seatsController.text = '${v.round()}';
-              });
-            },
-          ),
-          Text(
-            l10n.t('pricing_slider_hint'),
-            textAlign: TextAlign.center,
-            style: GoogleFonts.ibmPlexSans(
-              fontSize: 13,
-              height: 1.45,
-              color: scheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 24),
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(18),
-              color: scheme.primary.withValues(alpha: 0.08),
-              border: Border.all(color: scheme.primary.withValues(alpha: 0.16)),
-            ),
-            child: Column(
+            const SizedBox(height: 12),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  '€${total.toStringAsFixed(0)}',
-                  textAlign: TextAlign.center,
+                  l10n.t(priceKey),
                   style: GoogleFonts.spaceGrotesk(
-                    fontSize: 52,
+                    fontSize: 38,
                     fontWeight: FontWeight.w800,
                     height: 1,
                     color: scheme.primary,
                   ),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  l10n.t('pub_price_period'),
-                  style: GoogleFonts.ibmPlexSans(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: scheme.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  '€${unitPrice.toStringAsFixed(2)} ${l10n.t('pricing_per_user_month')}',
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.ibmPlexSans(
-                    fontSize: 14,
-                    color: scheme.onSurfaceVariant,
+                const SizedBox(width: 6),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Text(
+                    l10n.t('pub_price_period'),
+                    style: GoogleFonts.ibmPlexSans(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: scheme.onSurfaceVariant,
+                    ),
                   ),
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: 22),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton(
+            const SizedBox(height: 18),
+            for (final f in features) ...[
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.check_circle_rounded,
+                    size: 18,
+                    color: scheme.primary,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      f,
+                      style: GoogleFonts.ibmPlexSans(
+                        fontSize: 14,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+            ],
+            const SizedBox(height: 8),
+            FilledButton(
               style: FilledButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 backgroundColor: scheme.primary,
                 foregroundColor: Theme.of(context).brightness == Brightness.dark
                     ? scheme.onPrimary
                     : AppColorsLight.onPrimary,
               ),
-              onPressed: () => context.go('/register?seats=$qty'),
+              onPressed: () => context.go('/register?plan=$planKey'),
               child: Text(
-                l10n.t('cta_start_trial'),
+                l10n.t('pub_price_cta_start'),
                 style: GoogleFonts.ibmPlexSans(
                   fontWeight: FontWeight.w700,
-                  fontSize: 15,
+                  fontSize: 14,
                 ),
               ),
             ),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            l10n.t('pub_price_footnote'),
-            textAlign: TextAlign.center,
-            style: GoogleFonts.ibmPlexSans(
-              fontSize: 12,
-              height: 1.45,
-              color: scheme.onSurfaceVariant,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+          ],
+        ),
+      );
+    }
 
-  Widget _tierTable(
-    BuildContext context,
-    AppLocalizations l10n,
-    ColorScheme scheme,
-  ) {
-    final rows = [
-      ['1 – 10', '€9.00'],
-      ['11 – 50', '€8.00'],
-      ['51 – 200', '€7.00'],
-      ['201 – 500', '€6.00'],
-      ['501+', '€5.00'],
+    return [
+      card(
+        planKey: PlanCatalog.essenziale.planKey,
+        nameKey: 'pub_price_essenziale_name',
+        priceKey: 'pub_price_essenziale_price',
+        featureKeys: const [
+          'pub_price_essenziale_f1',
+          'pub_price_essenziale_f2',
+          'pub_price_essenziale_f3',
+          'pub_price_essenziale_f4',
+        ],
+        highlight: false,
+      ),
+      card(
+        planKey: PlanCatalog.professionale.planKey,
+        nameKey: 'pub_price_professionale_name',
+        priceKey: 'pub_price_professionale_price',
+        featureKeys: const [
+          'pub_price_professionale_f1',
+          'pub_price_professionale_f2',
+          'pub_price_professionale_f3',
+          'pub_price_professionale_f4',
+        ],
+        highlight: true,
+      ),
+      card(
+        planKey: PlanCatalog.industriale.planKey,
+        nameKey: 'pub_price_industriale_name',
+        priceKey: 'pub_price_industriale_price',
+        featureKeys: const [
+          'pub_price_industriale_f1',
+          'pub_price_industriale_f2',
+          'pub_price_industriale_f3',
+          'pub_price_industriale_f4',
+        ],
+        highlight: false,
+      ),
     ];
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFF334155)),
-        color: const Color(0xFF0F172A),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x33000000),
-            blurRadius: 24,
-            offset: Offset(0, 12),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-            decoration: BoxDecoration(
-              color: const Color(0xFF111827),
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(18),
-              ),
-            ),
-            child: Text(
-              l10n.t('pricing_volume_discounts'),
-              style: GoogleFonts.spaceGrotesk(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: const Color(0xFFF9FAFB),
-              ),
-            ),
-          ),
-          for (var i = 0; i < rows.length; i++)
-            _discountRow(
-              context,
-              scheme,
-              range: rows[i][0],
-              price: rows[i][1],
-              isLast: i == rows.length - 1,
-              usersLabel: l10n.t('pricing_users'),
-              periodLabel: l10n.t('pricing_per_user_month'),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _discountRow(
-    BuildContext context,
-    ColorScheme scheme, {
-    required String range,
-    required String price,
-    required bool isLast,
-    required String usersLabel,
-    required String periodLabel,
-  }) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final narrow = constraints.maxWidth < 420;
-        final rowContent = narrow
-            ? Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '$range $usersLabel',
-                    style: GoogleFonts.ibmPlexSans(
-                      fontSize: 14,
-                      height: 1.4,
-                      color: const Color(0xFFE2E8F0),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '$price / $periodLabel',
-                    style: GoogleFonts.ibmPlexSans(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFF34D399),
-                    ),
-                  ),
-                ],
-              )
-            : Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      '$range $usersLabel',
-                      style: GoogleFonts.ibmPlexSans(
-                        fontSize: 14,
-                        height: 1.4,
-                        color: const Color(0xFFE2E8F0),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Text(
-                    '$price / $periodLabel',
-                    style: GoogleFonts.ibmPlexSans(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFF34D399),
-                    ),
-                  ),
-                ],
-              );
-
-        return Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-          decoration: BoxDecoration(
-            border: isLast
-                ? null
-                : Border(
-                    bottom: BorderSide(
-                      color: const Color(0xFF334155).withValues(alpha: 0.75),
-                    ),
-                  ),
-          ),
-          child: rowContent,
-        );
-      },
-    );
-  }
-
-  Widget _featuresList(
-    BuildContext context,
-    AppLocalizations l10n,
-    ColorScheme scheme,
-  ) {
-    final features = [
-      l10n.t('pricing_feat_dashboard'),
-      l10n.t('pricing_feat_machines'),
-      l10n.t('pricing_feat_orders'),
-      l10n.t('pricing_feat_suppliers'),
-      l10n.t('pricing_feat_ai_risk'),
-      l10n.t('pricing_feat_demand'),
-      l10n.t('pricing_feat_inventory'),
-      l10n.t('pricing_feat_esg'),
-    ];
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFF334155)),
-        color: const Color(0xFF0F172A),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x22000000),
-            blurRadius: 20,
-            offset: Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            l10n.t('pricing_all_included'),
-            style: GoogleFonts.spaceGrotesk(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: const Color(0xFFF9FAFB),
-            ),
-          ),
-          const SizedBox(height: 14),
-          Wrap(
-            spacing: 18,
-            runSpacing: 12,
-            children: features
-                .map(
-                  (f) => Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.check_circle_rounded,
-                        size: 18,
-                        color: scheme.primary,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        f,
-                        style: GoogleFonts.ibmPlexSans(
-                          fontSize: 14,
-                          color: const Color(0xFFE2E8F0),
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-                .toList(),
-          ),
-        ],
-      ),
-    );
   }
 }

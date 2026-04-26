@@ -1,4 +1,4 @@
-import 'package:fabricos/config/stripe_plans.dart';
+import 'package:fabricos/config/plan_catalog.dart';
 import 'package:fabricos/features/auth/presentation/widgets/auth_shell.dart';
 import 'package:fabricos/localization/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -18,31 +18,18 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _nameController = TextEditingController();
-  final _seatsController = TextEditingController(text: '10');
   bool _loading = false;
   String? _error;
-  double _sliderVal = 10;
-  bool _startWithTrial = true;
-  String? _planFromUrl;
-
-  int get _qty {
-    final v = int.tryParse(_seatsController.text) ?? 1;
-    return v < 1 ? 1 : v;
-  }
+  SubscriptionPlanTier _selectedPlan = SubscriptionPlanTier.professionale;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     final uri = GoRouterState.of(context).uri;
-    final seatsParam = uri.queryParameters['seats'];
-    if (seatsParam != null) {
-      final parsed = int.tryParse(seatsParam);
-      if (parsed != null && parsed >= 1) {
-        _seatsController.text = '$parsed';
-        _sliderVal = parsed.clamp(1, 500).toDouble();
-      }
+    final parsed = PlanCatalog.tryParseTier(uri.queryParameters['plan']);
+    if (parsed != null) {
+      _selectedPlan = parsed;
     }
-    _planFromUrl = uri.queryParameters['plan'];
   }
 
   @override
@@ -50,7 +37,6 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     _emailController.dispose();
     _passwordController.dispose();
     _nameController.dispose();
-    _seatsController.dispose();
     super.dispose();
   }
 
@@ -60,43 +46,36 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       _loading = true;
     });
     try {
-      final qty = _qty;
+      final planName = _selectedPlan.name;
       await Supabase.instance.client.auth.signUp(
         email: _emailController.text.trim(),
         password: _passwordController.text,
         data: {
           'full_name': _nameController.text.trim(),
-          'seats': qty,
-          'start_trial': _startWithTrial,
-          if (_planFromUrl != null && _planFromUrl!.isNotEmpty)
-            'plan': _planFromUrl,
+          'start_trial': true,
+          'plan': planName,
         },
       );
       await Supabase.instance.client.auth.refreshSession();
-      if (mounted) {
-        final p = _planFromUrl != null && _planFromUrl!.isNotEmpty
-            ? _planFromUrl!
-            : 'growth';
-        final session = Supabase.instance.client.auth.currentSession;
-        if (session != null) {
-          try {
-            await Supabase.instance.client.functions.invoke(
-              'send-registration-welcome',
-              body: {
-                'fullName': _nameController.text.trim(),
-                'seats': qty,
-                'startTrial': _startWithTrial,
-                'plan': p,
-              },
-            );
-          } catch (_) {
-            // Best-effort: signup and onboarding still proceed if mail fails
-          }
+      if (!mounted) return;
+      final session = Supabase.instance.client.auth.currentSession;
+      if (session != null) {
+        try {
+          await Supabase.instance.client.functions.invoke(
+            'send-registration-welcome',
+            body: {
+              'fullName': _nameController.text.trim(),
+              'startTrial': true,
+              'plan': planName,
+            },
+          );
+        } catch (_) {
+          // Best-effort: signup and onboarding still proceed if mail fails
         }
-        context.go(
-          '/onboarding?seats=$qty&trial=${_startWithTrial ? '1' : '0'}&plan=$p',
-        );
       }
+      if (!mounted) return;
+      setState(() => _loading = false);
+      context.go('/onboarding?trial=1&plan=$planName');
     } on AuthException catch (e) {
       setState(() {
         _error = e.message;
@@ -110,35 +89,9 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     }
   }
 
-  Widget _seatsCountField() {
-    return SizedBox(
-      width: 72,
-      child: TextField(
-        controller: _seatsController,
-        keyboardType: TextInputType.number,
-        textAlign: TextAlign.center,
-        style: const TextStyle(
-          color: Color(0xFF2563EB),
-          fontSize: 26,
-          fontWeight: FontWeight.w800,
-        ),
-        decoration: _seatInputDecoration(),
-        onChanged: (v) {
-          final n = int.tryParse(v);
-          setState(() {
-            if (n != null && n >= 1 && n <= 500) _sliderVal = n.toDouble();
-          });
-        },
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final qty = _qty;
-    final unitPrice = SeatPricing.unitPrice(qty);
-    final total = SeatPricing.monthlyTotal(qty);
     return AuthPageShell(
       eyebrow: 'Crea account',
       title: 'Attiva il trial e metti il controllo operativo in moto',
@@ -149,17 +102,11 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
         (icon: Icons.payments_outlined, text: 'Rinnovo Stripe integrato'),
         (icon: Icons.mail_outline, text: 'Email di onboarding e alert'),
       ],
-      form: _buildFormCard(context, l10n, qty, unitPrice, total),
+      form: _buildFormCard(context, l10n),
     );
   }
 
-  Widget _buildFormCard(
-    BuildContext context,
-    AppLocalizations l10n,
-    int qty,
-    double unitPrice,
-    double total,
-  ) {
+  Widget _buildFormCard(BuildContext context, AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(28),
       decoration: BoxDecoration(
@@ -242,128 +189,96 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
             ),
             const SizedBox(height: 20),
             Text(
-              l10n.t('pricing_how_many_users'),
+              l10n.t('register_choose_plan'),
               style: const TextStyle(
                 color: Color(0xFFF9FAFB),
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
               ),
             ),
-            const SizedBox(height: 4),
-            LayoutBuilder(
-              builder: (context, rc) {
-                final stackSeats = rc.maxWidth < 400;
-                if (stackSeats) {
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Row(
+            const SizedBox(height: 10),
+            ...PlanCatalog.orderedTiers.map((tier) {
+              final d = PlanCatalog.byTier(tier);
+              final label = switch (tier) {
+                SubscriptionPlanTier.essenziale => l10n.t('plan_essenziale'),
+                SubscriptionPlanTier.professionale =>
+                  l10n.t('plan_professionale'),
+                SubscriptionPlanTier.industriale => l10n.t('plan_industriale'),
+              };
+              final selected = _selectedPlan == tier;
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () => setState(() => _selectedPlan = tier),
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: selected
+                              ? const Color(0xFF2563EB)
+                              : const Color(0xFF1F2937),
+                          width: selected ? 1.8 : 1,
+                        ),
+                        color: selected
+                            ? const Color(0x142563EB)
+                            : const Color(0x08FFFFFF),
+                      ),
+                      child: Row(
                         children: [
-                          _seatsCountField(),
-                          const SizedBox(width: 8),
+                          Icon(
+                            selected
+                                ? Icons.radio_button_checked
+                                : Icons.radio_button_off,
+                            color: selected
+                                ? const Color(0xFF2563EB)
+                                : const Color(0xFF6B7280),
+                            size: 22,
+                          ),
+                          const SizedBox(width: 12),
                           Expanded(
-                            child: Text(
-                              l10n.t('pricing_users'),
-                              style: const TextStyle(color: Color(0xFFF9FAFB)),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  label,
+                                  style: const TextStyle(
+                                    color: Color(0xFFF9FAFB),
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  '€${d.monthlyEuros.toStringAsFixed(0)}${l10n.t('per_month')} · €${d.annualEuros.toStringAsFixed(0)}${l10n.t('per_year')}',
+                                  style: const TextStyle(
+                                    color: Color(0xFF9CA3AF),
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        '€${total.toStringAsFixed(0)}${l10n.t('per_month')}',
-                        style: const TextStyle(
-                          color: Color(0xFFF9FAFB),
-                          fontWeight: FontWeight.w700,
-                          fontSize: 15,
-                        ),
-                      ),
-                    ],
-                  );
-                }
-                return Row(
-                  children: [
-                    _seatsCountField(),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        l10n.t('pricing_users'),
-                        style: const TextStyle(color: Color(0xFFF9FAFB)),
-                      ),
                     ),
-                    Flexible(
-                      child: Text(
-                        '€${total.toStringAsFixed(0)}${l10n.t('per_month')}',
-                        textAlign: TextAlign.end,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Color(0xFFF9FAFB),
-                          fontWeight: FontWeight.w700,
-                          fontSize: 15,
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
-            Slider(
-              min: 1,
-              max: 500,
-              divisions: 499,
-              value: _sliderVal.clamp(1, 500),
-              label: '${_sliderVal.round()}',
-              onChanged: (v) {
-                setState(() {
-                  _sliderVal = v;
-                  _seatsController.text = '${v.round()}';
-                });
-              },
-            ),
-            Text(
-              '€${unitPrice.toStringAsFixed(2)} ${l10n.t('pricing_per_user_month')}',
-              style: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 12),
-            ),
+                  ),
+                ),
+              );
+            }),
             const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0x08FFFFFF),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFF1F2937)),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          l10n.t('billing_trial_toggle_title'),
-                          style: const TextStyle(
-                            color: Color(0xFFF9FAFB),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          l10n.t('billing_trial_toggle_subtitle'),
-                          style: const TextStyle(
-                            color: Color(0xFFCBD5E1),
-                            fontSize: 12.5,
-                            height: 1.4,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Switch(
-                    value: _startWithTrial,
-                    onChanged: (v) => setState(() => _startWithTrial = v),
-                  ),
-                ],
+            Text(
+              '· ${l10n.t('billing_trial_30_days')}: feature access follows the plan you select; subscribe before trial ends to keep using the app.',
+              style: const TextStyle(
+                color: Color(0xFF9CA3AF),
+                fontSize: 12.5,
+                height: 1.45,
               ),
             ),
             const SizedBox(height: 24),
@@ -409,26 +324,6 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     return InputDecoration(
       labelText: label,
       labelStyle: const TextStyle(color: Color(0xFF9CA3AF)),
-      filled: true,
-      fillColor: const Color(0x08FFFFFF),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(color: Color(0xFF1F2937)),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(color: Color(0xFF1F2937)),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(color: Color(0xFF2563EB)),
-      ),
-    );
-  }
-
-  InputDecoration _seatInputDecoration() {
-    return InputDecoration(
-      isDense: true,
       filled: true,
       fillColor: const Color(0x08FFFFFF),
       border: OutlineInputBorder(

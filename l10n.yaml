@@ -1,0 +1,5 @@
+# Home landing copy (metalmeccanico / manufacturing B2B)
+arb-dir: lib/l10n
+template-arb-file: app_it.arb
+output-localization-file: fabricos_home_arb.dart
+output-class: FabricosHomeArb

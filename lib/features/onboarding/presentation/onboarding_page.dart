@@ -1,16 +1,7 @@
-import 'dart:async';
-
-import 'package:fabricos/config/env.dart';
 import 'package:fabricos/config/plan_catalog.dart';
-import 'package:fabricos/config/stripe_plans.dart';
 import 'package:fabricos/core/marketing/roi_calculator_logic.dart';
 import 'package:fabricos/features/app_shell/providers/fabricos_provider.dart';
-import 'package:fabricos/features/billing/data/fabric_iap_coordinator.dart';
-import 'package:fabricos/features/billing/data/mobile_billing_platform.dart';
 import 'package:fabricos/localization/app_localizations.dart';
-import 'package:fabricos/utils/redirect_to_url.dart'
-    if (dart.library.html) 'package:fabricos/utils/redirect_to_url_web.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -29,24 +20,10 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
   String _plantsBand = '1';
   String _machinesBand = '10-50';
   String _pain = 'downtime';
-  int _seats = 10;
-  bool _startTrial = true;
   bool _loading = false;
   String? _error;
 
   static const _steps = 6;
-
-  String _appOrigin() {
-    final env = ref.read(envProvider);
-    if (kIsWeb) {
-      final u = Uri.base;
-      if (u.hasScheme && u.host.isNotEmpty) {
-        final port = u.hasPort ? ':${u.port}' : '';
-        return '${u.scheme}://${u.host}$port';
-      }
-    }
-    return env.appBaseUrl.replaceAll(RegExp(r'/$'), '');
-  }
 
   RoiCalculatorResult _roiPreview() {
     var monthlyRevenue = 520000.0;
@@ -111,82 +88,8 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
             companyName: companyName,
             sizeBand: _sizeBand,
             plan: plan != null && plan.isNotEmpty ? plan : null,
-            startTrial: _startTrial,
           );
       ref.invalidate(fabricUserContextProvider);
-
-      final userCtx = await ref.read(fabricUserContextProvider.future);
-      final companyId = userCtx.companyId;
-
-      if (!_startTrial && companyId != null) {
-        if (kUseMobileStoreBilling) {
-          final tier =
-              PlanCatalog.tryParseTier(plan ?? '') ??
-              SubscriptionPlanTier.growth;
-          if (tier == SubscriptionPlanTier.enterprise) {
-            if (mounted) context.go('/contact');
-            return;
-          }
-          final iap = ref.read(fabricIapCoordinatorProvider);
-          final done = Completer<void>();
-          var canceled = false;
-          iap.onSuccess = () {
-            if (!done.isCompleted) done.complete();
-          };
-          iap.onError = (m) {
-            if (!done.isCompleted) {
-              done.completeError(Exception(m ?? 'Purchase failed'));
-            }
-          };
-          iap.onCanceled = () {
-            canceled = true;
-            if (!done.isCompleted) done.complete();
-          };
-          try {
-            await iap.startPurchase(
-              companyId: companyId,
-              tier: tier,
-              annual: false,
-            );
-            await done.future.timeout(
-              const Duration(minutes: 3),
-              onTimeout: () => throw TimeoutException('iap'),
-            );
-            if (canceled) return;
-            ref.invalidate(billingStatusProvider);
-            if (mounted) context.go('/app');
-            return;
-          } on TimeoutException {
-            if (mounted) {
-              setState(() => _error = context.l10n.t('billing_iap_timeout'));
-            }
-            return;
-          } catch (e) {
-            if (mounted) setState(() => _error = e.toString());
-            return;
-          } finally {
-            iap.onSuccess = null;
-            iap.onError = null;
-            iap.onCanceled = null;
-          }
-        }
-        final origin = _appOrigin();
-        final unitCents = SeatPricing.unitCentsForQuantity(_seats);
-        final url = await ref
-            .read(fabricosRepositoryProvider)
-            .createCheckoutSession(
-              companyId: companyId,
-              quantity: _seats,
-              unitAmountCents: unitCents,
-              trialDays: 0,
-              successUrl: '$origin/app/billing?success=true',
-              cancelUrl: '$origin/app/billing?canceled=true',
-            );
-        if (url != null && mounted) {
-          await redirectToUrl(url);
-          return;
-        }
-      }
 
       if (mounted) context.go('/app');
     } catch (e) {
@@ -199,17 +102,11 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
   @override
   Widget build(BuildContext context) {
     final uri = GoRouterState.of(context).uri;
-    final seatsParam = uri.queryParameters['seats'];
-    if (seatsParam != null) {
-      final parsed = int.tryParse(seatsParam);
-      if (parsed != null && parsed >= 1) _seats = parsed;
-    }
-    _startTrial =
-        (uri.queryParameters['trial'] ?? (_startTrial ? '1' : '0')) == '1';
 
     final l10n = context.l10n;
-    final total = SeatPricing.monthlyTotal(_seats);
-    final unitPrice = SeatPricing.unitPrice(_seats);
+    final planTier = PlanCatalog.tryParseTier(uri.queryParameters['plan']) ??
+        SubscriptionPlanTier.professionale;
+    final planDef = PlanCatalog.byTier(planTier);
     final roi = _roiPreview();
     final width = MediaQuery.sizeOf(context).width;
     final compact = width < 560;
@@ -443,13 +340,14 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                         ),
                         const SizedBox(height: 20),
                         Text(
-                          l10n.t('billing_seat_summary'),
+                          l10n.t('billing_plan_summary'),
                           style: Theme.of(context).textTheme.titleSmall,
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          '$_seats ${l10n.t('pricing_users')} · €${unitPrice.toStringAsFixed(2)} ${l10n.t('pricing_per_user_month')} · €${total.toStringAsFixed(0)}${l10n.t('per_month')}'
-                          '${_startTrial ? ' · ${l10n.t('billing_trial_30_days')}' : ''}',
+                          '${planDef.marketingName} — €${planDef.monthlyEuros.toStringAsFixed(0)}${l10n.t('per_month')} · '
+                          '€${planDef.annualEuros.toStringAsFixed(0)}${l10n.t('per_year')} · '
+                          '${l10n.t('billing_trial_30_days')}',
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(
                                 color: Theme.of(

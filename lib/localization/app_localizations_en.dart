@@ -67,10 +67,13 @@ const Map<String, String> appLocalizationsEn = {
   'onboarding_company': 'Set up your company',
   'onboarding_data': 'Connect your data',
   'onboarding_done': "You're all set",
-  'plan_starter': 'Starter',
-  'plan_growth': 'Growth',
-  'plan_pro': 'Pro',
-  'plan_enterprise': 'Enterprise',
+  'plan_essenziale': 'Essenziale',
+  'plan_professionale': 'Professionale',
+  'plan_industriale': 'Industriale',
+  'plan_starter': 'Essenziale',
+  'plan_growth': 'Professionale',
+  'plan_pro': 'Professionale',
+  'plan_enterprise': 'Industriale',
   'per_month': '/month',
   'per_year': '/year',
   'contact_sales': 'Contact sales',
@@ -183,6 +186,8 @@ const Map<String, String> appLocalizationsEn = {
   'billing_no_trial': 'No trial',
   'billing_subscribe_now': 'Subscribe now',
   'billing_seat_summary': 'Your subscription',
+  'billing_plan_summary': 'Plan',
+  'register_choose_plan': 'Choose your commercial plan',
   'billing_required_title': 'Subscription required',
   'billing_required_subtitle':
       'Activate a subscription to continue using the private app area.',
@@ -197,7 +202,7 @@ const Map<String, String> appLocalizationsEn = {
   'billing_no_active': 'No active subscription',
   'billing_purchase_history': 'Payment history',
   'billing_no_purchases': 'No purchases yet.',
-  'billing_all_features': 'All features included for every user.',
+  'billing_all_features': 'Features depend on the plan you activate.',
   'onboarding_company_setup_subtitle':
       'Create your company workspace and continue with your selected billing plan.',
   'pricing_how_many_users': 'How many users do you need?',
@@ -234,7 +239,8 @@ const Map<String, String> appLocalizationsEn = {
   'copilot_hint': 'Ask a question…',
   'copilot_ask': 'Get insight',
   'copilot_locked': 'Copilot',
-  'copilot_upgrade_hint': 'Upgrade to Growth to unlock AI Copilot.',
+  'copilot_upgrade_hint':
+      'Upgrade to Professionale or Industriale to unlock AI Copilot.',
   'copilot_q1': 'Why are delays increasing?',
   'copilot_q2': 'Which machine needs attention?',
   'copilot_q3': 'What inventory should I reduce?',
@@ -256,8 +262,12 @@ const Map<String, String> appLocalizationsEn = {
   'exec_email_template': 'Email template (copy for leadership)',
   'billing_plan_pick': 'Choose your plan',
   'billing_plan_subtitle':
-      'Flat monthly pricing — upgrade or downgrade anytime.',
-  'billing_annual': 'Annual billing (~17% off)',
+      'Flat monthly pricing (ex VAT). Yearly = 12× monthly, all-inclusive.',
+  'billing_annual': 'Annual billing (12× monthly)',
+  'billing_change_plan_hint':
+      'To change plan or payment method, open the Stripe customer portal.',
+  'billing_billed_annually': 'billed annually',
+  'billing_yearly_total_hint': 'if billed annually',
   'billing_checkout': 'Continue to secure checkout',
   'billing_iap_continue': 'Subscribe with App Store / Google Play',
   'billing_manage_in_store':
@@ -267,7 +277,7 @@ const Map<String, String> appLocalizationsEn = {
   'billing_iap_timeout':
       'Purchase is taking too long. You can finish subscribing from Billing in settings.',
   'billing_enterprise_note':
-      'Enterprise includes SSO, API and white-label — talk to sales.',
+      'Industriale includes API, ERP integrations and white-label options.',
   'app_menu_executive': 'CEO report',
   'app_menu_simulation': 'What-if lab',
   'app_menu_control_tower': 'AI Control Tower',

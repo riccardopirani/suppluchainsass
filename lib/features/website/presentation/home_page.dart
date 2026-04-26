@@ -27,7 +27,6 @@ class HomePage extends StatelessWidget {
             const _TestimonialsSection(),
             _PricingTiersSection(
               onPlan: (plan) => context.go('/register?plan=$plan'),
-              onEnterprise: () => context.go('/contact'),
             ),
             const _ContactSection(),
             const _FaqSection(),
@@ -1003,13 +1002,9 @@ class _TestimonialsSection extends StatelessWidget {
 }
 
 class _PricingTiersSection extends StatelessWidget {
-  const _PricingTiersSection({
-    required this.onPlan,
-    required this.onEnterprise,
-  });
+  const _PricingTiersSection({required this.onPlan});
 
   final void Function(String plan) onPlan;
-  final VoidCallback onEnterprise;
 
   @override
   Widget build(BuildContext context) {
@@ -1042,60 +1037,46 @@ class _PricingTiersSection extends StatelessWidget {
               builder: (context, c) {
                 final tiers = [
                   _TierCard(
-                    name: l10n.t('pub_price_starter_name'),
-                    price: l10n.t('pub_price_starter_price'),
+                    name: l10n.t('pub_price_essenziale_name'),
+                    price: l10n.t('pub_price_essenziale_price'),
                     period: l10n.t('pub_price_period'),
                     features: [
-                      l10n.t('pub_price_starter_f1'),
-                      l10n.t('pub_price_starter_f2'),
-                      l10n.t('pub_price_starter_f3'),
-                      l10n.t('pub_price_starter_f4'),
+                      l10n.t('pub_price_essenziale_f1'),
+                      l10n.t('pub_price_essenziale_f2'),
+                      l10n.t('pub_price_essenziale_f3'),
+                      l10n.t('pub_price_essenziale_f4'),
                     ],
                     highlight: false,
-                    onCta: () => onPlan('starter'),
+                    onCta: () => onPlan('essenziale'),
                     ctaLabel: l10n.t('pub_price_cta_start'),
                   ),
                   _TierCard(
-                    name: l10n.t('pub_price_growth_name'),
-                    price: l10n.t('pub_price_growth_price'),
+                    name: l10n.t('pub_price_professionale_name'),
+                    price: l10n.t('pub_price_professionale_price'),
                     period: l10n.t('pub_price_period'),
                     features: [
-                      l10n.t('pub_price_growth_f1'),
-                      l10n.t('pub_price_growth_f2'),
-                      l10n.t('pub_price_growth_f3'),
-                      l10n.t('pub_price_growth_f4'),
+                      l10n.t('pub_price_professionale_f1'),
+                      l10n.t('pub_price_professionale_f2'),
+                      l10n.t('pub_price_professionale_f3'),
+                      l10n.t('pub_price_professionale_f4'),
                     ],
                     highlight: true,
-                    onCta: () => onPlan('growth'),
+                    onCta: () => onPlan('professionale'),
                     ctaLabel: l10n.t('pub_price_cta_start'),
                   ),
                   _TierCard(
-                    name: l10n.t('pub_price_pro_name'),
-                    price: l10n.t('pub_price_pro_price'),
+                    name: l10n.t('pub_price_industriale_name'),
+                    price: l10n.t('pub_price_industriale_price'),
                     period: l10n.t('pub_price_period'),
                     features: [
-                      l10n.t('pub_price_pro_f1'),
-                      l10n.t('pub_price_pro_f2'),
-                      l10n.t('pub_price_pro_f3'),
-                      l10n.t('pub_price_pro_f4'),
+                      l10n.t('pub_price_industriale_f1'),
+                      l10n.t('pub_price_industriale_f2'),
+                      l10n.t('pub_price_industriale_f3'),
+                      l10n.t('pub_price_industriale_f4'),
                     ],
                     highlight: false,
-                    onCta: () => onPlan('pro'),
+                    onCta: () => onPlan('industriale'),
                     ctaLabel: l10n.t('pub_price_cta_start'),
-                  ),
-                  _TierCard(
-                    name: l10n.t('pub_price_ent_name'),
-                    price: l10n.t('pub_price_ent_from'),
-                    period: '',
-                    features: [
-                      l10n.t('pub_price_ent_f1'),
-                      l10n.t('pub_price_ent_f2'),
-                      l10n.t('pub_price_ent_f3'),
-                      l10n.t('pub_price_ent_f4'),
-                    ],
-                    highlight: false,
-                    onCta: onEnterprise,
-                    ctaLabel: l10n.t('pub_price_cta_talk'),
                   ),
                 ];
                 if (c.maxWidth < 720) {
@@ -1109,7 +1090,7 @@ class _PricingTiersSection extends StatelessWidget {
                     ],
                   );
                 }
-                if (c.maxWidth < 1200) {
+                if (c.maxWidth < 1100) {
                   return GridView.count(
                     crossAxisCount: 2,
                     shrinkWrap: true,

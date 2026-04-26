@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { enforceCompanyFeature } from '../_shared/plan_entitlements.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -45,6 +46,15 @@ serve(async (req) => {
     if (!companyId) {
       return json({ error: 'companyId is required' }, 400);
     }
+
+    const denied = await enforceCompanyFeature(
+      supabase,
+      user.id,
+      companyId,
+      'esg',
+      json,
+    );
+    if (denied) return denied;
 
     const rawMonth = body.reportMonth as string | undefined;
     const monthDate = rawMonth ? new Date(rawMonth) : new Date();

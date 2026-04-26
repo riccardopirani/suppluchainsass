@@ -44,6 +44,8 @@ serve(async (req) => {
       successUrl,
       cancelUrl,
       trialDays,
+      plan,
+      billingInterval,
     } = body as {
       companyId: string;
       quantity: number;
@@ -52,6 +54,8 @@ serve(async (req) => {
       successUrl?: string;
       cancelUrl?: string;
       trialDays?: number;
+      plan?: string;
+      billingInterval?: 'month' | 'year';
     };
 
     if (!companyId || !quantity || !unitAmountCents) {
@@ -60,6 +64,9 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
     }
+
+    const interval = billingInterval === 'year' ? 'year' : 'month';
+    const planKey = (plan ?? '').toString().trim() || 'essenziale';
 
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', { apiVersion: '2023-10-16' });
     const appUrl = Deno.env.get('APP_BASE_URL') ?? 'http://localhost:3000';
@@ -73,7 +80,7 @@ serve(async (req) => {
             currency: currency ?? 'eur',
             product_data: { name: 'FabricOS Platform' },
             unit_amount: unitAmountCents,
-            recurring: { interval: 'month' },
+            recurring: { interval },
           },
           quantity,
         },
@@ -81,9 +88,14 @@ serve(async (req) => {
       success_url: successUrl ?? `${appUrl}/app/billing?success=true`,
       cancel_url: cancelUrl ?? `${appUrl}/app/billing?canceled=true`,
       client_reference_id: companyId,
-      metadata: { company_id: companyId, user_id: user.id, seats: String(quantity) },
+      metadata: {
+        company_id: companyId,
+        user_id: user.id,
+        seats: String(quantity),
+        plan: planKey,
+      },
       subscription_data: {
-        metadata: { company_id: companyId, seats: String(quantity) },
+        metadata: { company_id: companyId, seats: String(quantity), plan: planKey },
         ...(trialDays != null && trialDays > 0 ? { trial_period_days: trialDays } : {}),
       },
     });

@@ -11,6 +11,7 @@ class SupplierDetailPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final suppliersAsync = ref.watch(suppliersProvider);
     final companyIdAsync = ref.watch(currentCompanyIdProvider);
+    final ent = ref.watch(subscriptionEntitlementsProvider);
 
     return Scaffold(
       body: SafeArea(
@@ -38,10 +39,14 @@ class SupplierDetailPage extends ConsumerWidget {
                       ),
                       companyIdAsync.when(
                         data: (companyId) => FilledButton.icon(
-                          onPressed: () async {
-                            await ref.read(supplyChainAiServiceProvider).analyzeSupplierRisk(companyId);
-                            ref.invalidate(suppliersProvider);
-                          },
+                          onPressed: ent.canUseAiSupplyFeatures
+                              ? () async {
+                                  await ref
+                                      .read(supplyChainAiServiceProvider)
+                                      .analyzeSupplierRisk(companyId);
+                                  ref.invalidate(suppliersProvider);
+                                }
+                              : null,
                           icon: const Icon(Icons.auto_graph_outlined),
                           label: const Text('Recalculate AI risk'),
                         ),

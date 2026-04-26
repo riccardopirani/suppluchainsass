@@ -4,6 +4,7 @@ import 'package:fabricos/features/supply_chain/data/supply_chain_ai_service.dart
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 class SupplyDashboardPage extends ConsumerStatefulWidget {
   const SupplyDashboardPage({super.key});
@@ -25,6 +26,7 @@ class _SupplyDashboardPageState extends ConsumerState<SupplyDashboardPage> {
     final disruptionsAsync = ref.watch(disruptionsProvider);
     final forecastAsync = ref.watch(demandForecastProvider);
     final companyIdAsync = ref.watch(currentCompanyIdProvider);
+    final ent = ref.watch(subscriptionEntitlementsProvider);
 
     return Scaffold(
       backgroundColor: IntelligenceTheme.background,
@@ -56,7 +58,7 @@ class _SupplyDashboardPageState extends ConsumerState<SupplyDashboardPage> {
                   runSpacing: 8,
                   children: [
                     FilledButton.icon(
-                      onPressed: _busy
+                      onPressed: (!ent.canUseForecasting || _busy)
                           ? null
                           : () => _runAction(() async {
                               await ref
@@ -68,7 +70,7 @@ class _SupplyDashboardPageState extends ConsumerState<SupplyDashboardPage> {
                       label: const Text('Predict demand'),
                     ),
                     OutlinedButton.icon(
-                      onPressed: _busy
+                      onPressed: (!ent.canUseAiSupplyFeatures || _busy)
                           ? null
                           : () => _runAction(() async {
                               await ref
@@ -80,7 +82,8 @@ class _SupplyDashboardPageState extends ConsumerState<SupplyDashboardPage> {
                       label: const Text('Detect disruptions'),
                     ),
                     OutlinedButton.icon(
-                      onPressed: _busy
+                      onPressed:
+                          (!ent.canUseCostInventoryOptimizationAi || _busy)
                           ? null
                           : () => _runAction(() async {
                               final data = await ref
@@ -152,12 +155,15 @@ class _SupplyDashboardPageState extends ConsumerState<SupplyDashboardPage> {
                   padding: const EdgeInsets.all(16),
                   child: SizedBox(
                     height: 220,
-                    child: forecastAsync.when(
-                      data: (rows) => _forecastChart(context, rows),
-                      loading: () =>
-                          const Center(child: CircularProgressIndicator()),
-                      error: (e, _) => Text('Forecast unavailable: $e'),
-                    ),
+                    child: !ent.canUseForecasting
+                        ? _forecastLockedPlaceholder(context)
+                        : forecastAsync.when(
+                            data: (rows) => _forecastChart(context, rows),
+                            loading: () => const Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                            error: (e, _) => Text('Forecast unavailable: $e'),
+                          ),
                   ),
                 ),
               ),
@@ -268,6 +274,32 @@ class _SupplyDashboardPageState extends ConsumerState<SupplyDashboardPage> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  static Widget _forecastLockedPlaceholder(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Demand forecasting is available from Professionale upward.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: IntelligenceTheme.textSecondary,
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 12),
+            FilledButton(
+              onPressed: () => context.push('/app/billing'),
+              child: const Text('View plans'),
+            ),
+          ],
         ),
       ),
     );

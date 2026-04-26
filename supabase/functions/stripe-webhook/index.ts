@@ -113,11 +113,18 @@ serve(async (req) => {
         let companyId =
           session.metadata?.company_id ?? session.client_reference_id ?? undefined;
         const purchasedSeats = parseInt(session.metadata?.seats ?? '0', 10);
+        const planKey = (session.metadata?.plan ?? '').toString().trim() || 'essenziale';
+        const seatLimitByPlan: Record<string, number> = {
+          essenziale: 100,
+          professionale: 50,
+          industriale: 9999,
+        };
         if (session.subscription) {
           const sub = await stripe.subscriptions.retrieve(
             typeof session.subscription === 'string' ? session.subscription : session.subscription.id
           );
           companyId = companyId ?? sub.metadata?.company_id;
+          const resolvedPlan = (sub.metadata?.plan ?? planKey).toString().trim() || 'essenziale';
           if (companyId && session.customer) {
             await supabase.from('customers').upsert({
               company_id: companyId,
@@ -136,12 +143,15 @@ serve(async (req) => {
               current_period_end: new Date(sub.current_period_end * 1000).toISOString(),
               cancel_at_period_end: sub.cancel_at_period_end,
               updated_at: new Date().toISOString(),
+              metadata: { plan: resolvedPlan, seats: String(purchasedSeats || 1) },
             }, { onConflict: 'stripe_subscription_id' });
-            if (purchasedSeats > 0) {
-              await supabase.from(companyTable)
-                .update({ seat_limit: purchasedSeats })
-                .eq('id', companyId);
-            }
+            const seatCap = seatLimitByPlan[resolvedPlan] ?? 50;
+            await supabase.from(companyTable)
+              .update({
+                selected_plan: resolvedPlan,
+                seat_limit: purchasedSeats > 1 ? purchasedSeats : seatCap,
+              })
+              .eq('id', companyId);
           }
         } else if (companyId && session.customer) {
           await supabase.from('customers').upsert({
@@ -156,6 +166,12 @@ serve(async (req) => {
       case 'customer.subscription.updated': {
         const sub = event.data.object as Stripe.Subscription;
         const companyId = sub.metadata?.company_id;
+        const subPlan = (sub.metadata?.plan ?? 'essenziale').toString().trim();
+        const seatLimitByPlan: Record<string, number> = {
+          essenziale: 100,
+          professionale: 50,
+          industriale: 9999,
+        };
         if (companyId) {
           await supabase.from('subscriptions').upsert({
             company_id: companyId,
@@ -167,7 +183,15 @@ serve(async (req) => {
             current_period_end: new Date(sub.current_period_end * 1000).toISOString(),
             cancel_at_period_end: sub.cancel_at_period_end,
             updated_at: new Date().toISOString(),
+            metadata: { plan: subPlan, seats: sub.metadata?.seats ?? '1' },
             }, { onConflict: 'stripe_subscription_id' });
+
+          await supabase.from(companyTable)
+            .update({
+              selected_plan: subPlan,
+              seat_limit: seatLimitByPlan[subPlan] ?? 50,
+            })
+            .eq('id', companyId);
 
           const previousAttributes = (
             event.data as {

@@ -1,4 +1,5 @@
 import 'package:fabricos/core/theme/app_theme.dart';
+import 'package:fabricos/l10n/fabricos_home_arb.dart';
 import 'package:fabricos/localization/app_localizations.dart';
 import 'package:fabricos/localization/locale_provider.dart';
 import 'package:fabricos/routing/app_router.dart';
@@ -19,7 +20,10 @@ class FabricOSApp extends ConsumerWidget {
       themeMode: ThemeMode.system,
       locale: ref.watch(localeProvider),
       supportedLocales: AppLocalizations.supportedLocales,
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      localizationsDelegates: [
+        ...AppLocalizations.localizationsDelegates,
+        FabricosHomeArb.delegate,
+      ],
       routerConfig: router,
     );
   }

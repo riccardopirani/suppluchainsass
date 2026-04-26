@@ -42,13 +42,12 @@ serve(async (req) => {
     (typeof body.fullName === 'string' ? body.fullName : '').trim() ||
     user.user_metadata?.full_name?.toString()?.trim() ||
     '';
-  const seats = typeof body.seats === 'number' && body.seats >= 1 ? Math.floor(body.seats) : 10;
   const startTrial = body.startTrial !== false;
-  const plan = typeof body.plan === 'string' && body.plan.length > 0 ? body.plan : 'growth';
+  const plan = typeof body.plan === 'string' && body.plan.length > 0 ? body.plan : 'professionale';
 
   const base = getAppBaseUrl();
   const onboardingUrl =
-    `${base}/onboarding?seats=${seats}&trial=${startTrial ? '1' : '0'}&plan=${encodeURIComponent(plan)}`;
+    `${base}/onboarding?trial=${startTrial ? '1' : '0'}&plan=${encodeURIComponent(plan)}`;
   const loginUrl = `${base}/login`;
 
   const greetingLine = fullName
@@ -73,8 +72,7 @@ serve(async (req) => {
             Grazie per esserti registrato. <strong style="color:#F9FAFB;">${trialLine}</strong>
           </p>
           <p style="margin:0;color:#94A3B8;font-size:15px;">
-            Piano: <strong style="color:#93C5FD;">${escapeHtml(plan)}</strong>
-            &nbsp;·&nbsp; Postazioni: <strong style="color:#93C5FD;">${seats}</strong>
+            Piano scelto: <strong style="color:#93C5FD;">${escapeHtml(plan)}</strong>
           </p>
         `,
         primaryCta: { label: 'Continua con l’onboarding', url: onboardingUrl },
@@ -84,7 +82,7 @@ serve(async (req) => {
         'Registrazione FabricOS completata.',
         fullName ? `Ciao ${fullName},` : 'Ciao,',
         trialLine,
-        `Piano: ${plan}, postazioni: ${seats}.`,
+        `Piano: ${plan}.`,
         `Onboarding: ${onboardingUrl}`,
         `Login: ${loginUrl}`,
       ].join('\n\n'),

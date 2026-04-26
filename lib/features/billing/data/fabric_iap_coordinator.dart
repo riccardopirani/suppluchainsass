@@ -8,9 +8,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 
 SubscriptionPlanTier? _tierFromStoreProductId(String productId) {
-  if (productId.contains('.starter.')) return SubscriptionPlanTier.starter;
-  if (productId.contains('.growth.')) return SubscriptionPlanTier.growth;
-  if (productId.contains('.pro.')) return SubscriptionPlanTier.pro;
+  if (productId.contains('.industriale.')) {
+    return SubscriptionPlanTier.industriale;
+  }
+  if (productId.contains('.professionale.')) {
+    return SubscriptionPlanTier.professionale;
+  }
+  if (productId.contains('.essenziale.')) {
+    return SubscriptionPlanTier.essenziale;
+  }
+  if (productId.contains('.starter.')) return SubscriptionPlanTier.essenziale;
+  if (productId.contains('.growth.')) return SubscriptionPlanTier.professionale;
+  if (productId.contains('.pro.')) return SubscriptionPlanTier.professionale;
+  if (productId.contains('.enterprise.')) return SubscriptionPlanTier.industriale;
   return null;
 }
 
@@ -47,10 +57,6 @@ class FabricIapCoordinator {
       return;
     }
     final productId = IapProductIds.productIdFor(tier: tier, annual: annual);
-    if (productId.isEmpty) {
-      onError?.call('Plan not available in app store');
-      return;
-    }
     _pendingCompanyId = companyId;
     _pendingPlanKey = tier.name;
     _pendingProductId = productId;

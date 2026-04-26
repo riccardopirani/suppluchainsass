@@ -1,4 +1,6 @@
+import 'package:fabricos/config/plan_catalog.dart';
 import 'package:fabricos/features/app_shell/app_shell.dart';
+import 'package:fabricos/features/app_shell/providers/fabricos_provider.dart';
 import 'package:fabricos/features/auth/presentation/forgot_password_page.dart';
 import 'package:fabricos/features/auth/presentation/login_page.dart';
 import 'package:fabricos/features/auth/presentation/register_page.dart';
@@ -40,6 +42,7 @@ import 'package:go_router/go_router.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateProvider);
+  final billingAsync = ref.watch(billingStatusProvider);
 
   return GoRouter(
     initialLocation: '/',
@@ -55,6 +58,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           state.matchedLocation.startsWith('/register') ||
           state.matchedLocation.startsWith('/forgot-password');
       final isAppRoute = state.matchedLocation.startsWith('/app');
+      final loc = state.matchedLocation;
 
       if (isAppRoute && !isLoggedIn) {
         return '/login';
@@ -62,6 +66,33 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       if (isAuthRoute && isLoggedIn) {
         return '/app';
+      }
+
+      if (isLoggedIn &&
+          isAppRoute &&
+          !loc.startsWith('/app/billing') &&
+          billingAsync.hasValue) {
+        final b = billingAsync.requireValue;
+        if (b.canAccessApp) {
+          final def = PlanCatalog.byTier(b.resolvedTier);
+          if (loc.contains('/simulation') && !def.includesWhatIf) {
+            return '/app/billing';
+          }
+          if (loc.contains('/executive-report') &&
+              !def.includesCopilot &&
+              !def.includesEsgCompliance) {
+            return '/app/billing';
+          }
+          if (loc.contains('/control-tower') && !def.includesPredictiveAi) {
+            return '/app/billing';
+          }
+          if (loc.contains('/forecasting') && !def.includesPredictiveAi) {
+            return '/app/billing';
+          }
+          if (loc == '/app/reports' || loc.startsWith('/app/reports/')) {
+            if (!def.includesEsgCompliance) return '/app/billing';
+          }
+        }
       }
 
       return null;

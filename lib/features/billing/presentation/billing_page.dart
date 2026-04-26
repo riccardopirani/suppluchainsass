@@ -20,7 +20,7 @@ class BillingPage extends ConsumerStatefulWidget {
 
 class _BillingPageState extends ConsumerState<BillingPage> {
   bool _busy = false;
-  SubscriptionPlanTier _tier = SubscriptionPlanTier.growth;
+  SubscriptionPlanTier _tier = SubscriptionPlanTier.professionale;
   bool _annual = false;
 
   String _appOrigin() {
@@ -52,7 +52,6 @@ class _BillingPageState extends ConsumerState<BillingPage> {
   }
 
   Future<void> _startMobilePlanPurchase(String companyId) async {
-    if (_tier == SubscriptionPlanTier.enterprise) return;
     setState(() => _busy = true);
     final iap = ref.read(fabricIapCoordinatorProvider);
     _attachIapHandlers(iap);
@@ -79,29 +78,8 @@ class _BillingPageState extends ConsumerState<BillingPage> {
             quantity: 1,
             unitAmountCents: cents,
             trialDays: 0,
-            successUrl: '$origin/app/billing?success=true',
-            cancelUrl: '$origin/app/billing?canceled=true',
-          );
-      if (url != null) {
-        await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
-      }
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
-  }
-
-  Future<void> _openCheckoutLegacySeats(String companyId, int qty) async {
-    final unitCents = SeatPricing.unitCentsForQuantity(qty);
-    setState(() => _busy = true);
-    try {
-      final origin = _appOrigin();
-      final url = await ref
-          .read(fabricosRepositoryProvider)
-          .createCheckoutSession(
-            companyId: companyId,
-            quantity: qty,
-            unitAmountCents: unitCents,
-            trialDays: 0,
+            planKey: _tier.name,
+            billingInterval: _annual ? 'year' : 'month',
             successUrl: '$origin/app/billing?success=true',
             cancelUrl: '$origin/app/billing?canceled=true',
           );
@@ -157,7 +135,7 @@ class _BillingPageState extends ConsumerState<BillingPage> {
                   billingAsync.when(
                     data: (billing) => Text(
                       billing.hasActiveSubscription
-                          ? '${l10n.t('billing_active')} · ${billing.resolvedTier.name}'
+                          ? '${l10n.t('billing_active')} · ${PlanCatalog.byTier(billing.resolvedTier).marketingName}'
                           : billing.inTrial
                           ? '${l10n.t('billing_trial_until')} ${billing.trialEndsAt?.toLocal().toString().split(' ').first ?? ''}'
                           : l10n.t('billing_no_active'),
@@ -193,40 +171,24 @@ class _BillingPageState extends ConsumerState<BillingPage> {
                               children: [
                                 _planChip(
                                   context,
-                                  SubscriptionPlanTier.starter,
-                                  l10n.t('plan_starter'),
+                                  SubscriptionPlanTier.essenziale,
+                                  l10n.t('plan_essenziale'),
                                 ),
                                 _planChip(
                                   context,
-                                  SubscriptionPlanTier.growth,
-                                  l10n.t('plan_growth'),
+                                  SubscriptionPlanTier.professionale,
+                                  l10n.t('plan_professionale'),
                                 ),
                                 _planChip(
                                   context,
-                                  SubscriptionPlanTier.pro,
-                                  l10n.t('plan_pro'),
-                                ),
-                                _planChip(
-                                  context,
-                                  SubscriptionPlanTier.enterprise,
-                                  l10n.t('plan_enterprise'),
+                                  SubscriptionPlanTier.industriale,
+                                  l10n.t('plan_industriale'),
                                 ),
                               ],
                             ),
                             const SizedBox(height: 20),
                             _PlanSummaryCard(tier: _tier, annual: _annual),
                             const SizedBox(height: 16),
-                            if (_tier == SubscriptionPlanTier.enterprise)
-                              Text(
-                                l10n.t('billing_enterprise_note'),
-                                style: TextStyle(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                            if (_tier == SubscriptionPlanTier.enterprise)
-                              const SizedBox(height: 12),
                             ConstrainedBox(
                               constraints: const BoxConstraints(maxWidth: 360),
                               child: SizedBox(
@@ -235,10 +197,7 @@ class _BillingPageState extends ConsumerState<BillingPage> {
                                   onPressed: _busy
                                       ? null
                                       : () {
-                                          if (_tier ==
-                                              SubscriptionPlanTier.enterprise) {
-                                            context.go('/contact');
-                                          } else if (kUseMobileStoreBilling) {
+                                          if (kUseMobileStoreBilling) {
                                             _startMobilePlanPurchase(companyId);
                                           } else {
                                             _openCheckoutPlan(companyId);
@@ -253,39 +212,13 @@ class _BillingPageState extends ConsumerState<BillingPage> {
                                           ),
                                         )
                                       : Text(
-                                          _tier ==
-                                                  SubscriptionPlanTier
-                                                      .enterprise
-                                              ? l10n.t('contact_sales')
-                                              : kUseMobileStoreBilling
+                                          kUseMobileStoreBilling
                                               ? l10n.t('billing_iap_continue')
                                               : l10n.t('billing_checkout'),
                                         ),
                                 ),
                               ),
                             ),
-                            if (!kUseMobileStoreBilling) ...[
-                              const SizedBox(height: 32),
-                              Text(
-                                'Legacy seat-based checkout',
-                                style: Theme.of(context).textTheme.titleSmall,
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Per-user pricing still available for grandfathered contracts.',
-                                style: Theme.of(context).textTheme.bodySmall,
-                              ),
-                              const SizedBox(height: 8),
-                              OutlinedButton(
-                                onPressed: _busy
-                                    ? null
-                                    : () => _openCheckoutLegacySeats(
-                                        companyId,
-                                        10,
-                                      ),
-                                child: const Text('10 seats · checkout'),
-                              ),
-                            ],
                           ],
                           if (hasSubscription) ...[
                             if (billing.isStoreBillingSubscription) ...[
@@ -327,6 +260,21 @@ class _BillingPageState extends ConsumerState<BillingPage> {
                                     : () => _openPortal(companyId),
                                 child: Text(l10n.t('manage_subscription')),
                               ),
+                            const SizedBox(height: 20),
+                            Text(
+                              l10n.t('billing_change_plan_hint'),
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
+                            const SizedBox(height: 12),
+                            OutlinedButton(
+                              onPressed: () => context.go('/pricing'),
+                              child: Text(l10n.t('view_plans')),
+                            ),
                           ],
                         ],
                       );
@@ -410,6 +358,7 @@ class _PlanSummaryCard extends StatelessWidget {
     final d = PlanCatalog.byTier(tier);
     final cents = PlanCheckoutPricing.unitAmountCents(tier, annual: annual);
     final eur = (cents / 100).toStringAsFixed(0);
+    final l10n = context.l10n;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -420,19 +369,26 @@ class _PlanSummaryCard extends StatelessWidget {
               d.marketingName,
               style: Theme.of(context).textTheme.titleMedium,
             ),
+            const SizedBox(height: 4),
+            Text(
+              d.tagline,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+            ),
             const SizedBox(height: 8),
             Text(
-              tier == SubscriptionPlanTier.enterprise
-                  ? 'From €${PlanCatalog.enterprise.monthlyEuros.toStringAsFixed(0)}/mo'
-                  : '€$eur${context.l10n.t('per_month')}',
+              annual
+                  ? '€$eur${l10n.t('per_year')} (${l10n.t('billing_billed_annually')})'
+                  : '€$eur${l10n.t('per_month')}',
               style: Theme.of(
                 context,
               ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
             ),
-            if (annual && tier != SubscriptionPlanTier.enterprise) ...[
+            if (!annual) ...[
               const SizedBox(height: 6),
               Text(
-                '${d.annualDiscountPercent}% discount vs monthly list',
+                '€${d.annualEuros.toStringAsFixed(0)}${l10n.t('per_year')} ${l10n.t('billing_yearly_total_hint')}',
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ],

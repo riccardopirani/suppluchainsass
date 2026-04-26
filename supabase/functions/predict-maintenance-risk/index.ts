@@ -1,6 +1,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { sendCriticalAlertEmail } from '../_shared/email.ts';
+import { enforceCompanyFeature } from '../_shared/plan_entitlements.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -43,6 +44,15 @@ serve(async (req) => {
     if (!machineId || !companyId) {
       return json({ error: 'machineId and companyId are required' }, 400);
     }
+
+    const denied = await enforceCompanyFeature(
+      supabase,
+      user.id,
+      companyId,
+      'predictive_ai',
+      json,
+    );
+    if (denied) return denied;
 
     // Placeholder AI scoring logic (OpenAI-style output contract for future extension).
     const tempFactor = clamp((temperature - 60) / 45, 0, 1);

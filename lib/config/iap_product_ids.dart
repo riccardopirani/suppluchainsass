@@ -1,16 +1,14 @@
 import 'package:fabricos/config/plan_catalog.dart';
 
 /// Store product IDs — create **auto-renewable subscriptions** with these IDs in
-/// App Store Connect and Google Play Console (must match exactly).
+/// App Store Connect / Play Console (optional; web uses Stripe).
 abstract final class IapProductIds {
   static String productIdFor({required SubscriptionPlanTier tier, required bool annual}) {
-    if (tier == SubscriptionPlanTier.enterprise) return '';
-    final suffix = annual ? 'annual' : 'monthly';
+    final suffix = annual ? 'annual' : 'month';
     return switch (tier) {
-      SubscriptionPlanTier.starter => 'com.fabricos.plan.starter.$suffix',
-      SubscriptionPlanTier.growth => 'com.fabricos.plan.growth.$suffix',
-      SubscriptionPlanTier.pro => 'com.fabricos.plan.pro.$suffix',
-      SubscriptionPlanTier.enterprise => '',
+      SubscriptionPlanTier.essenziale => 'com.fabricos.plan.essenziale.$suffix',
+      SubscriptionPlanTier.professionale => 'com.fabricos.plan.professionale.$suffix',
+      SubscriptionPlanTier.industriale => 'com.fabricos.plan.industriale.$suffix',
     };
   }
 }

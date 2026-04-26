@@ -41,8 +41,9 @@ serve(async (req) => {
     const payload = await req.json().catch(() => ({}));
     const companyName = (payload.name as string | undefined)?.trim() || 'New Manufacturing Company';
     const sizeBand = (payload.sizeBand as string | undefined)?.trim() || '10-50';
-    const plan = (payload.plan as string | undefined)?.trim() || 'starter';
-    const trialDays = Number(payload.trialDays ?? 30);
+    const plan = (payload.plan as string | undefined)?.trim() || 'essenziale';
+    // Ogni nuovo workspace: 30 giorni di prova (il client può inviare trialDays ma non accorciamo sotto i 30).
+    const trialDays = Math.max(30, Math.floor(Number(payload.trialDays ?? 30)) || 30);
 
     const { data: profile } = await admin
       .from('users')

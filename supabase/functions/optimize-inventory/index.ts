@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { enforceCompanyFeature } from '../_shared/plan_entitlements.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -30,6 +31,15 @@ serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const companyId = body.companyId as string | undefined;
     if (!companyId) return json({ error: 'companyId is required' }, 400);
+
+    const denied = await enforceCompanyFeature(
+      supabase,
+      user.id,
+      companyId,
+      'predictive_ai',
+      json,
+    );
+    if (denied) return denied;
 
     const [inventoryRes, forecastRes] = await Promise.all([
       supabase.from('inventory').select('*').eq('company_id', companyId),

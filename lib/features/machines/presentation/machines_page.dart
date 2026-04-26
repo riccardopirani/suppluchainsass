@@ -305,6 +305,7 @@ class _MachinesPageState extends ConsumerState<MachinesPage> {
     final companyIdAsync = ref.watch(currentCompanyIdProvider);
     final machinesAsync = ref.watch(machinesProvider);
     final logsAsync = ref.watch(maintenanceLogsProvider);
+    final ent = ref.watch(subscriptionEntitlementsProvider);
     final width = MediaQuery.sizeOf(context).width;
     final compact = width < 700;
 
@@ -392,10 +393,12 @@ class _MachinesPageState extends ConsumerState<MachinesPage> {
                                     machine: machine,
                                     busy: _busy,
                                     compact: compact,
-                                    onSimulate: () => _simulate(
-                                      companyId,
-                                      machine['id'].toString(),
-                                    ),
+                                    onSimulate: ent.canUsePredictiveAi
+                                        ? () => _simulate(
+                                            companyId,
+                                            machine['id'].toString(),
+                                          )
+                                        : null,
                                     onLogMaintenance: () => _logMaintenance(
                                       companyId,
                                       machine['id'].toString(),
@@ -507,7 +510,7 @@ class _MachineListItem extends StatelessWidget {
   final Map<String, dynamic> machine;
   final bool busy;
   final bool compact;
-  final VoidCallback onSimulate;
+  final VoidCallback? onSimulate;
   final VoidCallback onLogMaintenance;
   final VoidCallback onDelete;
 
@@ -533,7 +536,7 @@ class _MachineListItem extends StatelessWidget {
         statusChip,
         IconButton(
           tooltip: 'Simulate IoT data',
-          onPressed: busy ? null : onSimulate,
+          onPressed: (busy || onSimulate == null) ? null : onSimulate,
           icon: const Icon(Icons.bolt_outlined),
         ),
         IconButton(

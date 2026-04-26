@@ -1,5 +1,4 @@
 import 'package:fabricos/config/env.dart';
-import 'package:fabricos/config/plan_catalog.dart';
 import 'package:fabricos/config/stripe_plans.dart';
 import 'package:fabricos/features/app_shell/providers/fabricos_provider.dart';
 import 'package:fabricos/localization/app_localizations.dart';
@@ -36,17 +35,9 @@ class _SubscriptionGatePageState extends ConsumerState<SubscriptionGatePage> {
   Future<void> _openRenewal(BuildContext context, BillingStatus billing) async {
     setState(() => _busy = true);
     try {
-      final router = GoRouter.of(context);
       final companyId = await ref.read(currentCompanyIdProvider.future);
       final repo = ref.read(fabricosRepositoryProvider);
       final origin = _appOrigin();
-
-      if (billing.resolvedTier == SubscriptionPlanTier.enterprise) {
-        if (mounted) {
-          router.go('/contact');
-        }
-        return;
-      }
 
       try {
         final portalUrl = await repo.createPortalSession(
@@ -72,6 +63,8 @@ class _SubscriptionGatePageState extends ConsumerState<SubscriptionGatePage> {
           annual: false,
         ),
         trialDays: 0,
+        planKey: billing.resolvedTier.name,
+        billingInterval: 'month',
         successUrl: '$origin/app/billing?renewed=true',
         cancelUrl: '$origin/app/billing?renewed=false',
       );
@@ -223,12 +216,7 @@ class _SubscriptionGatePageState extends ConsumerState<SubscriptionGatePage> {
                                         color: Colors.white,
                                       ),
                                     )
-                                  : Text(
-                                      billing.resolvedTier ==
-                                              SubscriptionPlanTier.enterprise
-                                          ? l10n.t('contact_sales')
-                                          : l10n.t('billing_renew_with_stripe'),
-                                    ),
+                                  : Text(l10n.t('billing_renew_with_stripe')),
                             ),
                           ),
                           const SizedBox(height: 10),

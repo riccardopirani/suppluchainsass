@@ -295,7 +295,7 @@ class BillingStatus {
     required this.inTrial,
     this.trialEndsAt,
     this.subscription,
-    this.planKey = 'starter',
+    this.planKey = 'essenziale',
   });
 
   final bool hasActiveSubscription;
@@ -311,13 +311,12 @@ class BillingStatus {
   bool get isExpiredTrial =>
       trialEndsAt != null && !inTrial && !hasActiveSubscription;
 
+  /// Effective commercial tier: subscription metadata, else company `selected_plan`.
+  /// During the 30-day trial, this is the **chosen plan** (Essenziale / Professionale / Industriale),
+  /// not an artificial “all Professionale” unlock.
   SubscriptionPlanTier get resolvedTier {
-    if (inTrial && !hasActiveSubscription) {
-      return SubscriptionPlanTier.growth;
-    }
     final parsed = PlanCatalog.tryParseTier(planKey);
-    if (parsed != null) return parsed;
-    return SubscriptionPlanTier.starter;
+    return parsed ?? SubscriptionPlanTier.essenziale;
   }
 
   /// True when subscription was activated via App Store / Play Billing (`register-mobile-purchase`).
@@ -355,7 +354,7 @@ final billingStatusProvider = FutureProvider<BillingStatus>((ref) async {
   final active =
       status == 'active' || status == 'trialing' || status == 'past_due';
 
-  var planKey = (company?['selected_plan'] ?? 'starter').toString();
+  var planKey = (company?['selected_plan'] ?? 'essenziale').toString();
   if (sub != null) {
     final meta = sub['metadata'];
     if (meta is Map && meta['plan'] != null) {
@@ -378,7 +377,7 @@ final subscriptionEntitlementsProvider = Provider<SubscriptionEntitlements>((
   ref,
 ) {
   final billing = ref.watch(billingStatusProvider).valueOrNull;
-  final tier = billing?.resolvedTier ?? SubscriptionPlanTier.starter;
+  final tier = billing?.resolvedTier ?? SubscriptionPlanTier.essenziale;
   return SubscriptionEntitlements(tier: tier);
 });
 
@@ -404,7 +403,6 @@ class FabricOSRepository {
     required String companyName,
     required String sizeBand,
     String? plan,
-    bool startTrial = true,
   }) async {
     final response = await _client.functions.invoke(
       'bootstrap-company',
@@ -412,7 +410,7 @@ class FabricOSRepository {
         'name': companyName,
         'sizeBand': sizeBand,
         'plan': plan,
-        'trialDays': startTrial ? 30 : 0,
+        'trialDays': 30,
       },
     );
     if (response.status >= 400) {
@@ -971,6 +969,8 @@ class FabricOSRepository {
     int trialDays = 0,
     String? successUrl,
     String? cancelUrl,
+    String? planKey,
+    String billingInterval = 'month',
   }) async {
     final body = <String, dynamic>{
       'companyId': companyId,
@@ -978,7 +978,9 @@ class FabricOSRepository {
       'unitAmountCents': unitAmountCents,
       'currency': currency,
       'trialDays': trialDays,
+      'billingInterval': billingInterval,
     };
+    if (planKey != null) body['plan'] = planKey;
     if (successUrl != null) body['successUrl'] = successUrl;
     if (cancelUrl != null) body['cancelUrl'] = cancelUrl;
 

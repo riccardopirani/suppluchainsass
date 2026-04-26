@@ -39,6 +39,7 @@ class _InventoryPageState extends ConsumerState<InventoryPage> {
     final inventoryAsync = ref.watch(inventoryProvider);
     final autoAsync = ref.watch(autoOrdersProvider);
     final automationAsync = ref.watch(automationEnabledProvider);
+    final ent = ref.watch(subscriptionEntitlementsProvider);
 
     return Scaffold(
       body: SafeArea(
@@ -54,7 +55,9 @@ class _InventoryPageState extends ConsumerState<InventoryPage> {
                   children: [
                     Expanded(child: Text('Inventory Optimization', style: Theme.of(context).textTheme.headlineMedium)),
                     FilledButton.icon(
-                      onPressed: _busy ? null : () => _runOptimization(companyId),
+                      onPressed: (!ent.canUseAiSupplyFeatures || _busy)
+                          ? null
+                          : () => _runOptimization(companyId),
                       icon: const Icon(Icons.auto_graph_outlined),
                       label: const Text('Optimize inventory'),
                     ),
@@ -65,9 +68,15 @@ class _InventoryPageState extends ConsumerState<InventoryPage> {
                   data: (enabled) => SwitchListTile(
                     contentPadding: EdgeInsets.zero,
                     title: const Text('Auto-replenishment'),
-                    subtitle: const Text('Automatically create orders when stock falls below reorder point.'),
-                    value: enabled,
-                    onChanged: (v) => _toggleAutomation(companyId, v),
+                    subtitle: Text(
+                      ent.canUseFullAutoReplenishment
+                          ? 'Automatically create orders when stock falls below reorder point.'
+                          : 'Full automatic execution is included in Industriale. Upgrade to enable this switch.',
+                    ),
+                    value: enabled && ent.canUseFullAutoReplenishment,
+                    onChanged: ent.canUseFullAutoReplenishment
+                        ? (v) => _toggleAutomation(companyId, v)
+                        : null,
                   ),
                   loading: () => const LinearProgressIndicator(),
                   error: (e, _) => Text('$e'),

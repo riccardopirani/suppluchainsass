@@ -310,6 +310,18 @@ class _Sidebar extends ConsumerWidget {
     final companyId = userCtx?.companyId;
     final role = userCtx?.role ?? 'operator';
     final isAdmin = role == 'admin';
+    final ent = ref.watch(subscriptionEntitlementsProvider);
+
+    bool planAllowsIntel(String key) {
+      return switch (key) {
+        'control_tower' => ent.canUseControlTower,
+        'executive_report' => ent.canUseExecutiveReport,
+        'forecasting' => ent.canUseForecasting,
+        'simulation' => ent.canUseAdvancedSimulation,
+        'reports' => ent.canUseEsgReportsModule,
+        _ => true,
+      };
+    }
 
     final permsAsync = companyId != null && !isAdmin
         ? ref.watch(menuPermissionsProvider((companyId: companyId, role: role)))
@@ -424,6 +436,7 @@ class _Sidebar extends ConsumerWidget {
 
     children.add(_sectionLabel(context, 'nav_section_intelligence'));
     for (final item in _intelligence) {
+      if (!planAllowsIntel(item.$1)) continue;
       final w = _navTile(
         context: context,
         item: item,
