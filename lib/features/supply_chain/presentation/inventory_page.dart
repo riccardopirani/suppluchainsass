@@ -29,8 +29,18 @@ class _InventoryPageState extends ConsumerState<InventoryPage> {
   }
 
   Future<void> _toggleAutomation(String companyId, bool enabled) async {
-    await ref.read(supplyChainAiServiceProvider).setAutomationEnabled(companyId: companyId, enabled: enabled);
-    ref.invalidate(automationEnabledProvider);
+    try {
+      await ref
+          .read(supplyChainAiServiceProvider)
+          .setAutomationEnabled(companyId: companyId, enabled: enabled);
+      ref.invalidate(automationEnabledProvider);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not update automation: $e')),
+        );
+      }
+    }
   }
 
   @override

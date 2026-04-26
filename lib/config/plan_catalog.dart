@@ -144,6 +144,9 @@ class PlanCatalog {
 
 /// Feature gates aligned with [PlanDefinition].
 /// Supabase Edge Functions enforce the same rules via `_shared/plan_entitlements.ts`.
+/// Full auto-replenishment (`automation_settings.auto_replenishment_enabled`) is also
+/// blocked at insert/update by DB trigger unless the effective plan is Industriale-tier
+/// (see migration `20260421120000_workspace_company_automation_plan_guard.sql`).
 class SubscriptionEntitlements {
   const SubscriptionEntitlements({required this.tier});
 

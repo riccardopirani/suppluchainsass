@@ -1,6 +1,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { sendCriticalAlertEmail } from '../_shared/email.ts';
+import { enforceCompanyBilling } from '../_shared/plan_entitlements.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -46,6 +47,9 @@ serve(async (req) => {
     if (!companyId) {
       return json({ error: 'companyId is required' }, 400);
     }
+
+    const billingDenied = await enforceCompanyBilling(supabase, user.id, companyId, json);
+    if (billingDenied) return billingDenied;
 
     const now = new Date();
     const criticalAlerts: string[] = [];

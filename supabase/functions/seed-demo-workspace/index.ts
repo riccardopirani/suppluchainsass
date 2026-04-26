@@ -35,9 +35,19 @@ serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const workspaceName = (body as { name?: string }).name ?? 'Demo Workspace';
 
+    const { data: profile } = await supabase
+      .from('users')
+      .select('company_id')
+      .eq('id', user.id)
+      .maybeSingle();
+
     const { data: workspace, error: wsErr } = await supabase
       .from('workspaces')
-      .insert({ name: workspaceName, slug: `demo-${user.id.slice(0, 8)}` })
+      .insert({
+        name: workspaceName,
+        slug: `demo-${user.id.slice(0, 8)}`,
+        company_id: profile?.company_id ?? null,
+      })
       .select('id')
       .single();
 

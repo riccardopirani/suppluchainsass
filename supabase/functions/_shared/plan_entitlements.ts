@@ -155,8 +155,8 @@ function featureAllowed(ent: PlanEntitlements, feature: PlanFeature): boolean {
 
 type JsonFn = (body: unknown, status?: number) => Response;
 
-/** Membership + active trial/subscription (no tier feature). */
-export async function enforceCompanyBilling(
+/** Caller must belong to `company_id` on `public.users` (FabricOS tenant). */
+export async function assertUserInCompany(
   supabase: SupabaseClient,
   userId: string,
   companyId: string,
@@ -170,36 +170,16 @@ export async function enforceCompanyBilling(
     .maybeSingle();
   if (!member) {
     return json({ error: 'Forbidden', code: 'COMPANY_MISMATCH' }, 403);
-  }
-
-  const billing = await fetchBillingContext(supabase, companyId);
-  if (!billing.canAccessApp) {
-    return json({
-      error: 'Subscription or active trial required',
-      code: 'BILLING_BLOCKED',
-    }, 402);
   }
   return null;
 }
 
-/** Membership + billing + plan feature (matches Flutter `SubscriptionEntitlements`). */
-export async function enforceCompanyFeature(
+export async function fetchBillingAndCheckFeature(
   supabase: SupabaseClient,
-  userId: string,
   companyId: string,
   feature: PlanFeature,
   json: JsonFn,
 ): Promise<Response | null> {
-  const { data: member } = await supabase
-    .from('users')
-    .select('id')
-    .eq('id', userId)
-    .eq('company_id', companyId)
-    .maybeSingle();
-  if (!member) {
-    return json({ error: 'Forbidden', code: 'COMPANY_MISMATCH' }, 403);
-  }
-
   const billing = await fetchBillingContext(supabase, companyId);
   if (!billing.canAccessApp) {
     return json({
@@ -216,4 +196,89 @@ export async function enforceCompanyFeature(
     }, 403);
   }
   return null;
+}
+
+/** Active trial/subscription for company (no tier feature). */
+export async function fetchBillingAccessOnly(
+  supabase: SupabaseClient,
+  companyId: string,
+  json: JsonFn,
+): Promise<Response | null> {
+  const billing = await fetchBillingContext(supabase, companyId);
+  if (!billing.canAccessApp) {
+    return json({
+      error: 'Subscription or active trial required',
+      code: 'BILLING_BLOCKED',
+    }, 402);
+  }
+  return null;
+}
+
+/** Membership + active trial/subscription (no tier feature). */
+export async function enforceCompanyBilling(
+  supabase: SupabaseClient,
+  userId: string,
+  companyId: string,
+  json: JsonFn,
+): Promise<Response | null> {
+  const denied = await assertUserInCompany(supabase, userId, companyId, json);
+  if (denied) return denied;
+  return fetchBillingAccessOnly(supabase, companyId, json);
+}
+
+/** Membership + billing + plan feature (matches Flutter `SubscriptionEntitlements`). */
+export async function enforceCompanyFeature(
+  supabase: SupabaseClient,
+  userId: string,
+  companyId: string,
+  feature: PlanFeature,
+  json: JsonFn,
+): Promise<Response | null> {
+  const denied = await assertUserInCompany(supabase, userId, companyId, json);
+  if (denied) return denied;
+  return fetchBillingAndCheckFeature(supabase, companyId, feature, json);
+}
+
+/**
+ * Planning workspaces (`workspaceId`): member check via `workspace_members`, then same billing/feature as company.
+ * Requires `workspaces.company_id` set (backfilled in migration / seed-demo-workspace).
+ */
+export async function enforceWorkspaceFeature(
+  supabase: SupabaseClient,
+  userId: string,
+  workspaceId: string,
+  feature: PlanFeature,
+  json: JsonFn,
+): Promise<Response | null> {
+  const { data: membership } = await supabase
+    .from('workspace_members')
+    .select('workspace_id')
+    .eq('workspace_id', workspaceId)
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  if (!membership) {
+    return json({ error: 'Forbidden', code: 'WORKSPACE_MISMATCH' }, 403);
+  }
+
+  const { data: workspace } = await supabase
+    .from('workspaces')
+    .select('id, company_id')
+    .eq('id', workspaceId)
+    .maybeSingle();
+
+  if (!workspace?.id) {
+    return json({ error: 'Workspace not found', code: 'WORKSPACE_NOT_FOUND' }, 404);
+  }
+
+  const companyId = workspace.company_id as string | null;
+  if (!companyId) {
+    return json({
+      error:
+        'Workspace is not linked to a company. Set workspaces.company_id (e.g. deploy migration / re-seed).',
+      code: 'WORKSPACE_COMPANY_UNSET',
+    }, 428);
+  }
+
+  return fetchBillingAndCheckFeature(supabase, companyId, feature, json);
 }

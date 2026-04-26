@@ -1,21 +1,23 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { enforceWorkspaceFeature } from '../_shared/plan_entitlements.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const json = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
   const authHeader = req.headers.get('Authorization');
-  if (!authHeader) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-      status: 401,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
+  if (!authHeader) return json({ error: 'Unauthorized' }, 401);
 
   const supabase = createClient(
     Deno.env.get('SUPABASE_URL') ?? '',
@@ -24,22 +26,21 @@ serve(async (req) => {
   );
 
   const { data: { user } } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''));
-  if (!user) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-      status: 401,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
+  if (!user) return json({ error: 'Unauthorized' }, 401);
 
   try {
     const body = await req.json().catch(() => ({}));
     const workspaceId = (body as { workspaceId?: string }).workspaceId;
-    if (!workspaceId) {
-      return new Response(JSON.stringify({ error: 'workspaceId required' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
+    if (!workspaceId) return json({ error: 'workspaceId required' }, 400);
+
+    const denied = await enforceWorkspaceFeature(
+      supabase,
+      user.id,
+      workspaceId,
+      'predictive_ai',
+      json,
+    );
+    if (denied) return denied;
 
     const { data: products } = await supabase
       .from('products')
@@ -48,9 +49,7 @@ serve(async (req) => {
       .eq('active', true);
 
     if (!products?.length) {
-      return new Response(JSON.stringify({ count: 0, message: 'No products' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return json({ count: 0, message: 'No products' });
     }
 
     const { data: sales } = await supabase
@@ -96,13 +95,8 @@ serve(async (req) => {
       }
     }
 
-    return new Response(JSON.stringify({ count: inserted }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return json({ count: inserted });
   } catch (e) {
-    return new Response(JSON.stringify({ error: String(e) }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return json({ error: String(e) }, 500);
   }
 });
