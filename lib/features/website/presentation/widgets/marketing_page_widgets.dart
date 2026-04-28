@@ -1,6 +1,6 @@
 import 'dart:ui';
 
-import 'package:fabricos/core/theme/app_colors.dart';
+import 'package:fabricos/features/website/presentation/widgets/public_site_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -72,21 +72,16 @@ class MarketingPageIntro extends StatelessWidget {
   final String title;
   final String? subtitle;
 
-  static const Color _onHero = Color(0xFFE2E8F0);
-
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final accent = isDark ? AppColorsDark.primary : AppColorsLight.primary;
+    final accent = PublicSiteTheme.primary;
     final width = MediaQuery.sizeOf(context).width;
     final narrow = width < 560;
-    final bgGradient = isDark
-        ? AppColorsDark.heroGradient
-        : const LinearGradient(
-            colors: [Color(0xFF0C1222), Color(0xFF111A2E), Color(0xFF0D1F24)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          );
+    const bgGradient = LinearGradient(
+      colors: [Color(0xFFFFFFFF), Color(0xFFF8FAFC), Color(0xFFF1F5F9)],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    );
 
     return Container(
       width: double.infinity,
@@ -139,7 +134,7 @@ class MarketingPageIntro extends StatelessWidget {
                             fontWeight: FontWeight.w700,
                             height: 1.12,
                             letterSpacing: -0.8,
-                            color: _onHero,
+              color: PublicSiteTheme.foreground,
                           ),
                         ),
                         if (subtitle != null && subtitle!.isNotEmpty) ...[
@@ -149,7 +144,7 @@ class MarketingPageIntro extends StatelessWidget {
                             style: GoogleFonts.ibmPlexSans(
                               fontSize: compact ? 15 : 16,
                               height: 1.5,
-                              color: _onHero.withValues(alpha: 0.72),
+                              color: PublicSiteTheme.mutedForeground,
                             ),
                           ),
                         ],
@@ -304,7 +299,7 @@ class MarketingBentoTile extends StatelessWidget {
                 border: Border.all(
                   color: scheme.outline.withValues(alpha: 0.35),
                 ),
-                color: scheme.surfaceContainerHighest.withValues(alpha: 0.35),
+                color: Colors.white,
               ),
               child: Padding(
                 padding: EdgeInsets.all(compact ? 18 : 22),
@@ -335,7 +330,7 @@ class MarketingGlassPanel extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(24),
             border: Border.all(color: scheme.outline.withValues(alpha: 0.35)),
-            color: scheme.surface.withValues(alpha: 0.85),
+            color: Colors.white.withValues(alpha: 0.92),
           ),
           child: Padding(padding: const EdgeInsets.all(28), child: child),
         ),

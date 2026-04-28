@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FabricOS - Prima Pagina</title>
+  <style>
+    :root {
+      --bg: #030712;
+      --panel: #111827;
+      --muted: #9ca3af;
+      --text: #f9fafb;
+      --line: #1f2937;
+      --primary: #2563eb;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    .wrap { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
+    .section { padding: 84px 0; border-top: 1px solid transparent; border-bottom: 1px solid transparent; }
+    .section.alt { background: var(--panel); border-color: var(--line); }
+    h1, h2, h3 { margin: 0 0 14px; line-height: 1.1; }
+    h1 { font-size: clamp(2.1rem, 5vw, 3.7rem); text-align: center; }
+    h2 { font-size: clamp(1.6rem, 3.6vw, 2.6rem); text-align: center; }
+    p.lead { color: var(--muted); max-width: 820px; margin: 0 auto 18px; text-align: center; }
+    .eyebrow {
+      display: inline-block;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: rgba(37,99,235,.12);
+      color: var(--primary);
+      font-weight: 600;
+      font-size: .8rem;
+      letter-spacing: .02em;
+      margin-bottom: 18px;
+    }
+    .hero { text-align: center; padding-top: 110px; }
+    .tags, .chips, .btns { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+    .tag, .chip {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 7px 11px;
+      font-size: .86rem;
+      color: #cbd5e1;
+      background: rgba(15,23,42,.5);
+    }
+    .btn {
+      display: inline-block;
+      border-radius: 10px;
+      padding: 12px 18px;
+      text-decoration: none;
+      color: #fff;
+      border: 1px solid transparent;
+      font-weight: 600;
+    }
+    .btn.primary { background: var(--primary); }
+    .btn.tonal { background: #1e293b; }
+    .btn.ghost { background: transparent; border-color: var(--line); }
+    .hero-img {
+      margin-top: 34px;
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      display: block;
+      object-fit: cover;
+      min-height: 260px;
+      max-height: 480px;
+    }
+    .grid3 { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 14px; }
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 18px;
+      background: rgba(15,23,42,.5);
+    }
+    .card h3 { font-size: 1.06rem; margin-bottom: 8px; }
+    .card p, .muted { color: var(--muted); margin: 0; }
+    .price { font-size: 2rem; font-weight: 800; margin: 8px 0; }
+    ul { margin: 10px 0 0; padding-left: 18px; color: #cbd5e1; }
+    .faq .card { margin-bottom: 10px; }
+    footer { border-top: 1px solid var(--line); padding: 28px 0 40px; color: var(--muted); text-align: center; }
+    @media (max-width: 900px) { .grid3 { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <section class="section hero">
+    <div class="wrap">
+      <span class="eyebrow">Control tower per manifattura</span>
+      <h1>Dal caos operativo al controllo predittivo della supply chain</h1>
+      <p class="lead">
+        FabricOS unisce operations, AI e compliance in una vista unica: previsione domanda, rischi fornitori,
+        simulazioni what-if e report ESG, con attivazione in 30 giorni di prova.
+      </p>
+      <div class="tags" style="margin-bottom:22px;">
+        <span class="tag">Forecast AI</span><span class="tag">Order Risk</span><span class="tag">ESG</span>
+        <span class="tag">What-if</span><span class="tag">Control Tower</span>
+      </div>
+      <div class="btns">
+        <a class="btn primary" href="#">Prenota demo</a>
+        <a class="btn tonal" href="#">Inizia prova 30 giorni</a>
+        <a class="btn ghost" href="#">Calcola ROI</a>
+      </div>
+      <div class="chips" style="margin-top:18px;">
+        <span class="chip">Setup rapido</span><span class="chip">Alert critici in tempo reale</span>
+        <span class="chip">Export report PDF</span><span class="chip">Sicurezza enterprise</span>
+      </div>
+      <img class="hero-img" src="https://storage.googleapis.com/banani-generated-images/generated-images/7b81f20e-7931-454e-ba1f-d868ca2e5775.jpg" alt="Dashboard FabricOS" />
+    </div>
+  </section>
+
+  <section class="section alt">
+    <div class="wrap">
+      <h2>Punti critici che risolvi subito</h2>
+      <p class="lead">Ritardi ordini, stockout, fornitori instabili, decisioni tardive, reportistica frammentata.</p>
+      <div class="grid3">
+        <article class="card"><h3>Rischio ordini</h3><p>Identifichi ritardi prima dell'impatto su OTIF e margini.</p></article>
+        <article class="card"><h3>Inventario</h3><p>Riduci stock eccessivo senza aumentare rotture di stock.</p></article>
+        <article class="card"><h3>Compliance</h3><p>Generi snapshot ESG mensili e tracciabilità audit-ready.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <h2>Metriche di impatto</h2>
+      <div class="grid3">
+        <article class="card"><h3>-22%</h3><p class="muted">Downtime medio impianto</p></article>
+        <article class="card"><h3>+18%</h3><p class="muted">Accuratezza decisioni supply</p></article>
+        <article class="card"><h3>+31%</h3><p class="muted">Velocità risposta agli alert</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section alt">
+    <div class="wrap">
+      <h2>Piani</h2>
+      <div class="grid3">
+        <article class="card">
+          <h3>Essenziale</h3>
+          <div class="price">€790<span style="font-size:.9rem;font-weight:500;color:#9ca3af;">/mese</span></div>
+          <ul><li>1 stabilimento</li><li>Funzioni operative core</li><li>No AI predittiva avanzata</li></ul>
+        </article>
+        <article class="card">
+          <h3>Professionale</h3>
+          <div class="price">€1690<span style="font-size:.9rem;font-weight:500;color:#9ca3af;">/mese</span></div>
+          <ul><li>Forecast e what-if</li><li>Supplier risk AI</li><li>Modulo ESG</li></ul>
+        </article>
+        <article class="card">
+          <h3>Industriale</h3>
+          <div class="price">€3490<span style="font-size:.9rem;font-weight:500;color:#9ca3af;">/mese</span></div>
+          <ul><li>API/ERP</li><li>Auto-replenishment full</li><li>Ottimizzazione costi AI completa</li></ul>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section faq">
+    <div class="wrap">
+      <h2>FAQ rapide</h2>
+      <article class="card"><h3>La prova gratuita è per tutti i piani?</h3><p>Sì, 30 giorni su piano selezionato; alla scadenza serve abbonamento attivo.</p></article>
+      <article class="card"><h3>Posso cambiare piano dopo l'attivazione?</h3><p>Sì, upgrade/downgrade da Billing con riallineamento automatico degli entitlement.</p></article>
+      <article class="card"><h3>Le feature sono bloccate anche lato backend?</h3><p>Sì, Edge Functions e DB trigger validano billing e tier prima di eseguire operazioni premium.</p></article>
+    </div>
+  </section>
+
+  <section class="section alt" style="text-align:center;">
+    <div class="wrap">
+      <h2>Vuoi la versione completa?</h2>
+      <p class="lead">Questa è una versione HTML singola della prima pagina, pronta per preview veloce.</p>
+      <div class="btns">
+        <a class="btn primary" href="#">Attiva trial</a>
+        <a class="btn ghost" href="#">Contatta team</a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    FabricOS © 2026 - Prima pagina in file unico HTML
+  </footer>
+</body>
+</html>

@@ -1,4 +1,5 @@
 import 'package:fabricos/features/website/presentation/widgets/language_selector.dart';
+import 'package:fabricos/features/website/presentation/widgets/public_site_theme.dart';
 import 'package:fabricos/localization/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -11,10 +12,10 @@ class WebsiteMarketingDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    const bg = Color(0xFF0F172A);
-    const border = Color(0xFF1F2937);
-    const textPrimary = Color(0xFFF9FAFB);
-    const textMuted = Color(0xFF9CA3AF);
+    const bg = PublicSiteTheme.background;
+    const border = PublicSiteTheme.border;
+    const textPrimary = PublicSiteTheme.foreground;
+    const textMuted = PublicSiteTheme.mutedForeground;
 
     void go(String path) {
       Navigator.pop(context);
@@ -103,7 +104,7 @@ class WebsiteMarketingDrawer extends StatelessWidget {
                   const SizedBox(height: 10),
                   FilledButton(
                     style: FilledButton.styleFrom(
-                      backgroundColor: const Color(0xFF2563EB),
+                      backgroundColor: PublicSiteTheme.primary,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                     ),

@@ -1,51 +1,40 @@
+import 'package:fabricos/features/website/presentation/widgets/public_site_theme.dart';
 import 'package:fabricos/features/website/presentation/widgets/website_footer.dart';
-import 'package:fabricos/localization/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: const Color(0xFF030712),
-      child: SingleChildScrollView(
-        child: Column(
-          children: [
-            _HeroSection(
-              onStartTrial: () => context.go('/register'),
-              onDemo: () => context.go('/book-demo'),
-              onRoi: () => context.go('/roi-calculator'),
-            ),
-            const _PainSection(),
-            const _SolutionSection(),
-            const _RoiMetricsSection(),
-            const _FeaturesGridSection(),
-            const _TestimonialsSection(),
-            _PricingTiersSection(
-              onPlan: (plan) => context.go('/register?plan=$plan'),
-            ),
-            const _ContactSection(),
-            const _FaqSection(),
-            const _LegalLinksSection(),
-            _FinalCtaSection(
-              onStartTrial: () => context.go('/register'),
-              onDemo: () => context.go('/book-demo'),
-              onRoi: () => context.go('/roi-calculator'),
-            ),
-            const WebsiteFooter(),
-          ],
-        ),
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _HeroSection(
+            onDemo: () => context.go('/book-demo'),
+            onTrial: () => context.go('/register'),
+          ),
+          const _TrustBand(),
+          const _PainSection(),
+          const _KpiSection(),
+          _PricingSection(onPlan: (p) => context.go('/register?plan=$p')),
+          const _FaqSection(),
+          _FinalCta(
+            onTrial: () => context.go('/register'),
+            onContact: () => context.go('/contact'),
+          ),
+          const WebsiteFooter(),
+        ],
       ),
     );
   }
 }
 
-class _PageContainer extends StatelessWidget {
-  const _PageContainer({required this.child});
+class _Wrap extends StatelessWidget {
+  const _Wrap({required this.child});
   final Widget child;
 
   @override
@@ -62,8 +51,8 @@ class _PageContainer extends StatelessWidget {
   }
 }
 
-class _SectionWrap extends StatelessWidget {
-  const _SectionWrap({
+class _Section extends StatelessWidget {
+  const _Section({
     required this.child,
     this.alt = false,
     this.padding = const EdgeInsets.symmetric(vertical: 96),
@@ -79,15 +68,13 @@ class _SectionWrap extends StatelessWidget {
       width: double.infinity,
       padding: padding,
       decoration: BoxDecoration(
-        color: alt ? const Color(0xFF111827) : const Color(0xFF030712),
+        color: alt
+            ? PublicSiteTheme.secondary.withValues(alpha: 0.5)
+            : PublicSiteTheme.background,
         border: alt
-            ? Border(
-                top: BorderSide(
-                  color: const Color(0xFF1F2937).withValues(alpha: 0.9),
-                ),
-                bottom: BorderSide(
-                  color: const Color(0xFF1F2937).withValues(alpha: 0.9),
-                ),
+            ? const Border(
+                top: BorderSide(color: PublicSiteTheme.border),
+                bottom: BorderSide(color: PublicSiteTheme.border),
               )
             : null,
       ),
@@ -96,329 +83,361 @@ class _SectionWrap extends StatelessWidget {
   }
 }
 
-class _Eyebrow extends StatelessWidget {
-  const _Eyebrow({required this.icon, required this.text, this.center = true});
-  final IconData icon;
-  final String text;
-  final bool center;
+class _HeroSection extends StatelessWidget {
+  const _HeroSection({required this.onDemo, required this.onTrial});
+  final VoidCallback onDemo;
+  final VoidCallback onTrial;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: center
-          ? MainAxisAlignment.center
-          : MainAxisAlignment.start,
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(999),
-            color: const Color(0x142563EB),
+    final compact = MediaQuery.sizeOf(context).width < 900;
+    return _Section(
+      padding: const EdgeInsets.fromLTRB(0, 96, 0, 92),
+      child: _Wrap(
+        child: LayoutBuilder(
+          builder: (context, c) {
+            final stack = c.maxWidth < 980;
+            final content = Column(
+              crossAxisAlignment: stack
+                  ? CrossAxisAlignment.center
+                  : CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: PublicSiteTheme.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(
+                      color: PublicSiteTheme.primary.withValues(alpha: 0.2),
+                    ),
+                  ),
+                  child: Text(
+                    'CONTROL TOWER PER MANIFATTURA',
+                    style: GoogleFonts.ibmPlexSans(
+                      fontSize: 11,
+                      color: PublicSiteTheme.primary,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.9,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Dal caos operativo al controllo predittivo della supply chain',
+                  textAlign: stack ? TextAlign.center : TextAlign.start,
+                  style: GoogleFonts.spaceGrotesk(
+                    color: PublicSiteTheme.foreground,
+                    fontSize: compact ? 38 : 56,
+                    fontWeight: FontWeight.w800,
+                    height: 1.08,
+                    letterSpacing: -1,
+                  ),
+                ),
+                const SizedBox(height: 18),
+                Text(
+                  'FabricOS unisce operations, AI e compliance in una vista unica: previsione domanda, rischi fornitori, simulazioni what-if e report ESG. Setup in 30 giorni.',
+                  textAlign: stack ? TextAlign.center : TextAlign.start,
+                  style: GoogleFonts.ibmPlexSans(
+                    color: PublicSiteTheme.mutedForeground,
+                    fontSize: 18,
+                    height: 1.6,
+                  ),
+                ),
+                const SizedBox(height: 26),
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  alignment: stack
+                      ? WrapAlignment.center
+                      : WrapAlignment.start,
+                  children: [
+                    FilledButton(
+                      onPressed: onDemo,
+                      style: FilledButton.styleFrom(
+                        backgroundColor: PublicSiteTheme.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 18,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                      ),
+                      child: const Text('Prenota demo'),
+                    ),
+                    OutlinedButton(
+                      onPressed: onTrial,
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: PublicSiteTheme.foreground,
+                        side: const BorderSide(color: PublicSiteTheme.border),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 18,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                      ),
+                      child: const Text('Inizia prova 30 giorni'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 18),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  alignment: stack
+                      ? WrapAlignment.center
+                      : WrapAlignment.start,
+                  children: const [
+                    _MiniPill('Setup rapido'),
+                    _MiniPill('Alert critici in tempo reale'),
+                    _MiniPill('Sicurezza enterprise'),
+                  ],
+                ),
+              ],
+            );
+            final visual = _HeroVisual(compact: compact);
+
+            if (stack) {
+              return Column(
+                children: [
+                  content,
+                  const SizedBox(height: 28),
+                  visual,
+                ],
+              );
+            }
+
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(flex: 11, child: content),
+                const SizedBox(width: 36),
+                Expanded(flex: 10, child: visual),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class _HeroVisual extends StatelessWidget {
+  const _HeroVisual({required this.compact});
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: PublicSiteTheme.secondary,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: PublicSiteTheme.border),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x190F172A),
+            blurRadius: 38,
+            offset: Offset(0, 16),
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
+        ],
+      ),
+      child: AspectRatio(
+        aspectRatio: compact ? 4 / 3 : 1.1,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: PublicSiteTheme.border.withValues(alpha: 0.7),
+            ),
+          ),
+          child: Column(
             children: [
-              Icon(icon, size: 14, color: const Color(0xFF2563EB)),
-              const SizedBox(width: 8),
-              Text(
-                text,
-                style: GoogleFonts.ibmPlexSans(
-                  color: const Color(0xFF2563EB),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.4,
+              Container(
+                height: 44,
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                decoration: const BoxDecoration(
+                  border: Border(bottom: BorderSide(color: PublicSiteTheme.border)),
+                ),
+                child: const Row(
+                  children: [
+                    _Dot(),
+                    SizedBox(width: 6),
+                    _Dot(),
+                    SizedBox(width: 6),
+                    _Dot(),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        flex: 3,
+                        child: Column(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color:
+                                      PublicSiteTheme.secondary.withValues(alpha: 0.7),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: PublicSiteTheme.muted,
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: PublicSiteTheme.muted,
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: PublicSiteTheme.primary.withValues(alpha: 0.06),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: PublicSiteTheme.primary.withValues(alpha: 0.2),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
           ),
         ),
-      ],
-    );
-  }
-}
-
-class _SectionTitle extends StatelessWidget {
-  const _SectionTitle({required this.title, required this.subtitle});
-  final String title;
-  final String subtitle;
-
-  @override
-  Widget build(BuildContext context) {
-    final narrow = MediaQuery.sizeOf(context).width < 560;
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(
-            title,
-            textAlign: TextAlign.center,
-            style: GoogleFonts.spaceGrotesk(
-              color: const Color(0xFFF9FAFB),
-              fontSize: narrow ? 30 : 44,
-              fontWeight: FontWeight.w700,
-              height: 1.1,
-              letterSpacing: -0.8,
-            ),
-          ),
-        ),
-        const SizedBox(height: 14),
-        ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 720),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Text(
-              subtitle,
-              textAlign: TextAlign.center,
-              style: GoogleFonts.ibmPlexSans(
-                color: const Color(0xFF9CA3AF),
-                fontSize: narrow ? 16 : 18,
-                height: 1.6,
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _HeroSection extends StatelessWidget {
-  const _HeroSection({
-    required this.onStartTrial,
-    required this.onDemo,
-    required this.onRoi,
-  });
-
-  final VoidCallback onStartTrial;
-  final VoidCallback onDemo;
-  final VoidCallback onRoi;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final isCompact = MediaQuery.sizeOf(context).width < 760;
-    return _SectionWrap(
-      padding: const EdgeInsets.fromLTRB(0, 108, 0, 72),
-      child: Stack(
-        children: [
-          Positioned(
-            top: -220,
-            left: 0,
-            right: 0,
-            child: IgnorePointer(
-              child: Center(
-                child: Container(
-                  width: 820,
-                  height: 820,
-                  decoration: const BoxDecoration(
-                    gradient: RadialGradient(
-                      colors: [Color(0x332563EB), Color(0x00030712)],
-                      stops: [0, 0.62],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          _PageContainer(
-            child: Column(
-              children: [
-                _Eyebrow(
-                  icon: Icons.hub_outlined,
-                  text: l10n.t('pub_mfg_eyebrow'),
-                ),
-                const SizedBox(height: 18),
-                Text(
-                  l10n.t('pub_mfg_hero_title'),
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.spaceGrotesk(
-                    color: const Color(0xFFF9FAFB),
-                    fontSize: isCompact ? 38 : 58,
-                    fontWeight: FontWeight.w800,
-                    height: 1.08,
-                    letterSpacing: -1.0,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 760),
-                  child: Text(
-                    l10n.t('pub_mfg_hero_subtitle'),
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.ibmPlexSans(
-                      color: const Color(0xFF9CA3AF),
-                      fontSize: isCompact ? 18 : 20,
-                      height: 1.6,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  l10n.t('pub_mfg_trust_brand'),
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.ibmPlexSans(
-                    color: const Color(0xFF6B7280),
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  alignment: WrapAlignment.center,
-                  children: [
-                    _Tag(l10n.t('pub_micro_1')),
-                    _Tag(l10n.t('pub_micro_2')),
-                    _Tag(l10n.t('pub_micro_3')),
-                    _Tag(l10n.t('pub_micro_4')),
-                    _Tag(l10n.t('pub_micro_5')),
-                  ],
-                ),
-                const SizedBox(height: 28),
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  alignment: WrapAlignment.center,
-                  children: [
-                    FilledButton(
-                      onPressed: onDemo,
-                      style: FilledButton.styleFrom(
-                        backgroundColor: const Color(0xFF2563EB),
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 18,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      child: Text(l10n.t('pub_mfg_cta_demo')),
-                    ),
-                    FilledButton.tonal(
-                      onPressed: onStartTrial,
-                      style: FilledButton.styleFrom(
-                        foregroundColor: const Color(0xFFEAF2FF),
-                        backgroundColor: const Color(0xFF1E293B),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 18,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      child: Text(l10n.t('pub_mfg_cta_trial')),
-                    ),
-                    OutlinedButton(
-                      onPressed: onRoi,
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: const Color(0xFFF9FAFB),
-                        side: const BorderSide(color: Color(0xFF1F2937)),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 18,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      child: Text(l10n.t('pub_mfg_cta_roi')),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 32),
-                Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
-                  alignment: WrapAlignment.center,
-                  children: [
-                    _Chip(
-                      icon: Icons.verified_outlined,
-                      text: l10n.t('pub_mfg_trust_1'),
-                    ),
-                    _Chip(
-                      icon: Icons.notifications_active_outlined,
-                      text: l10n.t('pub_mfg_trust_2'),
-                    ),
-                    _Chip(
-                      icon: Icons.description_outlined,
-                      text: l10n.t('pub_mfg_trust_3'),
-                    ),
-                    _Chip(
-                      icon: Icons.shield_outlined,
-                      text: l10n.t('pub_mfg_trust_4'),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 48),
-                Container(
-                  clipBehavior: Clip.antiAlias,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFF1F2937)),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Color(0x80000000),
-                        blurRadius: 40,
-                        offset: Offset(0, 18),
-                      ),
-                    ],
-                  ),
-                  child: Image.network(
-                    'https://storage.googleapis.com/banani-generated-images/generated-images/7b81f20e-7931-454e-ba1f-d868ca2e5775.jpg',
-                    fit: BoxFit.cover,
-                    width: double.infinity,
-                    height: isCompact ? 240 : 480,
-                    errorBuilder: (_, __, ___) => Container(
-                      color: const Color(0xFF0F172A),
-                      height: isCompact ? 240 : 480,
-                      alignment: Alignment.center,
-                      child: Text(
-                        l10n.t('pub_mfg_bento_title'),
-                        style: const TextStyle(color: Color(0xFF9CA3AF)),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
 }
 
-class _Chip extends StatelessWidget {
-  const _Chip({required this.icon, required this.text});
-  final IconData icon;
+class _Dot extends StatelessWidget {
+  const _Dot();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 10,
+      height: 10,
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        color: PublicSiteTheme.border,
+      ),
+    );
+  }
+}
+
+class _MiniPill extends StatelessWidget {
+  const _MiniPill(this.text);
   final String text;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       decoration: BoxDecoration(
-        color: const Color(0xFF111827),
-        border: Border.all(color: const Color(0xFF1F2937)),
+        color: PublicSiteTheme.secondary.withValues(alpha: 0.55),
         borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: PublicSiteTheme.border),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: const Color(0xFF9CA3AF)),
-          const SizedBox(width: 8),
-          Text(
-            text,
-            style: GoogleFonts.ibmPlexSans(
-              color: const Color(0xFF9CA3AF),
-              fontSize: 13,
+      child: Text(
+        text,
+        style: GoogleFonts.ibmPlexSans(
+          color: PublicSiteTheme.mutedForeground,
+          fontSize: 13,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+    );
+  }
+}
+
+class _TrustBand extends StatelessWidget {
+  const _TrustBand();
+
+  @override
+  Widget build(BuildContext context) {
+    const brands = [
+      'AeroDynamics',
+      'GlobalSteel',
+      'PackTech',
+      'MediEquip',
+      'VentoAuto',
+    ];
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 24),
+      decoration: const BoxDecoration(
+        border: Border(
+          top: BorderSide(color: PublicSiteTheme.border),
+          bottom: BorderSide(color: PublicSiteTheme.border),
+        ),
+      ),
+      child: _Wrap(
+        child: Column(
+          children: [
+            Text(
+              'SCELTO DALLE MIGLIORI AZIENDE MANIFATTURIERE',
+              style: GoogleFonts.ibmPlexSans(
+                color: PublicSiteTheme.mutedForeground,
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 1,
+              ),
             ),
-          ),
-        ],
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 24,
+              runSpacing: 8,
+              alignment: WrapAlignment.center,
+              children: brands
+                  .map(
+                    (b) => Text(
+                      b,
+                      style: GoogleFonts.spaceGrotesk(
+                        color: PublicSiteTheme.mutedForeground.withValues(alpha: 0.75),
+                        fontWeight: FontWeight.w700,
+                        fontSize: 22,
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -429,697 +448,91 @@ class _PainSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final cards = [
+    final cards = const [
       (
-        Icons.precision_manufacturing_outlined,
-        'pub_mfg_pain1_title',
-        'pub_mfg_pain1_desc',
+        'Rischio ordini',
+        'Identifichi ritardi prima dell\'impatto su OTIF e margini.'
       ),
       (
-        Icons.local_shipping_outlined,
-        'pub_mfg_pain2_title',
-        'pub_mfg_pain2_desc',
+        'Inventario ottimizzato',
+        'Riduci stock eccessivo senza aumentare rotture di stock.'
       ),
-      (Icons.inventory_2_outlined, 'pub_mfg_pain3_title', 'pub_mfg_pain3_desc'),
-      (Icons.table_chart_outlined, 'pub_mfg_pain4_title', 'pub_mfg_pain4_desc'),
-    ];
-    return _SectionWrap(
-      alt: true,
-      child: _PageContainer(
-        child: Column(
-          children: [
-            _Eyebrow(
-              icon: Icons.crisis_alert_outlined,
-              text: l10n.t('pub_mfg_pain_eyebrow'),
-            ),
-            const SizedBox(height: 14),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              alignment: WrapAlignment.center,
-              children: [
-                _Tag(l10n.t('pub_mfg_strip_1')),
-                _Tag(l10n.t('pub_mfg_strip_2')),
-                _Tag(l10n.t('pub_mfg_strip_3')),
-                _Tag(l10n.t('pub_mfg_strip_4')),
-                _Tag(l10n.t('pub_mfg_strip_5')),
-              ],
-            ),
-            const SizedBox(height: 34),
-            _SectionTitle(
-              title: l10n.t('pub_mfg_pain_title'),
-              subtitle: l10n.t('pub_mfg_pain_subtitle'),
-            ),
-            const SizedBox(height: 46),
-            LayoutBuilder(
-              builder: (context, c) {
-                final col = c.maxWidth >= 980
-                    ? 4
-                    : c.maxWidth >= 700
-                    ? 2
-                    : 1;
-                return GridView.count(
-                  crossAxisCount: col,
-                  shrinkWrap: true,
-                  crossAxisSpacing: 18,
-                  mainAxisSpacing: 18,
-                  childAspectRatio: col == 1 ? 1.55 : 1.15,
-                  physics: const NeverScrollableScrollPhysics(),
-                  children: cards
-                      .map(
-                        (it) => _PainCard(
-                          icon: it.$1,
-                          title: l10n.t(it.$2),
-                          text: l10n.t(it.$3),
-                        ),
-                      )
-                      .toList(),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _Tag extends StatelessWidget {
-  const _Tag(this.text);
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: const Color(0xFF1F2937)),
-        color: const Color(0x0DFFFFFF),
-      ),
-      child: Text(
-        text,
-        style: GoogleFonts.ibmPlexSans(
-          color: const Color(0xFFF9FAFB),
-          fontSize: 13,
-        ),
-      ),
-    );
-  }
-}
-
-class _PainCard extends StatelessWidget {
-  const _PainCard({
-    required this.icon,
-    required this.title,
-    required this.text,
-  });
-  final IconData icon;
-  final String title;
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(22),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0F172A),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF1F2937)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              color: const Color(0x1AEF4444),
-            ),
-            child: Icon(icon, color: const Color(0xFFEF4444), size: 22),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            title,
-            style: GoogleFonts.spaceGrotesk(
-              color: const Color(0xFFF9FAFB),
-              fontSize: 17,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            text,
-            style: GoogleFonts.ibmPlexSans(
-              color: const Color(0xFF9CA3AF),
-              fontSize: 14,
-              height: 1.5,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SolutionSection extends StatelessWidget {
-  const _SolutionSection();
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final keys = [
-      ('pub_mfg_sol1_title', 'pub_mfg_sol1_desc'),
-      ('pub_mfg_sol2_title', 'pub_mfg_sol2_desc'),
-      ('pub_mfg_sol3_title', 'pub_mfg_sol3_desc'),
-      ('pub_mfg_sol4_title', 'pub_mfg_sol4_desc'),
-      ('pub_mfg_sol5_title', 'pub_mfg_sol5_desc'),
-    ];
-    return _SectionWrap(
-      child: _PageContainer(
-        child: Column(
-          children: [
-            _Eyebrow(
-              icon: Icons.auto_awesome_outlined,
-              text: l10n.t('pub_mfg_sol_eyebrow'),
-            ),
-            const SizedBox(height: 14),
-            _SectionTitle(
-              title: l10n.t('pub_mfg_sol_title'),
-              subtitle: l10n.t('pub_mfg_sol_subtitle'),
-            ),
-            const SizedBox(height: 40),
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 720),
-              child: Column(
-                children: List.generate(keys.length, (i) {
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 14),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 18,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF0F172A),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFF1F2937)),
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0x1A2563EB),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            (i + 1).toString().padLeft(2, '0'),
-                            style: GoogleFonts.ibmPlexSans(
-                              color: const Color(0xFF2563EB),
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                l10n.t(keys[i].$1),
-                                style: GoogleFonts.spaceGrotesk(
-                                  color: const Color(0xFFF9FAFB),
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                l10n.t(keys[i].$2),
-                                style: GoogleFonts.ibmPlexSans(
-                                  color: const Color(0xFF9CA3AF),
-                                  fontSize: 14,
-                                  height: 1.5,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _RoiMetricsSection extends StatelessWidget {
-  const _RoiMetricsSection();
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final metrics = [
-      ('−31%', l10n.t('pub_mfg_roi_m1')),
-      ('+18%', l10n.t('pub_mfg_roi_m2')),
-      ('−42%', l10n.t('pub_mfg_roi_m3')),
-      ('+12%', l10n.t('pub_mfg_roi_m4')),
-    ];
-    return _SectionWrap(
-      alt: true,
-      child: _PageContainer(
-        child: Column(
-          children: [
-            _Eyebrow(
-              icon: Icons.insights_outlined,
-              text: l10n.t('pub_mfg_roi_eyebrow'),
-            ),
-            const SizedBox(height: 14),
-            _SectionTitle(
-              title: l10n.t('pub_mfg_roi_title'),
-              subtitle: l10n.t('pub_mfg_roi_subtitle'),
-            ),
-            const SizedBox(height: 44),
-            LayoutBuilder(
-              builder: (context, c) {
-                final cols = c.maxWidth >= 980
-                    ? 4
-                    : c.maxWidth >= 700
-                    ? 2
-                    : 1;
-                return GridView.count(
-                  crossAxisCount: cols,
-                  shrinkWrap: true,
-                  crossAxisSpacing: 18,
-                  mainAxisSpacing: 18,
-                  physics: const NeverScrollableScrollPhysics(),
-                  childAspectRatio: cols == 1 ? 2.0 : 1.15,
-                  children: metrics
-                      .map(
-                        (m) => Container(
-                          padding: const EdgeInsets.all(22),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF0F172A),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: const Color(0xFF1F2937)),
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                m.$1,
-                                style: GoogleFonts.spaceGrotesk(
-                                  color: const Color(0xFF2563EB),
-                                  fontSize: 40,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: -1.0,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                m.$2,
-                                textAlign: TextAlign.center,
-                                style: GoogleFonts.ibmPlexSans(
-                                  color: const Color(0xFF9CA3AF),
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      )
-                      .toList(),
-                );
-              },
-            ),
-            const SizedBox(height: 40),
-            Container(
-              constraints: const BoxConstraints(maxWidth: 820),
-              padding: const EdgeInsets.all(32),
-              decoration: BoxDecoration(
-                color: const Color(0xFF030712),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFF1F2937)),
-              ),
-              child: Text(
-                l10n.t('pub_mfg_roi_quote'),
-                textAlign: TextAlign.center,
-                style: GoogleFonts.ibmPlexSans(
-                  color: const Color(0xFFF9FAFB),
-                  fontSize: 20,
-                  height: 1.55,
-                  fontStyle: FontStyle.italic,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _FeaturesGridSection extends StatelessWidget {
-  const _FeaturesGridSection();
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final cards = [
       (
-        Icons.hub_outlined,
-        'pub_feat_control_tower_title',
-        'pub_feat_control_tower_desc',
+        'Compliance ESG',
+        'Generi snapshot ESG mensili e tracciabilità audit-ready.'
       ),
-      (Icons.speed_outlined, 'pub_feat_pm_title', 'pub_feat_pm_desc'),
-      (
-        Icons.groups_2_outlined,
-        'pub_feat_sup_intel_title',
-        'pub_feat_sup_intel_desc',
-      ),
-      (Icons.inventory_2_outlined, 'pub_feat_inv_title', 'pub_feat_inv_desc'),
-      (Icons.science_outlined, 'pub_feat_sim_title', 'pub_feat_sim_desc'),
-      (Icons.assessment_outlined, 'pub_feat_exec_title', 'pub_feat_exec_desc'),
     ];
-    return _SectionWrap(
-      alt: true,
-      child: _PageContainer(
+    return _Section(
+      child: _Wrap(
         child: Column(
           children: [
-            _Eyebrow(
-              icon: Icons.layers_outlined,
-              text: l10n.t('pub_feat_eyebrow'),
-            ),
-            const SizedBox(height: 14),
-            _SectionTitle(
-              title: l10n.t('pub_feat_title'),
-              subtitle: l10n.t('pub_feat_subtitle'),
-            ),
-            const SizedBox(height: 40),
-            LayoutBuilder(
-              builder: (context, c) {
-                final w = c.maxWidth;
-                final cols = w >= 1100
-                    ? 3
-                    : w >= 700
-                    ? 2
-                    : 1;
-                return GridView.count(
-                  crossAxisCount: cols,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                  childAspectRatio: 1.15,
-                  children: cards
-                      .map(
-                        (card) => _FeatureCard(
-                          icon: card.$1,
-                          title: l10n.t(card.$2),
-                          text: l10n.t(card.$3),
-                        ),
-                      )
-                      .toList(),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _FeatureCard extends StatelessWidget {
-  const _FeatureCard({
-    required this.icon,
-    required this.title,
-    required this.text,
-  });
-  final IconData icon;
-  final String title;
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(22),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0F172A),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF1F2937)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 46,
-            height: 46,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              color: const Color(0x1A2563EB),
-            ),
-            child: Icon(icon, color: const Color(0xFF2563EB), size: 24),
-          ),
-          const SizedBox(height: 14),
-          Text(
-            title,
-            style: GoogleFonts.spaceGrotesk(
-              color: const Color(0xFFF9FAFB),
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Expanded(
-            child: Text(
-              text,
-              style: GoogleFonts.ibmPlexSans(
-                color: const Color(0xFF9CA3AF),
-                fontSize: 14,
-                height: 1.55,
+            Text(
+              'Punti critici che risolvi subito',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.spaceGrotesk(
+                color: PublicSiteTheme.foreground,
+                fontSize: 44,
+                fontWeight: FontWeight.w700,
+                height: 1.1,
               ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _TestimonialsSection extends StatelessWidget {
-  const _TestimonialsSection();
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final items = [
-      ('pub_testimonial_1_quote', 'pub_testimonial_1_attr'),
-      ('pub_testimonial_2_quote', 'pub_testimonial_2_attr'),
-      ('pub_testimonial_3_quote', 'pub_testimonial_3_attr'),
-    ];
-    return _SectionWrap(
-      child: _PageContainer(
-        child: Column(
-          children: [
-            _Eyebrow(
-              icon: Icons.format_quote_outlined,
-              text: l10n.t('pub_testimonial_eyebrow'),
-            ),
-            const SizedBox(height: 14),
-            _SectionTitle(
-              title: l10n.t('pub_testimonial_section_title'),
-              subtitle: l10n.t('pub_testimonial_section_subtitle'),
-            ),
-            const SizedBox(height: 36),
-            LayoutBuilder(
-              builder: (context, c) {
-                final col = c.maxWidth >= 1000 ? 3 : 1;
-                return GridView.count(
-                  crossAxisCount: col,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                  childAspectRatio: col == 1 ? 1.25 : 0.95,
-                  children: items
-                      .map(
-                        (it) => Container(
-                          padding: const EdgeInsets.all(22),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF0F172A),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: const Color(0xFF1F2937)),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                l10n.t(it.$1),
-                                style: GoogleFonts.ibmPlexSans(
-                                  color: const Color(0xFFF9FAFB),
-                                  fontSize: 16,
-                                  height: 1.55,
-                                  fontStyle: FontStyle.italic,
-                                ),
-                              ),
-                              const Spacer(),
-                              Text(
-                                l10n.t(it.$2),
-                                style: GoogleFonts.ibmPlexSans(
-                                  color: const Color(0xFF9CA3AF),
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      )
-                      .toList(),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _PricingTiersSection extends StatelessWidget {
-  const _PricingTiersSection({required this.onPlan});
-
-  final void Function(String plan) onPlan;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    return _SectionWrap(
-      alt: true,
-      child: _PageContainer(
-        child: Column(
-          children: [
-            _Eyebrow(
-              icon: Icons.payments_outlined,
-              text: l10n.t('pub_price_eyebrow'),
-            ),
-            const SizedBox(height: 14),
-            _SectionTitle(
-              title: l10n.t('pub_price_title'),
-              subtitle: l10n.t('pub_price_subtitle'),
             ),
             const SizedBox(height: 12),
             Text(
-              l10n.t('pub_price_annual_note'),
+              'Ritardi ordini, stockout, fornitori instabili, decisioni tardive, reportistica frammentata.',
               textAlign: TextAlign.center,
               style: GoogleFonts.ibmPlexSans(
-                color: const Color(0xFF6B7280),
-                fontSize: 14,
+                color: PublicSiteTheme.mutedForeground,
+                fontSize: 18,
+                height: 1.55,
               ),
             ),
             const SizedBox(height: 36),
             LayoutBuilder(
               builder: (context, c) {
-                final tiers = [
-                  _TierCard(
-                    name: l10n.t('pub_price_essenziale_name'),
-                    price: l10n.t('pub_price_essenziale_price'),
-                    period: l10n.t('pub_price_period'),
-                    features: [
-                      l10n.t('pub_price_essenziale_f1'),
-                      l10n.t('pub_price_essenziale_f2'),
-                      l10n.t('pub_price_essenziale_f3'),
-                      l10n.t('pub_price_essenziale_f4'),
-                    ],
-                    highlight: false,
-                    onCta: () => onPlan('essenziale'),
-                    ctaLabel: l10n.t('pub_price_cta_start'),
-                  ),
-                  _TierCard(
-                    name: l10n.t('pub_price_professionale_name'),
-                    price: l10n.t('pub_price_professionale_price'),
-                    period: l10n.t('pub_price_period'),
-                    features: [
-                      l10n.t('pub_price_professionale_f1'),
-                      l10n.t('pub_price_professionale_f2'),
-                      l10n.t('pub_price_professionale_f3'),
-                      l10n.t('pub_price_professionale_f4'),
-                    ],
-                    highlight: true,
-                    onCta: () => onPlan('professionale'),
-                    ctaLabel: l10n.t('pub_price_cta_start'),
-                  ),
-                  _TierCard(
-                    name: l10n.t('pub_price_industriale_name'),
-                    price: l10n.t('pub_price_industriale_price'),
-                    period: l10n.t('pub_price_period'),
-                    features: [
-                      l10n.t('pub_price_industriale_f1'),
-                      l10n.t('pub_price_industriale_f2'),
-                      l10n.t('pub_price_industriale_f3'),
-                      l10n.t('pub_price_industriale_f4'),
-                    ],
-                    highlight: false,
-                    onCta: () => onPlan('industriale'),
-                    ctaLabel: l10n.t('pub_price_cta_start'),
-                  ),
-                ];
-                if (c.maxWidth < 720) {
-                  return Column(
-                    children: [
-                      for (final t in tiers)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 16),
-                          child: t,
+                final cols = c.maxWidth > 980 ? 3 : (c.maxWidth > 640 ? 2 : 1);
+                return GridView.count(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  crossAxisCount: cols,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  childAspectRatio: cols == 1 ? 2.2 : 1.15,
+                  children: cards
+                      .map(
+                        (c) => Container(
+                          padding: const EdgeInsets.all(22),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: PublicSiteTheme.border),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                c.$1,
+                                style: GoogleFonts.spaceGrotesk(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w700,
+                                  color: PublicSiteTheme.foreground,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              Text(
+                                c.$2,
+                                style: GoogleFonts.ibmPlexSans(
+                                  fontSize: 15,
+                                  color: PublicSiteTheme.mutedForeground,
+                                  height: 1.55,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                    ],
-                  );
-                }
-                if (c.maxWidth < 1100) {
-                  return GridView.count(
-                    crossAxisCount: 2,
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                    childAspectRatio: 0.72,
-                    children: tiers,
-                  );
-                }
-                return Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    for (var i = 0; i < tiers.length; i++) ...[
-                      if (i > 0) const SizedBox(width: 12),
-                      Expanded(child: tiers[i]),
-                    ],
-                  ],
+                      )
+                      .toList(),
                 );
               },
-            ),
-            const SizedBox(height: 24),
-            Text(
-              l10n.t('pub_price_footnote'),
-              textAlign: TextAlign.center,
-              style: GoogleFonts.ibmPlexSans(
-                color: const Color(0xFF6B7280),
-                fontSize: 13,
-              ),
             ),
           ],
         ),
@@ -1128,207 +541,62 @@ class _PricingTiersSection extends StatelessWidget {
   }
 }
 
-class _TierCard extends StatelessWidget {
-  const _TierCard({
-    required this.name,
-    required this.price,
-    required this.period,
-    required this.features,
-    required this.highlight,
-    required this.onCta,
-    required this.ctaLabel,
-  });
-
-  final String name;
-  final String price;
-  final String period;
-  final List<String> features;
-  final bool highlight;
-  final VoidCallback onCta;
-  final String ctaLabel;
+class _KpiSection extends StatelessWidget {
+  const _KpiSection();
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
-        color: highlight ? const Color(0xFF111827) : const Color(0xFF0F172A),
-        border: Border.all(
-          color: highlight ? const Color(0xFF2563EB) : const Color(0xFF1F2937),
-          width: highlight ? 1.5 : 1,
-        ),
-        boxShadow: highlight
-            ? const [
-                BoxShadow(
-                  color: Color(0x332563EB),
-                  blurRadius: 28,
-                  offset: Offset(0, 12),
-                ),
-              ]
-            : null,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (highlight)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(999),
-                color: const Color(0x142563EB),
-              ),
-              child: Text(
-                context.l10n.t('pub_price_badge'),
-                style: GoogleFonts.ibmPlexSans(
-                  color: const Color(0xFF2563EB),
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.6,
-                ),
-              ),
-            ),
-          if (highlight) const SizedBox(height: 12),
-          Text(
-            name,
-            style: GoogleFonts.spaceGrotesk(
-              color: const Color(0xFFF9FAFB),
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                price,
-                style: GoogleFonts.spaceGrotesk(
-                  color: const Color(0xFFF9FAFB),
-                  fontSize: 36,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -1,
-                ),
-              ),
-              if (period.isNotEmpty) ...[
-                const SizedBox(width: 6),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Text(
-                    period,
-                    style: GoogleFonts.ibmPlexSans(
-                      color: const Color(0xFF9CA3AF),
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-              ],
-            ],
-          ),
-          const SizedBox(height: 20),
-          for (final f in features)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Icon(
-                    Icons.check_circle_outline_rounded,
-                    size: 18,
-                    color: Color(0xFF2563EB),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      f,
-                      style: GoogleFonts.ibmPlexSans(
-                        color: const Color(0xFF9CA3AF),
-                        fontSize: 14,
-                        height: 1.4,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton(
-              onPressed: onCta,
-              style: FilledButton.styleFrom(
-                backgroundColor: highlight
-                    ? const Color(0xFF2563EB)
-                    : const Color(0xFF1E293B),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              child: Text(ctaLabel),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ContactSection extends StatelessWidget {
-  const _ContactSection();
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    return _SectionWrap(
-      child: _PageContainer(
+    const items = [
+      ('-22%', 'Downtime medio impianto'),
+      ('+18%', 'Accuratezza decisioni'),
+      ('+31%', 'Velocità risposta'),
+    ];
+    return _Section(
+      alt: true,
+      child: _Wrap(
         child: LayoutBuilder(
           builder: (context, c) {
-            final compact = c.maxWidth < 940;
-            final left = Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _Eyebrow(
-                  icon: Icons.mail_outline,
-                  text: l10n.t('pub_contact_eyebrow'),
-                  center: false,
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  l10n.t('pub_contact_title'),
-                  style: GoogleFonts.spaceGrotesk(
-                    color: const Color(0xFFF9FAFB),
-                    fontSize: 38,
-                    fontWeight: FontWeight.w700,
-                    height: 1.1,
-                  ),
-                ),
-                const SizedBox(height: 18),
-                Text(
-                  l10n.t('pub_contact_subtitle'),
-                  style: GoogleFonts.ibmPlexSans(
-                    color: const Color(0xFF9CA3AF),
-                    fontSize: 18,
-                    height: 1.6,
-                  ),
-                ),
-              ],
-            );
-            final right = const _ContactFormCard();
-            if (compact) {
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [left, const SizedBox(height: 24), right],
-              );
-            }
-            return Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(child: left),
-                const SizedBox(width: 40),
-                Expanded(child: right),
-              ],
+            final cols = c.maxWidth > 900 ? 3 : 1;
+            return GridView.count(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisCount: cols,
+              childAspectRatio: cols == 1 ? 3.1 : 1.9,
+              mainAxisSpacing: 16,
+              crossAxisSpacing: 16,
+              children: items
+                  .map(
+                    (i) => Container(
+                      decoration: BoxDecoration(
+                        color: PublicSiteTheme.foreground,
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            i.$1,
+                            style: GoogleFonts.spaceGrotesk(
+                              color: PublicSiteTheme.accent,
+                              fontSize: 48,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            i.$2,
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.ibmPlexSans(
+                              color: Colors.white70,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                  .toList(),
             );
           },
         ),
@@ -1337,257 +605,196 @@ class _ContactSection extends StatelessWidget {
   }
 }
 
-class _ContactFormCard extends StatefulWidget {
-  const _ContactFormCard();
-
-  @override
-  State<_ContactFormCard> createState() => _ContactFormCardState();
-}
-
-class _ContactFormCardState extends State<_ContactFormCard> {
-  final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _companyController = TextEditingController();
-  final _messageController = TextEditingController();
-  bool _sent = false;
-  bool _loading = false;
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _emailController.dispose();
-    _companyController.dispose();
-    _messageController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _send() async {
-    if (!(_formKey.currentState?.validate() ?? false)) return;
-    setState(() {
-      _loading = true;
-      _sent = false;
-    });
-
-    try {
-      await Supabase.instance.client.functions.invoke(
-        'submit-contact-form',
-        body: {
-          'name': _nameController.text.trim(),
-          'email': _emailController.text.trim(),
-          'company': _companyController.text.trim(),
-          'message': _messageController.text.trim(),
-        },
-      );
-
-      if (!mounted) return;
-      setState(() {
-        _sent = true;
-        _nameController.clear();
-        _emailController.clear();
-        _companyController.clear();
-        _messageController.clear();
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.t('pub_contact_snackbar'))),
-      );
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(e.toString())));
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _loading = false);
-      }
-    }
-  }
+class _PricingSection extends StatelessWidget {
+  const _PricingSection({required this.onPlan});
+  final void Function(String) onPlan;
 
   @override
   Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(28),
-          decoration: BoxDecoration(
-            color: const Color(0xFF0F172A),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFF1F2937)),
-          ),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  l10n.t('pub_contact_form_title'),
-                  style: GoogleFonts.spaceGrotesk(
-                    color: const Color(0xFFF9FAFB),
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  l10n.t('pub_contact_form_lead'),
-                  style: GoogleFonts.ibmPlexSans(
-                    color: const Color(0xFF9CA3AF),
-                    fontSize: 14,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                _formField(
-                  context,
-                  l10n.t('pub_contact_name'),
-                  validator: _req(l10n),
-                  controller: _nameController,
-                ),
-                const SizedBox(height: 14),
-                _formField(
-                  context,
-                  l10n.t('pub_contact_email'),
-                  validator: _email(l10n),
-                  controller: _emailController,
-                ),
-                const SizedBox(height: 14),
-                _formField(
-                  context,
-                  l10n.t('pub_contact_company'),
-                  controller: _companyController,
-                ),
-                const SizedBox(height: 14),
-                _formField(
-                  context,
-                  l10n.t('pub_contact_message'),
-                  maxLines: 4,
-                  controller: _messageController,
-                ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton(
-                    onPressed: _loading ? null : _send,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: const Color(0xFF2563EB),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: Text(l10n.t('pub_contact_send')),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        if (_sent)
-          Positioned(
-            right: -8,
-            bottom: -12,
-            child: Material(
-              elevation: 8,
-              borderRadius: BorderRadius.circular(8),
-              color: const Color(0xFF0F172A),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 10,
-                ),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: const Color(0xFF1F2937)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.check_circle_rounded,
-                      color: Color(0xFF10B981),
-                      size: 18,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      l10n.t('pub_contact_snackbar'),
-                      style: GoogleFonts.ibmPlexSans(
-                        color: const Color(0xFFF9FAFB),
-                        fontSize: 13,
-                      ),
-                    ),
-                  ],
-                ),
+    const plans = [
+      (
+        'Essenziale',
+        '€790',
+        '/mese',
+        ['1 stabilimento', 'Funzioni operative core', 'No AI predittiva avanzata'],
+        false,
+        'essenziale',
+      ),
+      (
+        'Professionale',
+        '€1690',
+        '/mese',
+        ['Forecast e what-if', 'Supplier risk AI', 'Modulo ESG completo'],
+        true,
+        'professionale',
+      ),
+      (
+        'Industriale',
+        '€3490',
+        '/mese',
+        ['Integrazione API/ERP', 'Auto-replenishment full', 'Ottimizzazione costi AI'],
+        false,
+        'industriale',
+      ),
+    ];
+    return _Section(
+      alt: true,
+      child: _Wrap(
+        child: Column(
+          children: [
+            Text(
+              'Piani e Prezzi',
+              style: GoogleFonts.spaceGrotesk(
+                fontSize: 42,
+                fontWeight: FontWeight.w700,
+                color: PublicSiteTheme.foreground,
               ),
             ),
-          ),
-      ],
-    );
-  }
-
-  Widget _formField(
-    BuildContext context,
-    String label, {
-    required TextEditingController controller,
-    String? Function(String?)? validator,
-    int maxLines = 1,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: GoogleFonts.ibmPlexSans(
-            color: const Color(0xFFF9FAFB),
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-          ),
+            const SizedBox(height: 10),
+            Text(
+              'Scegli il piano adatto alle dimensioni della tua operations.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.ibmPlexSans(
+                fontSize: 18,
+                color: PublicSiteTheme.mutedForeground,
+              ),
+            ),
+            const SizedBox(height: 32),
+            LayoutBuilder(
+              builder: (context, c) {
+                final cols = c.maxWidth > 980 ? 3 : 1;
+                return GridView.count(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  crossAxisCount: cols,
+                  childAspectRatio: cols == 1 ? 1.4 : 0.72,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  children: plans.map((p) {
+                    return Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: p.$5 ? PublicSiteTheme.primary : PublicSiteTheme.border,
+                          width: p.$5 ? 1.5 : 1,
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (p.$5)
+                            Container(
+                              margin: const EdgeInsets.only(bottom: 10),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: PublicSiteTheme.primary.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                              child: Text(
+                                'PIU SCELTO',
+                                style: GoogleFonts.ibmPlexSans(
+                                  color: PublicSiteTheme.primary,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.7,
+                                ),
+                              ),
+                            ),
+                          Text(
+                            p.$1,
+                            style: GoogleFonts.spaceGrotesk(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w700,
+                              color: PublicSiteTheme.foreground,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                p.$2,
+                                style: GoogleFonts.spaceGrotesk(
+                                  fontSize: 42,
+                                  fontWeight: FontWeight.w800,
+                                  color: PublicSiteTheme.foreground,
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 8, left: 4),
+                                child: Text(
+                                  p.$3,
+                                  style: GoogleFonts.ibmPlexSans(
+                                    color: PublicSiteTheme.mutedForeground,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          ...p.$4.map(
+                            (f) => Padding(
+                              padding: const EdgeInsets.only(bottom: 10),
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.check_circle_outline_rounded,
+                                    size: 18,
+                                    color: PublicSiteTheme.primary,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      f,
+                                      style: GoogleFonts.ibmPlexSans(
+                                        fontSize: 14,
+                                        color: PublicSiteTheme.mutedForeground,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const Spacer(),
+                          SizedBox(
+                            width: double.infinity,
+                            child: FilledButton(
+                              onPressed: () => onPlan(p.$6),
+                              style: FilledButton.styleFrom(
+                                backgroundColor: p.$5
+                                    ? PublicSiteTheme.primary
+                                    : PublicSiteTheme.secondary,
+                                foregroundColor: p.$5
+                                    ? Colors.white
+                                    : PublicSiteTheme.foreground,
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                              ),
+                              child: Text(
+                                p.$5
+                                    ? 'Inizia Prova'
+                                    : (p.$6 == 'industriale'
+                                          ? 'Contatta Vendite'
+                                          : 'Inizia Prova'),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                );
+              },
+            ),
+          ],
         ),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: controller,
-          maxLines: maxLines,
-          validator: validator,
-          style: const TextStyle(color: Color(0xFFF9FAFB)),
-          decoration: InputDecoration(
-            isDense: true,
-            filled: true,
-            fillColor: const Color(0x08FFFFFF),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Color(0xFF1F2937)),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Color(0xFF1F2937)),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Color(0xFF2563EB)),
-            ),
-          ),
-        ),
-      ],
+      ),
     );
-  }
-
-  String? Function(String?) _req(AppLocalizations l10n) {
-    return (v) => (v == null || v.trim().isEmpty)
-        ? l10n.t('pub_contact_err_required')
-        : null;
-  }
-
-  String? Function(String?) _email(AppLocalizations l10n) {
-    return (v) {
-      if (v == null || v.trim().isEmpty) {
-        return l10n.t('pub_contact_err_required');
-      }
-      if (!v.contains('@')) {
-        return l10n.t('pub_contact_err_email');
-      }
-      return null;
-    };
   }
 }
 
@@ -1596,66 +803,78 @@ class _FaqSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final faq = [
-      (l10n.t('pub_faq_q1'), l10n.t('pub_faq_a1')),
-      (l10n.t('pub_faq_q2'), l10n.t('pub_faq_a2')),
-      (l10n.t('pub_faq_q3'), l10n.t('pub_faq_a3')),
-      (l10n.t('pub_faq_q4'), l10n.t('pub_faq_a4')),
+    const faq = [
+      (
+        'La prova gratuita è per tutti i piani?',
+        'Sì, 30 giorni sul piano selezionato. Alla scadenza è necessario un abbonamento attivo.',
+      ),
+      (
+        'Posso cambiare piano dopo l\'attivazione?',
+        'Sì, puoi fare upgrade o downgrade dalla sezione Billing.',
+      ),
+      (
+        'Le feature sono sicure e protette?',
+        'Sì: edge functions e trigger DB validano billing e tier per operazioni critiche.',
+      ),
     ];
-    return _SectionWrap(
-      alt: true,
-      child: _PageContainer(
+    return _Section(
+      child: _Wrap(
         child: Column(
           children: [
-            _Eyebrow(icon: Icons.help_outline, text: l10n.t('pub_faq_eyebrow')),
-            const SizedBox(height: 14),
-            _SectionTitle(
-              title: l10n.t('pub_faq_title'),
-              subtitle: l10n.t('pub_faq_subtitle'),
+            Text(
+              'Domande frequenti',
+              style: GoogleFonts.spaceGrotesk(
+                fontSize: 40,
+                fontWeight: FontWeight.w700,
+                color: PublicSiteTheme.foreground,
+              ),
             ),
-            const SizedBox(height: 28),
+            const SizedBox(height: 26),
             ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 820),
               child: Column(
-                children: List.generate(
-                  faq.length,
-                  (i) => Theme(
-                    data: ThemeData(dividerColor: Colors.transparent),
-                    child: ExpansionTile(
-                      initiallyExpanded: i == 0,
-                      tilePadding: EdgeInsets.zero,
-                      childrenPadding: const EdgeInsets.only(bottom: 16),
-                      iconColor: const Color(0xFF9CA3AF),
-                      collapsedIconColor: const Color(0xFF9CA3AF),
-                      title: Text(
-                        faq[i].$1,
-                        style: GoogleFonts.ibmPlexSans(
-                          color: const Color(0xFFF9FAFB),
-                          fontSize: 17,
-                          fontWeight: FontWeight.w600,
+                children: faq
+                    .map(
+                      (f) => Container(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: PublicSiteTheme.border),
                         ),
-                      ),
-                      subtitle: const Divider(
-                        color: Color(0xFF1F2937),
-                        height: 1,
-                      ),
-                      children: [
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            faq[i].$2,
+                        child: ExpansionTile(
+                          tilePadding: const EdgeInsets.symmetric(
+                            horizontal: 18,
+                            vertical: 6,
+                          ),
+                          childrenPadding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
+                          iconColor: PublicSiteTheme.primary,
+                          collapsedIconColor: PublicSiteTheme.primary,
+                          title: Text(
+                            f.$1,
                             style: GoogleFonts.ibmPlexSans(
-                              color: const Color(0xFF9CA3AF),
-                              fontSize: 15,
-                              height: 1.6,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: PublicSiteTheme.foreground,
                             ),
                           ),
+                          children: [
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                f.$2,
+                                style: GoogleFonts.ibmPlexSans(
+                                  fontSize: 15,
+                                  height: 1.55,
+                                  color: PublicSiteTheme.mutedForeground,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
-                ),
+                      ),
+                    )
+                    .toList(),
               ),
             ),
           ],
@@ -1665,143 +884,72 @@ class _FaqSection extends StatelessWidget {
   }
 }
 
-class _LegalLinksSection extends StatelessWidget {
-  const _LegalLinksSection();
+class _FinalCta extends StatelessWidget {
+  const _FinalCta({required this.onTrial, required this.onContact});
+  final VoidCallback onTrial;
+  final VoidCallback onContact;
 
   @override
   Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    return _SectionWrap(
-      child: _PageContainer(
+    return Container(
+      color: PublicSiteTheme.primary,
+      padding: const EdgeInsets.symmetric(vertical: 80, horizontal: 24),
+      child: _Wrap(
         child: Column(
           children: [
-            _Eyebrow(
-              icon: Icons.balance_outlined,
-              text: l10n.t('pub_legal_eyebrow'),
-            ),
-            const SizedBox(height: 14),
-            _SectionTitle(
-              title: l10n.t('pub_legal_main_title'),
-              subtitle: l10n.t('pub_legal_subtitle'),
-            ),
-            const SizedBox(height: 28),
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              alignment: WrapAlignment.center,
-              children: [
-                OutlinedButton(
-                  onPressed: () => context.go('/privacy'),
-                  child: Text(l10n.t('pub_legal_privacy_tab')),
-                ),
-                OutlinedButton(
-                  onPressed: () => context.go('/terms'),
-                  child: Text(l10n.t('pub_legal_terms_tab')),
-                ),
-                OutlinedButton(
-                  onPressed: () => context.go('/cookies'),
-                  child: Text(l10n.t('pub_legal_cookie_tab')),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
             Text(
-              l10n.t('pub_legal_updated'),
-              style: GoogleFonts.ibmPlexSans(
-                color: const Color(0xFF6B7280),
-                fontSize: 13,
+              'Pronto a prendere il controllo?',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.spaceGrotesk(
+                color: Colors.white,
+                fontSize: 44,
+                fontWeight: FontWeight.w700,
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             Text(
-              l10n.t('pub_legal_placeholder'),
+              'Trasforma la tua supply chain da reattiva a predittiva.',
               textAlign: TextAlign.center,
               style: GoogleFonts.ibmPlexSans(
-                color: const Color(0xFF9CA3AF),
-                fontSize: 14,
-                height: 1.6,
+                color: Colors.white.withValues(alpha: 0.85),
+                fontSize: 18,
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _FinalCtaSection extends StatelessWidget {
-  const _FinalCtaSection({
-    required this.onStartTrial,
-    required this.onDemo,
-    required this.onRoi,
-  });
-
-  final VoidCallback onStartTrial;
-  final VoidCallback onDemo;
-  final VoidCallback onRoi;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    return _SectionWrap(
-      alt: true,
-      padding: const EdgeInsets.fromLTRB(0, 80, 0, 100),
-      child: _PageContainer(
-        child: Column(
-          children: [
-            _SectionTitle(
-              title: l10n.t('pub_mfg_final_title'),
-              subtitle: l10n.t('pub_mfg_final_subtitle'),
-            ),
-            const SizedBox(height: 28),
+            const SizedBox(height: 26),
             Wrap(
               spacing: 12,
               runSpacing: 12,
               alignment: WrapAlignment.center,
               children: [
                 FilledButton(
-                  onPressed: onDemo,
+                  onPressed: onTrial,
                   style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFF2563EB),
+                    backgroundColor: Colors.white,
+                    foregroundColor: PublicSiteTheme.primary,
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 26,
+                      horizontal: 24,
                       vertical: 16,
                     ),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(999),
                     ),
                   ),
-                  child: Text(l10n.t('pub_mfg_final_cta2')),
-                ),
-                FilledButton.tonal(
-                  onPressed: onStartTrial,
-                  style: FilledButton.styleFrom(
-                    foregroundColor: const Color(0xFFEAF2FF),
-                    backgroundColor: const Color(0xFF1E293B),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 26,
-                      vertical: 16,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  child: Text(l10n.t('pub_mfg_final_cta1')),
+                  child: const Text('Attiva Trial'),
                 ),
                 OutlinedButton(
-                  onPressed: onRoi,
+                  onPressed: onContact,
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFFF9FAFB),
-                    side: const BorderSide(color: Color(0xFF1F2937)),
+                    foregroundColor: Colors.white,
+                    side: BorderSide(color: Colors.white.withValues(alpha: 0.45)),
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 26,
+                      horizontal: 24,
                       vertical: 16,
                     ),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(999),
                     ),
                   ),
-                  child: Text(l10n.t('pub_mfg_final_cta3')),
+                  child: const Text('Parla con noi'),
                 ),
               ],
             ),

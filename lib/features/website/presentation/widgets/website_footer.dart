@@ -1,4 +1,5 @@
 import 'package:fabricos/localization/app_localizations.dart';
+import 'package:fabricos/features/website/presentation/widgets/public_site_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -9,10 +10,10 @@ class WebsiteFooter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    const footerBg = Color(0xFF030712);
-    const border = Color(0xFF1F2937);
-    const textPrimary = Color(0xFFF9FAFB);
-    const textMuted = Color(0xFF9CA3AF);
+    const footerBg = PublicSiteTheme.background;
+    const border = PublicSiteTheme.border;
+    const textPrimary = PublicSiteTheme.foreground;
+    const textMuted = PublicSiteTheme.mutedForeground;
 
     return Container(
       width: double.infinity,

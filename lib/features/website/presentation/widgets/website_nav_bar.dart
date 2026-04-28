@@ -1,4 +1,5 @@
 import 'package:fabricos/features/website/presentation/widgets/language_selector.dart';
+import 'package:fabricos/features/website/presentation/widgets/public_site_theme.dart';
 import 'package:fabricos/localization/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -22,9 +23,9 @@ class WebsiteNavBar extends StatelessWidget implements PreferredSizeWidget {
     final isCompact = w < 560;
     final isUltraCompact = w < 420;
     final compactActions = onOpenMobileMenu != null;
-    const navBg = Color(0xEE030712);
-    const navBorder = Color(0xFF1F2937);
-    const textPrimary = Color(0xFFF9FAFB);
+    const navBg = Color(0xF2FFFFFF);
+    const navBorder = PublicSiteTheme.border;
+    const textPrimary = PublicSiteTheme.foreground;
     return Material(
       elevation: 0,
       color: navBg,
@@ -174,7 +175,7 @@ class WebsiteNavBar extends StatelessWidget implements PreferredSizeWidget {
                 if (compactActions) const SizedBox(width: 4),
                 FilledButton(
                   style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFF2563EB),
+                    backgroundColor: PublicSiteTheme.primary,
                     foregroundColor: Colors.white,
                     padding: EdgeInsets.symmetric(
                       horizontal: compactActions
@@ -219,7 +220,7 @@ class _NavLink extends StatelessWidget {
   Widget build(BuildContext context) {
     return TextButton(
       style: TextButton.styleFrom(
-        foregroundColor: const Color(0xFF9CA3AF),
+        foregroundColor: PublicSiteTheme.mutedForeground,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
