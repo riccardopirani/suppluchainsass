@@ -3,6 +3,7 @@ import 'package:fabricos/features/app_shell/providers/fabricos_provider.dart';
 import 'package:fabricos/features/billing/presentation/subscription_gate_page.dart';
 import 'package:fabricos/features/copilot/presentation/fabric_copilot_sheet.dart';
 import 'package:fabricos/features/team/data/team_provider.dart';
+import 'package:fabricos/features/website/presentation/widgets/language_selector.dart';
 import 'package:fabricos/localization/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -171,7 +172,23 @@ class AppShell extends ConsumerWidget {
     }
     return Scaffold(
       backgroundColor: shellBackground,
-      body: SafeArea(child: child),
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(right: 8, left: 8, bottom: 4),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: const [
+                  LanguageSelector(),
+                ],
+              ),
+            ),
+            Expanded(child: child),
+          ],
+        ),
+      ),
       bottomNavigationBar: const _BottomNav(),
       floatingActionButton: const FabricCopilotFab(),
     );
@@ -244,13 +261,28 @@ class _Sidebar extends ConsumerWidget {
 
   static String _itemLabel(BuildContext context, String key, String fallback) {
     final l10n = context.l10n;
-    return switch (key) {
-      'control_tower' => l10n.t('app_menu_control_tower'),
-      'executive_report' => l10n.t('app_menu_executive'),
-      'simulation' => l10n.t('app_menu_simulation'),
-      'forecasting' => l10n.t('app_menu_forecasting'),
-      _ => fallback,
+    final mapped = switch (key) {
+      'dashboard' => 'app_nav_dashboard',
+      'plant_floor' => 'app_nav_plant_floor',
+      'machines' => 'app_nav_machines',
+      'orders' => 'app_nav_orders',
+      'supply' => 'app_nav_supply',
+      'inventory' => 'app_nav_inventory',
+      'suppliers' => 'app_nav_suppliers',
+      'vendor_portal' => 'app_nav_vendor_portal',
+      'shipments' => 'app_nav_shipments',
+      'billing' => 'app_nav_billing',
+      'offline_sync' => 'app_nav_offline_sync',
+      'team' => 'app_nav_team',
+      'reports' => 'app_nav_reports',
+      'control_tower' => 'app_menu_control_tower',
+      'executive_report' => 'app_menu_executive',
+      'simulation' => 'app_menu_simulation',
+      'forecasting' => 'app_menu_forecasting',
+      _ => null,
     };
+    if (mapped != null) return l10n.t(mapped);
+    return fallback;
   }
 
   static Widget? _navTile({
@@ -384,8 +416,8 @@ class _Sidebar extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(999),
                 color: const Color(0x1F34D399),
               ),
-              child: const Text(
-                'Live',
+              child: Text(
+                context.l10n.t('app_shell_live_badge'),
                 style: TextStyle(
                   color: IntelligenceTheme.success,
                   fontSize: 12,
@@ -489,7 +521,10 @@ class _Sidebar extends ConsumerWidget {
         leading: const Icon(Icons.settings_outlined, size: 20),
         iconColor: sidebarForeground,
         textColor: sidebarForeground,
-        title: const Text('Settings', style: TextStyle(fontSize: 14)),
+        title: Text(
+          context.l10n.t('settings'),
+          style: TextStyle(fontSize: 14),
+        ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         onTap: () => context.go('/app/settings'),
       ),
@@ -517,11 +552,11 @@ class _Sidebar extends ConsumerWidget {
               color: IntelligenceTheme.panel,
               border: Border.all(color: border),
             ),
-            child: const Column(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Access logic',
+                  context.l10n.t('app_shell_access_title'),
                   style: TextStyle(
                     color: IntelligenceTheme.textPrimary,
                     fontSize: 13,
@@ -530,7 +565,7 @@ class _Sidebar extends ConsumerWidget {
                 ),
                 SizedBox(height: 8),
                 Text(
-                  'Onboarding and subscription gates are enforced before app access. Non-admin users can see route-filtered menus.',
+                  context.l10n.t('app_shell_access_body'),
                   style: TextStyle(
                     color: mutedForeground,
                     fontSize: 12,
@@ -546,7 +581,10 @@ class _Sidebar extends ConsumerWidget {
             leading: const Icon(Icons.logout_rounded, size: 20),
             iconColor: sidebarForeground,
             textColor: sidebarForeground,
-            title: const Text('Sign out', style: TextStyle(fontSize: 14)),
+            title: Text(
+              context.l10n.t('sign_out'),
+              style: TextStyle(fontSize: 14),
+            ),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
             ),
@@ -568,26 +606,27 @@ class _TopBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final userCtx = ref.watch(fabricUserContextProvider).valueOrNull;
     final path = GoRouterState.of(context).uri.path;
+    final l10n = context.l10n;
     final title = switch (path) {
-      '/app' => 'Global Supply Command',
-      '/app/control-tower' => context.l10n.t('control_tower_title'),
-      '/app/executive-report' => context.l10n.t('exec_report_title'),
-      '/app/forecasting' => context.l10n.t('app_menu_forecasting'),
-      '/app/supply' => 'Supply Dashboard',
-      '/app/inventory' => 'Inventory Command',
-      '/app/machines' => 'Machine Control',
-      '/app/orders' => 'Orders Control',
-      '/app/plant-floor' => 'Plant Floor Mode',
-      '/app/suppliers' => 'Supplier Intelligence',
-      '/app/vendor-portal' => 'Vendor Portal',
-      '/app/reports' => 'Mission Reports',
-      '/app/shipments' => 'Shipment Tracking',
-      '/app/offline-sync' => 'Offline Sync Monitor',
-      '/app/simulation' => context.l10n.t('app_menu_simulation'),
-      '/app/team' => 'Team & Permissions',
-      '/app/settings' => 'Settings',
-      '/app/billing' => 'Billing',
-      _ => 'Mission Control',
+      '/app' => l10n.t('topbar_route_home'),
+      '/app/control-tower' => l10n.t('control_tower_title'),
+      '/app/executive-report' => l10n.t('exec_report_title'),
+      '/app/forecasting' => l10n.t('app_menu_forecasting'),
+      '/app/supply' => l10n.t('topbar_route_supply'),
+      '/app/inventory' => l10n.t('topbar_route_inventory'),
+      '/app/machines' => l10n.t('topbar_route_machines'),
+      '/app/orders' => l10n.t('topbar_route_orders'),
+      '/app/plant-floor' => l10n.t('topbar_route_plant_floor'),
+      '/app/suppliers' => l10n.t('topbar_route_suppliers'),
+      '/app/vendor-portal' => l10n.t('topbar_route_vendor_portal'),
+      '/app/reports' => l10n.t('topbar_route_reports'),
+      '/app/shipments' => l10n.t('topbar_route_shipments'),
+      '/app/offline-sync' => l10n.t('topbar_route_offline_sync'),
+      '/app/simulation' => l10n.t('app_menu_simulation'),
+      '/app/team' => l10n.t('topbar_route_team'),
+      '/app/settings' => l10n.t('topbar_route_settings'),
+      '/app/billing' => l10n.t('topbar_route_billing'),
+      _ => l10n.t('topbar_route_default'),
     };
 
     return LayoutBuilder(
@@ -643,7 +682,7 @@ class _TopBar extends ConsumerWidget {
             border: Border.all(color: const Color(0xFF1A2436)),
             color: const Color(0xF208111F),
           ),
-          child: const Row(
+          child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
@@ -653,7 +692,7 @@ class _TopBar extends ConsumerWidget {
               ),
               SizedBox(width: 8),
               Text(
-                '4 alerts',
+                context.l10n.t('topbar_alerts_count'),
                 style: TextStyle(color: Color(0xFFEAF2FF), fontSize: 13),
               ),
             ],
@@ -729,11 +768,18 @@ class _TopBar extends ConsumerWidget {
                   children: [
                     titleBlock,
                     const SizedBox(height: 14),
-                    Wrap(
-                      alignment: WrapAlignment.end,
-                      spacing: 10,
-                      runSpacing: 10,
-                      children: [alertsChip, userChip],
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Wrap(
+                        spacing: 10,
+                        runSpacing: 10,
+                        alignment: WrapAlignment.end,
+                        children: [
+                          const LanguageSelector(),
+                          alertsChip,
+                          userChip,
+                        ],
+                      ),
                     ),
                   ],
                 )
@@ -741,6 +787,8 @@ class _TopBar extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Expanded(child: titleBlock),
+                    const SizedBox(width: 8),
+                    const LanguageSelector(),
                     const SizedBox(width: 12),
                     alertsChip,
                     const SizedBox(width: 10),
@@ -791,6 +839,7 @@ class _BottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final path = GoRouterState.of(context).uri.path;
 
     var currentIndex = 0;
@@ -826,26 +875,26 @@ class _BottomNav extends StatelessWidget {
             break;
         }
       },
-      destinations: const [
+      destinations: [
         NavigationDestination(
           icon: Icon(Icons.dashboard_rounded),
-          label: 'Dashboard',
+          label: l10n.t('app_bottom_nav_dashboard'),
         ),
         NavigationDestination(
           icon: Icon(Icons.precision_manufacturing_outlined),
-          label: 'Machines',
+          label: l10n.t('app_bottom_nav_machines'),
         ),
         NavigationDestination(
           icon: Icon(Icons.fact_check_outlined),
-          label: 'Orders',
+          label: l10n.t('app_bottom_nav_orders'),
         ),
         NavigationDestination(
           icon: Icon(Icons.local_shipping_outlined),
-          label: 'Suppliers',
+          label: l10n.t('app_bottom_nav_suppliers'),
         ),
         NavigationDestination(
           icon: Icon(Icons.description_outlined),
-          label: 'Reports',
+          label: l10n.t('app_bottom_nav_reports'),
         ),
       ],
     );

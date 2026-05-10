@@ -15,12 +15,91 @@ FABRICOS - FUNZIONALITA DEL SOFTWARE SAAS
 - Onboarding guidato per configurare rapidamente azienda e dati iniziali.
 
 3) SITO PUBBLICO (MARKETING)
-- Home, Features, Pricing, Contact.
-- FAQ, Privacy, Terms, Cookies.
-- ROI Calculator.
-- Factory Score / Audit.
-- Book Demo.
-- Case Studies.
+
+3.0 Pagine / route (principali)
+- Home (/)
+- Funzionalità, Prezzi, Contatti, FAQ
+- Privacy, Termini, Cookie
+- Calcolatore ROI, Factory score / audit, Prenota demo, Casi studio
+- Registrazione, login, onboarding
+
+3.1 LANDING PAGE (/) — TESTI VISIBILI
+
+Fonte corpo pagina: lib/features/website/presentation/home_page.dart (stringhe italiane hardcoded).
+
+Hero
+- Eyebrow: CONTROL TOWER PER MANIFATTURA
+- Titolo: Ogni ordine in ritardo ti costa. FabricOS lo vede prima che succeda.
+- Sottotitolo: FabricOS connette ordini, macchine e fornitori in un'unica vista.
+  Ricevi alert sui ritardi prima che impattino la linea, ottimizza i riordini e tieni
+  il ritmo di produzione — senza rincorrere i dati su tre sistemi diversi.
+- CTA primaria: Prenota demo  → /book-demo
+- CTA secondaria: Inizia prova 30 giorni  → /register
+- Pill: Setup rapido | Alert critici in tempo reale | Sicurezza enterprise
+
+Trust band
+- Intestazione: SCELTO DALLE MIGLIORI AZIENDE MANIFATTURIERE
+- Marchi (placeholder UI): AeroDynamics, GlobalSteel, PackTech, MediEquip, VentoAuto
+
+Sezione “punti critici”
+- Titolo: Punti critici che risolvi subito
+- Sottotitolo: Ritardi ordini, stockout, fornitori instabili, decisioni tardive,
+  reportistica frammentata.
+- Card 1 — titolo: Rischio ordini
+  testo: Identifichi ritardi prima dell'impatto su OTIF e margini.
+- Card 2 — titolo: Inventario ottimizzato
+  testo: Riduci stock eccessivo senza aumentare rotture di stock.
+- Card 3 — titolo: Compliance ESG
+  testo: Generi snapshot ESG mensili e tracciabilità audit-ready.
+
+KPI (numeri decorativi)
+- -22% — Downtime medio impianto
+- +18% — Accuratezza decisioni
+- +31% — Velocità risposta
+
+Prezzi (sezione home)
+- Titolo sezione: Piani e Prezzi
+- Sottotitolo: Scegli il piano adatto alle dimensioni della tua operations.
+- Piano Essenziale — €790 /mese
+  bullet: 1 stabilimento | Funzioni operative core | No AI predittiva avanzata
+  CTA: Inizia Prova  (register?plan=essenziale)
+- Piano Professionale — €1690 /mese  [badge: PIU SCELTO]
+  bullet: Forecast e what-if | Supplier risk AI | Modulo ESG completo
+  CTA: Inizia Prova  (plan=professionale)
+- Piano Industriale — €3490 /mese
+  bullet: Integrazione API/ERP | Auto-replenishment full | Ottimizzazione costi AI
+  CTA: Contatta Vendite  (plan=industriale)
+
+FAQ (solo sulla home; la pagina /faq può avere altri testi da traduzioni)
+- Titolo sezione: Domande frequenti
+- Q: La prova gratuita è per tutti i piani?
+  R: Sì, 30 giorni sul piano selezionato. Alla scadenza è necessario un abbonamento attivo.
+- Q: Posso cambiare piano dopo l'attivazione?
+  R: Sì, puoi fare upgrade o downgrade dalla sezione Billing.
+- Q: Le feature sono sicure e protette?
+  R: Sì: edge functions e trigger DB validano billing e tier per operazioni critiche.
+
+CTA finale (fascia primaria)
+- Titolo: Pronto a prendere il controllo?
+- Sottotitolo: Trasforma la tua supply chain da reattiva a predittiva.
+- Pulsanti: Attiva Trial  → /register | Parla con noi  → /contact
+
+3.2 Chrome landing (navbar + footer) — IT da traduzioni
+
+Navbar (brand “FabricOS” hardcoded in website_nav_bar.dart; link e pulsanti da l10n).
+Esempio locale italiano (assets/translations/it.json + pub_it.json + fallback EN dove manca la chiave):
+- Link tipici: Funzionalità, Prezzi, ROI, Factory score, Prenota demo, Case studies,
+  Contatti, FAQ.
+- Pulsanti header (pub_it.json): Prenota una demo | Inizia la prova gratuita
+  (oltre Accedi da it.json se presente nel layout).
+
+Footer (website_footer.dart + traduzioni)
+- Nome prodotto: FabricOS  (chiave app_name)
+- Tagline IT (pub_it.json): Riduci sprechi, ritardi e fermi macchina in 30 giorni.
+- Link: Privacy | Termini di servizio | Cookie | Contatti  (chiavi footer_* in it.json)
+
+Nota: altre pagine marketing (/features, /pricing, …) usano per lo più chiavi ARB/pub_*.json;
+la sola home “/” ha ancora molti testi hardcoded come sopra.
 
 4) MODULI CORE NELL'AREA APP
 
@@ -63,7 +142,8 @@ FABRICOS - FUNZIONALITA DEL SOFTWARE SAAS
 - Settings applicativi.
 
 5) BILLING E MONETIZZAZIONE
-- Piani a tier: Starter, Growth, Pro, Enterprise.
+- Piani a tier (allineati a landing / codice): Essenziale, Professionale, Industriale.
+  (In alcuni punti legacy possono comparire sinonimi tipo Starter/Growth/Enterprise.)
 - Subscription gate: accesso ai moduli privati legato a trial/abbonamento.
 - Web: pagamento via Stripe Checkout + Customer Portal.
 - Mobile (iOS/Android): pagamento via In-App Purchase (StoreKit/Google Play).

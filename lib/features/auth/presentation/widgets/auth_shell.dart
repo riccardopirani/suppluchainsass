@@ -1,7 +1,9 @@
+import 'package:fabricos/features/website/presentation/widgets/language_selector.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class AuthPageShell extends StatelessWidget {
+class AuthPageShell extends ConsumerWidget {
   const AuthPageShell({
     super.key,
     required this.eyebrow,
@@ -20,52 +22,66 @@ class AuthPageShell extends StatelessWidget {
   final double formMaxWidth;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: const Color(0xFF030712),
       body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final split =
-                constraints.maxWidth >= 1040 && constraints.maxHeight >= 760;
-            if (split) {
-              return Row(
-                children: [
-                  Expanded(
-                    flex: 11,
-                    child: _PaneScroll(
-                      child: _HeroPane(
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final split =
+                    constraints.maxWidth >= 1040 && constraints.maxHeight >= 760;
+                if (split) {
+                  return Row(
+                    children: [
+                      Expanded(
+                        flex: 11,
+                        child: _PaneScroll(
+                          child: _HeroPane(
+                            eyebrow: eyebrow,
+                            title: title,
+                            subtitle: subtitle,
+                            bullets: bullets,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 9,
+                        child: _PaneScroll(
+                          child: _FormPane(form: form, maxWidth: formMaxWidth),
+                        ),
+                      ),
+                    ],
+                  );
+                }
+                return SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      _HeroPane(
                         eyebrow: eyebrow,
                         title: title,
                         subtitle: subtitle,
                         bullets: bullets,
+                        compact: true,
                       ),
-                    ),
+                      _FormPane(
+                        form: form,
+                        maxWidth: formMaxWidth,
+                        compact: true,
+                      ),
+                    ],
                   ),
-                  Expanded(
-                    flex: 9,
-                    child: _PaneScroll(
-                      child: _FormPane(form: form, maxWidth: formMaxWidth),
-                    ),
-                  ),
-                ],
-              );
-            }
-            return SingleChildScrollView(
-              child: Column(
-                children: [
-                  _HeroPane(
-                    eyebrow: eyebrow,
-                    title: title,
-                    subtitle: subtitle,
-                    bullets: bullets,
-                    compact: true,
-                  ),
-                  _FormPane(form: form, maxWidth: formMaxWidth, compact: true),
-                ],
-              ),
-            );
-          },
+                );
+              },
+            ),
+            const Positioned(
+              top: 4,
+              right: 8,
+              child: LanguageSelector(),
+            ),
+          ],
         ),
       ),
     );

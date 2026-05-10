@@ -1,6 +1,7 @@
 import 'package:fabricos/config/plan_catalog.dart';
 import 'package:fabricos/core/marketing/roi_calculator_logic.dart';
 import 'package:fabricos/features/app_shell/providers/fabricos_provider.dart';
+import 'package:fabricos/features/website/presentation/widgets/language_selector.dart';
 import 'package:fabricos/localization/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -112,6 +113,15 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
     final compact = width < 560;
 
     return Scaffold(
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 8),
+            child: LanguageSelector(),
+          ),
+        ],
+      ),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(

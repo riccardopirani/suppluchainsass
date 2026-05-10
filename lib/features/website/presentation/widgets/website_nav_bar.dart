@@ -73,7 +73,7 @@ class WebsiteNavBar extends StatelessWidget implements PreferredSizeWidget {
                           const SizedBox(width: 10),
                           Flexible(
                             child: Text(
-                              'FabricOS',
+                              l10n.t('app_name'),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.spaceGrotesk(
@@ -124,30 +124,8 @@ class WebsiteNavBar extends StatelessWidget implements PreferredSizeWidget {
                   ),
                   const SizedBox(width: 8),
                 ],
-                if (!isUltraCompact) const LanguageSelector(),
+                const LanguageSelector(),
                 if (!compactActions) ...[
-                  const SizedBox(width: 6),
-                  OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      side: const BorderSide(color: navBorder),
-                      foregroundColor: textPrimary,
-                    ),
-                    onPressed: () => context.go('/contact'),
-                    child: Text(
-                      l10n.t('pub_mfg_cta_demo'),
-                      style: GoogleFonts.ibmPlexSans(
-                        fontWeight: FontWeight.w600,
-                        color: textPrimary,
-                      ),
-                    ),
-                  ),
                   const SizedBox(width: 8),
                   OutlinedButton(
                     style: OutlinedButton.styleFrom(

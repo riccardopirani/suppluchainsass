@@ -3,6 +3,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fabricos/localization/app_localizations.dart';
 import 'package:fabricos/localization/locale_provider.dart';
 
+/// Resolves the active UI locale: saved preference, else first supported match from the platform locale.
+Locale resolvedUiLocale(BuildContext context, WidgetRef ref) {
+  final saved = ref.watch(localeProvider);
+  if (saved != null) return saved;
+  final platform = View.of(context).platformDispatcher.locale;
+  final code = platform.languageCode;
+  if (AppLocalizations.supportedLocales.any((l) => l.languageCode == code)) {
+    return Locale(code);
+  }
+  return const Locale('en');
+}
+
 class LanguageSelector extends ConsumerWidget {
   const LanguageSelector({super.key});
 
@@ -18,7 +30,7 @@ class LanguageSelector extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final current = ref.watch(localeProvider)?.languageCode ?? 'en';
+    final current = resolvedUiLocale(context, ref).languageCode;
 
     return PopupMenuButton<String>(
       tooltip: context.l10n.t('language'),

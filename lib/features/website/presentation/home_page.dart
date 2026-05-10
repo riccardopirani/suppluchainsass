@@ -1,8 +1,10 @@
 import 'package:fabricos/features/website/presentation/widgets/public_site_theme.dart';
 import 'package:fabricos/features/website/presentation/widgets/website_footer.dart';
+import 'package:fabricos/localization/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:video_player/video_player.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -17,7 +19,7 @@ class HomePage extends StatelessWidget {
             onDemo: () => context.go('/book-demo'),
             onTrial: () => context.go('/register'),
           ),
-          const _TrustBand(),
+          const _AiPersuasionStrip(),
           const _PainSection(),
           const _KpiSection(),
           _PricingSection(onPlan: (p) => context.go('/register?plan=$p')),
@@ -83,290 +85,232 @@ class _Section extends StatelessWidget {
   }
 }
 
-class _HeroSection extends StatelessWidget {
+const _kHeroVideoAsset = 'assets/15561210_1920_1080_25fps.mp4';
+
+/// Ombre scure per testo bianco leggibile su video chiari/scuri.
+const _kHeroTitleShadows = [
+  Shadow(color: Color(0x99000000), blurRadius: 16, offset: Offset(0, 2)),
+  Shadow(color: Color(0x66000000), blurRadius: 28, offset: Offset(0, 1)),
+];
+
+const _kHeroSubtitleShadows = [
+  Shadow(color: Color(0x88000000), blurRadius: 12, offset: Offset(0, 1)),
+  Shadow(color: Color(0x55000000), blurRadius: 22, offset: Offset(0, 0)),
+];
+
+class _HeroSection extends StatefulWidget {
   const _HeroSection({required this.onDemo, required this.onTrial});
   final VoidCallback onDemo;
   final VoidCallback onTrial;
 
   @override
-  Widget build(BuildContext context) {
-    final compact = MediaQuery.sizeOf(context).width < 900;
-    return _Section(
-      padding: const EdgeInsets.fromLTRB(0, 96, 0, 92),
-      child: _Wrap(
-        child: LayoutBuilder(
-          builder: (context, c) {
-            final stack = c.maxWidth < 980;
-            final content = Column(
-              crossAxisAlignment: stack
-                  ? CrossAxisAlignment.center
-                  : CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 5,
-                  ),
-                  decoration: BoxDecoration(
-                    color: PublicSiteTheme.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(999),
-                    border: Border.all(
-                      color: PublicSiteTheme.primary.withValues(alpha: 0.2),
-                    ),
-                  ),
-                  child: Text(
-                    'CONTROL TOWER PER MANIFATTURA',
-                    style: GoogleFonts.ibmPlexSans(
-                      fontSize: 11,
-                      color: PublicSiteTheme.primary,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.9,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Dal caos operativo al controllo predittivo della supply chain',
-                  textAlign: stack ? TextAlign.center : TextAlign.start,
-                  style: GoogleFonts.spaceGrotesk(
-                    color: PublicSiteTheme.foreground,
-                    fontSize: compact ? 38 : 56,
-                    fontWeight: FontWeight.w800,
-                    height: 1.08,
-                    letterSpacing: -1,
-                  ),
-                ),
-                const SizedBox(height: 18),
-                Text(
-                  'FabricOS unisce operations, AI e compliance in una vista unica: previsione domanda, rischi fornitori, simulazioni what-if e report ESG. Setup in 30 giorni.',
-                  textAlign: stack ? TextAlign.center : TextAlign.start,
-                  style: GoogleFonts.ibmPlexSans(
-                    color: PublicSiteTheme.mutedForeground,
-                    fontSize: 18,
-                    height: 1.6,
-                  ),
-                ),
-                const SizedBox(height: 26),
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  alignment: stack
-                      ? WrapAlignment.center
-                      : WrapAlignment.start,
-                  children: [
-                    FilledButton(
-                      onPressed: onDemo,
-                      style: FilledButton.styleFrom(
-                        backgroundColor: PublicSiteTheme.primary,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 18,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                      ),
-                      child: const Text('Prenota demo'),
-                    ),
-                    OutlinedButton(
-                      onPressed: onTrial,
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: PublicSiteTheme.foreground,
-                        side: const BorderSide(color: PublicSiteTheme.border),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 18,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                      ),
-                      child: const Text('Inizia prova 30 giorni'),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 18),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  alignment: stack
-                      ? WrapAlignment.center
-                      : WrapAlignment.start,
-                  children: const [
-                    _MiniPill('Setup rapido'),
-                    _MiniPill('Alert critici in tempo reale'),
-                    _MiniPill('Sicurezza enterprise'),
-                  ],
-                ),
-              ],
-            );
-            final visual = _HeroVisual(compact: compact);
-
-            if (stack) {
-              return Column(
-                children: [
-                  content,
-                  const SizedBox(height: 28),
-                  visual,
-                ],
-              );
-            }
-
-            return Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(flex: 11, child: content),
-                const SizedBox(width: 36),
-                Expanded(flex: 10, child: visual),
-              ],
-            );
-          },
-        ),
-      ),
-    );
-  }
+  State<_HeroSection> createState() => _HeroSectionState();
 }
 
-class _HeroVisual extends StatelessWidget {
-  const _HeroVisual({required this.compact});
-  final bool compact;
+class _HeroSectionState extends State<_HeroSection> {
+  VideoPlayerController? _video;
+  bool _videoReady = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _video = VideoPlayerController.asset(_kHeroVideoAsset)
+      ..setLooping(true)
+      ..setVolume(0)
+      ..initialize().then((_) {
+        if (!mounted) return;
+        setState(() => _videoReady = true);
+        _video?.play();
+      }).catchError((_) {
+        if (!mounted) return;
+        setState(() => _videoReady = false);
+      });
+  }
+
+  @override
+  void dispose() {
+    _video?.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: PublicSiteTheme.secondary,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: PublicSiteTheme.border),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x190F172A),
-            blurRadius: 38,
-            offset: Offset(0, 16),
-          ),
-        ],
-      ),
-      child: AspectRatio(
-        aspectRatio: compact ? 4 / 3 : 1.1,
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: PublicSiteTheme.border.withValues(alpha: 0.7),
-            ),
-          ),
-          child: Column(
-            children: [
-              Container(
-                height: 44,
-                padding: const EdgeInsets.symmetric(horizontal: 14),
-                decoration: const BoxDecoration(
-                  border: Border(bottom: BorderSide(color: PublicSiteTheme.border)),
-                ),
-                child: const Row(
-                  children: [
-                    _Dot(),
-                    SizedBox(width: 6),
-                    _Dot(),
-                    SizedBox(width: 6),
-                    _Dot(),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(14),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        flex: 3,
-                        child: Column(
-                          children: [
-                            Expanded(
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color:
-                                      PublicSiteTheme.secondary.withValues(alpha: 0.7),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            Expanded(
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: PublicSiteTheme.muted,
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: PublicSiteTheme.muted,
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
+    final compact = MediaQuery.sizeOf(context).width < 900;
+    return ClipRect(
+      child: Stack(
+        clipBehavior: Clip.hardEdge,
+        alignment: Alignment.center,
+        children: [
+          Positioned.fill(
+            child: _videoReady &&
+                    _video != null &&
+                    _video!.value.isInitialized
+                ? ClipRect(
+                    child: FittedBox(
+                      fit: BoxFit.cover,
+                      child: SizedBox(
+                        width: _video!.value.size.width,
+                        height: _video!.value.size.height,
+                        child: VideoPlayer(_video!),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: PublicSiteTheme.primary.withValues(alpha: 0.06),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                              color: PublicSiteTheme.primary.withValues(alpha: 0.2),
-                            ),
+                    ),
+                  )
+                : ColoredBox(color: PublicSiteTheme.background),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(0, 96, 0, 92),
+            child: _Wrap(
+              child: LayoutBuilder(
+                builder: (context, c) {
+                  final stack = c.maxWidth < 980;
+                  return Column(
+                    crossAxisAlignment: stack
+                        ? CrossAxisAlignment.center
+                        : CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.14),
+                          borderRadius: BorderRadius.circular(999),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.42),
+                          ),
+                        ),
+                        child: Text(
+                          context.l10n.t('pub_home_eyebrow'),
+                          style: GoogleFonts.ibmPlexSans(
+                            fontSize: 11,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.9,
+                            shadows: _kHeroSubtitleShadows,
                           ),
                         ),
                       ),
+                      const SizedBox(height: 16),
+                      Text(
+                        context.l10n.t('pub_home_hero_title'),
+                        textAlign: stack ? TextAlign.center : TextAlign.start,
+                        style: GoogleFonts.spaceGrotesk(
+                          color: Colors.white,
+                          fontSize: compact ? 38 : 56,
+                          fontWeight: FontWeight.w800,
+                          height: 1.08,
+                          letterSpacing: -1,
+                          shadows: _kHeroTitleShadows,
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      Text(
+                        context.l10n.t('pub_home_hero_subtitle'),
+                        textAlign: stack ? TextAlign.center : TextAlign.start,
+                        style: GoogleFonts.ibmPlexSans(
+                          color: Colors.white.withValues(alpha: 0.92),
+                          fontSize: 18,
+                          height: 1.6,
+                          shadows: _kHeroSubtitleShadows,
+                        ),
+                      ),
+                      const SizedBox(height: 26),
+                      Wrap(
+                        spacing: 12,
+                        runSpacing: 12,
+                        alignment: stack
+                            ? WrapAlignment.center
+                            : WrapAlignment.start,
+                        children: [
+                          FilledButton(
+                            onPressed: widget.onDemo,
+                            style: FilledButton.styleFrom(
+                              backgroundColor: PublicSiteTheme.primary,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                                vertical: 18,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                            ),
+                            child:
+                                Text(context.l10n.t('pub_home_cta_demo')),
+                          ),
+                          OutlinedButton(
+                            onPressed: widget.onTrial,
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.white,
+                              side: BorderSide(
+                                color: Colors.white.withValues(alpha: 0.65),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                                vertical: 18,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                            ),
+                            child:
+                                Text(context.l10n.t('pub_home_cta_trial')),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 18),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        alignment: stack
+                            ? WrapAlignment.center
+                            : WrapAlignment.start,
+                        children: [
+                          _MiniPill(context.l10n.t('pub_home_pill_1'), heroOnVideo: true),
+                          _MiniPill(context.l10n.t('pub_home_pill_2'), heroOnVideo: true),
+                          _MiniPill(context.l10n.t('pub_home_pill_3'), heroOnVideo: true),
+                        ],
+                      ),
                     ],
-                  ),
-                ),
+                  );
+                },
               ),
-            ],
+            ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _Dot extends StatelessWidget {
-  const _Dot();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 10,
-      height: 10,
-      decoration: const BoxDecoration(
-        shape: BoxShape.circle,
-        color: PublicSiteTheme.border,
+        ],
       ),
     );
   }
 }
 
 class _MiniPill extends StatelessWidget {
-  const _MiniPill(this.text);
+  const _MiniPill(this.text, {this.heroOnVideo = false});
+
   final String text;
+  final bool heroOnVideo;
 
   @override
   Widget build(BuildContext context) {
+    if (heroOnVideo) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.16),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.38)),
+        ),
+        child: Text(
+          text,
+          style: GoogleFonts.ibmPlexSans(
+            color: Colors.white.withValues(alpha: 0.95),
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            shadows: _kHeroSubtitleShadows,
+          ),
+        ),
+      );
+    }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       decoration: BoxDecoration(
@@ -386,22 +330,18 @@ class _MiniPill extends StatelessWidget {
   }
 }
 
-class _TrustBand extends StatelessWidget {
-  const _TrustBand();
+class _AiPersuasionStrip extends StatelessWidget {
+  const _AiPersuasionStrip();
 
   @override
   Widget build(BuildContext context) {
-    const brands = [
-      'AeroDynamics',
-      'GlobalSteel',
-      'PackTech',
-      'MediEquip',
-      'VentoAuto',
-    ];
+    final l10n = context.l10n;
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 24),
-      decoration: const BoxDecoration(
-        border: Border(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 28),
+      decoration: BoxDecoration(
+        color: PublicSiteTheme.secondary.withValues(alpha: 0.42),
+        border: const Border(
           top: BorderSide(color: PublicSiteTheme.border),
           bottom: BorderSide(color: PublicSiteTheme.border),
         ),
@@ -410,31 +350,36 @@ class _TrustBand extends StatelessWidget {
         child: Column(
           children: [
             Text(
-              'SCELTO DALLE MIGLIORI AZIENDE MANIFATTURIERE',
+              l10n.t('pub_home_ai_strip_eyebrow'),
+              textAlign: TextAlign.center,
               style: GoogleFonts.ibmPlexSans(
-                color: PublicSiteTheme.mutedForeground,
-                fontSize: 12,
+                color: PublicSiteTheme.primary,
+                fontSize: 11,
                 fontWeight: FontWeight.w700,
-                letterSpacing: 1,
+                letterSpacing: 1.2,
               ),
             ),
-            const SizedBox(height: 16),
-            Wrap(
-              spacing: 24,
-              runSpacing: 8,
-              alignment: WrapAlignment.center,
-              children: brands
-                  .map(
-                    (b) => Text(
-                      b,
-                      style: GoogleFonts.spaceGrotesk(
-                        color: PublicSiteTheme.mutedForeground.withValues(alpha: 0.75),
-                        fontWeight: FontWeight.w700,
-                        fontSize: 22,
-                      ),
-                    ),
-                  )
-                  .toList(),
+            const SizedBox(height: 12),
+            Text(
+              l10n.t('pub_home_ai_strip_title'),
+              textAlign: TextAlign.center,
+              style: GoogleFonts.spaceGrotesk(
+                color: PublicSiteTheme.foreground,
+                fontSize: 26,
+                fontWeight: FontWeight.w700,
+                height: 1.25,
+                letterSpacing: -0.5,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              l10n.t('pub_home_ai_strip_subtitle'),
+              textAlign: TextAlign.center,
+              style: GoogleFonts.ibmPlexSans(
+                color: PublicSiteTheme.mutedForeground,
+                fontSize: 17,
+                height: 1.55,
+              ),
             ),
           ],
         ),
@@ -448,26 +393,18 @@ class _PainSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cards = const [
-      (
-        'Rischio ordini',
-        'Identifichi ritardi prima dell\'impatto su OTIF e margini.'
-      ),
-      (
-        'Inventario ottimizzato',
-        'Riduci stock eccessivo senza aumentare rotture di stock.'
-      ),
-      (
-        'Compliance ESG',
-        'Generi snapshot ESG mensili e tracciabilità audit-ready.'
-      ),
+    final l10n = context.l10n;
+    final cards = [
+      (l10n.t('pub_home_pain_1_title'), l10n.t('pub_home_pain_1_body')),
+      (l10n.t('pub_home_pain_2_title'), l10n.t('pub_home_pain_2_body')),
+      (l10n.t('pub_home_pain_3_title'), l10n.t('pub_home_pain_3_body')),
     ];
     return _Section(
       child: _Wrap(
         child: Column(
           children: [
             Text(
-              'Punti critici che risolvi subito',
+              context.l10n.t('pub_home_pain_title'),
               textAlign: TextAlign.center,
               style: GoogleFonts.spaceGrotesk(
                 color: PublicSiteTheme.foreground,
@@ -478,7 +415,7 @@ class _PainSection extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              'Ritardi ordini, stockout, fornitori instabili, decisioni tardive, reportistica frammentata.',
+              context.l10n.t('pub_home_pain_subtitle'),
               textAlign: TextAlign.center,
               style: GoogleFonts.ibmPlexSans(
                 color: PublicSiteTheme.mutedForeground,
@@ -496,7 +433,7 @@ class _PainSection extends StatelessWidget {
                   crossAxisCount: cols,
                   crossAxisSpacing: 16,
                   mainAxisSpacing: 16,
-                  childAspectRatio: cols == 1 ? 2.2 : 1.15,
+                  childAspectRatio: cols == 1 ? 1.55 : 1.15,
                   children: cards
                       .map(
                         (c) => Container(
@@ -546,10 +483,11 @@ class _KpiSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const items = [
-      ('-22%', 'Downtime medio impianto'),
-      ('+18%', 'Accuratezza decisioni'),
-      ('+31%', 'Velocità risposta'),
+    final l10n = context.l10n;
+    final items = [
+      (l10n.t('pub_home_kpi_1_val'), l10n.t('pub_home_kpi_1_label')),
+      (l10n.t('pub_home_kpi_2_val'), l10n.t('pub_home_kpi_2_label')),
+      (l10n.t('pub_home_kpi_3_val'), l10n.t('pub_home_kpi_3_label')),
     ];
     return _Section(
       alt: true,
@@ -611,28 +549,41 @@ class _PricingSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const plans = [
+    final l10n = context.l10n;
+    final plans = [
       (
-        'Essenziale',
-        '€790',
-        '/mese',
-        ['1 stabilimento', 'Funzioni operative core', 'No AI predittiva avanzata'],
+        l10n.t('pub_home_plan_ess_name'),
+        l10n.t('pub_home_plan_ess_price'),
+        l10n.t('pub_home_plan_ess_period'),
+        [
+          l10n.t('pub_home_plan_ess_f1'),
+          l10n.t('pub_home_plan_ess_f2'),
+          l10n.t('pub_home_plan_ess_f3'),
+        ],
         false,
         'essenziale',
       ),
       (
-        'Professionale',
-        '€1690',
-        '/mese',
-        ['Forecast e what-if', 'Supplier risk AI', 'Modulo ESG completo'],
+        l10n.t('pub_home_plan_pro_name'),
+        l10n.t('pub_home_plan_pro_price'),
+        l10n.t('pub_home_plan_pro_period'),
+        [
+          l10n.t('pub_home_plan_pro_f1'),
+          l10n.t('pub_home_plan_pro_f2'),
+          l10n.t('pub_home_plan_pro_f3'),
+        ],
         true,
         'professionale',
       ),
       (
-        'Industriale',
-        '€3490',
-        '/mese',
-        ['Integrazione API/ERP', 'Auto-replenishment full', 'Ottimizzazione costi AI'],
+        l10n.t('pub_home_plan_ind_name'),
+        l10n.t('pub_home_plan_ind_price'),
+        l10n.t('pub_home_plan_ind_period'),
+        [
+          l10n.t('pub_home_plan_ind_f1'),
+          l10n.t('pub_home_plan_ind_f2'),
+          l10n.t('pub_home_plan_ind_f3'),
+        ],
         false,
         'industriale',
       ),
@@ -643,7 +594,7 @@ class _PricingSection extends StatelessWidget {
         child: Column(
           children: [
             Text(
-              'Piani e Prezzi',
+              context.l10n.t('pub_home_pricing_title'),
               style: GoogleFonts.spaceGrotesk(
                 fontSize: 42,
                 fontWeight: FontWeight.w700,
@@ -652,7 +603,7 @@ class _PricingSection extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             Text(
-              'Scegli il piano adatto alle dimensioni della tua operations.',
+              context.l10n.t('pub_home_pricing_subtitle'),
               textAlign: TextAlign.center,
               style: GoogleFonts.ibmPlexSans(
                 fontSize: 18,
@@ -696,7 +647,7 @@ class _PricingSection extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(999),
                               ),
                               child: Text(
-                                'PIU SCELTO',
+                                context.l10n.t('pub_home_plan_badge_popular'),
                                 style: GoogleFonts.ibmPlexSans(
                                   color: PublicSiteTheme.primary,
                                   fontSize: 11,
@@ -777,10 +728,14 @@ class _PricingSection extends StatelessWidget {
                               ),
                               child: Text(
                                 p.$5
-                                    ? 'Inizia Prova'
+                                    ? context.l10n.t('pub_home_cta_start_trial')
                                     : (p.$6 == 'industriale'
-                                          ? 'Contatta Vendite'
-                                          : 'Inizia Prova'),
+                                          ? context.l10n.t(
+                                              'pub_home_cta_contact_sales',
+                                            )
+                                          : context.l10n.t(
+                                              'pub_home_cta_start_trial',
+                                            )),
                               ),
                             ),
                           ),
@@ -803,26 +758,18 @@ class _FaqSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const faq = [
-      (
-        'La prova gratuita è per tutti i piani?',
-        'Sì, 30 giorni sul piano selezionato. Alla scadenza è necessario un abbonamento attivo.',
-      ),
-      (
-        'Posso cambiare piano dopo l\'attivazione?',
-        'Sì, puoi fare upgrade o downgrade dalla sezione Billing.',
-      ),
-      (
-        'Le feature sono sicure e protette?',
-        'Sì: edge functions e trigger DB validano billing e tier per operazioni critiche.',
-      ),
+    final l10n = context.l10n;
+    final faq = [
+      (l10n.t('pub_home_faq_1_q'), l10n.t('pub_home_faq_1_a')),
+      (l10n.t('pub_home_faq_2_q'), l10n.t('pub_home_faq_2_a')),
+      (l10n.t('pub_home_faq_3_q'), l10n.t('pub_home_faq_3_a')),
     ];
     return _Section(
       child: _Wrap(
         child: Column(
           children: [
             Text(
-              'Domande frequenti',
+              context.l10n.t('pub_home_faq_title'),
               style: GoogleFonts.spaceGrotesk(
                 fontSize: 40,
                 fontWeight: FontWeight.w700,
@@ -898,7 +845,7 @@ class _FinalCta extends StatelessWidget {
         child: Column(
           children: [
             Text(
-              'Pronto a prendere il controllo?',
+              context.l10n.t('pub_home_final_title'),
               textAlign: TextAlign.center,
               style: GoogleFonts.spaceGrotesk(
                 color: Colors.white,
@@ -908,7 +855,7 @@ class _FinalCta extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              'Trasforma la tua supply chain da reattiva a predittiva.',
+              context.l10n.t('pub_home_final_subtitle'),
               textAlign: TextAlign.center,
               style: GoogleFonts.ibmPlexSans(
                 color: Colors.white.withValues(alpha: 0.85),
@@ -934,7 +881,7 @@ class _FinalCta extends StatelessWidget {
                       borderRadius: BorderRadius.circular(999),
                     ),
                   ),
-                  child: const Text('Attiva Trial'),
+                  child: Text(context.l10n.t('pub_home_final_cta_trial')),
                 ),
                 OutlinedButton(
                   onPressed: onContact,
@@ -949,7 +896,7 @@ class _FinalCta extends StatelessWidget {
                       borderRadius: BorderRadius.circular(999),
                     ),
                   ),
-                  child: const Text('Parla con noi'),
+                  child: Text(context.l10n.t('pub_home_final_cta_contact')),
                 ),
               ],
             ),
