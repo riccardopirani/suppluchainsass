@@ -138,8 +138,7 @@ class _ProductsPageState extends State<ProductsPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              context.l10n.t('product_created_successfully') ??
-                  'Product created!',
+              context.l10n.t('product_created_successfully'),
             ),
           ),
         );
