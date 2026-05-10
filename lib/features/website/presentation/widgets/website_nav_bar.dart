@@ -107,10 +107,6 @@ class WebsiteNavBar extends StatelessWidget implements PreferredSizeWidget {
                     onTap: () => context.go('/factory-score'),
                   ),
                   _NavLink(
-                    label: l10n.t('nav_book_demo'),
-                    onTap: () => context.go('/book-demo'),
-                  ),
-                  _NavLink(
                     label: l10n.t('nav_case_studies'),
                     onTap: () => context.go('/case-studies'),
                   ),

@@ -67,7 +67,6 @@ class WebsiteMarketingDrawer extends StatelessWidget {
             link(l10n.t('nav_pricing'), '/pricing'),
             link(l10n.t('nav_roi'), '/roi-calculator'),
             link(l10n.t('nav_factory_audit'), '/factory-score'),
-            link(l10n.t('nav_book_demo'), '/book-demo'),
             link(l10n.t('nav_case_studies'), '/case-studies'),
             link(l10n.t('nav_contact'), '/contact'),
             link(l10n.t('nav_faq'), '/faq'),

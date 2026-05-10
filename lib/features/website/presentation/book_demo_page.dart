@@ -1,3 +1,4 @@
+import 'package:fabricos/features/website/presentation/widgets/public_site_theme.dart';
 import 'package:fabricos/features/website/presentation/widgets/website_footer.dart';
 import 'package:fabricos/localization/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -14,13 +15,13 @@ class BookDemoPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    return Container(
-      color: const Color(0xFF030712),
+    return ColoredBox(
+      color: PublicSiteTheme.background,
       child: SingleChildScrollView(
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(24, 56, 24, 48),
+              padding: const EdgeInsets.fromLTRB(24, 56, 24, 72),
               child: Center(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 640),
@@ -30,7 +31,7 @@ class BookDemoPage extends StatelessWidget {
                         l10n.t('book_demo_title'),
                         textAlign: TextAlign.center,
                         style: GoogleFonts.spaceGrotesk(
-                          color: const Color(0xFFF9FAFB),
+                          color: PublicSiteTheme.foreground,
                           fontSize: 42,
                           fontWeight: FontWeight.w800,
                           height: 1.1,
@@ -41,7 +42,7 @@ class BookDemoPage extends StatelessWidget {
                         l10n.t('book_demo_subtitle'),
                         textAlign: TextAlign.center,
                         style: GoogleFonts.ibmPlexSans(
-                          color: const Color(0xFF9CA3AF),
+                          color: PublicSiteTheme.mutedForeground,
                           fontSize: 18,
                           height: 1.55,
                         ),
@@ -49,9 +50,15 @@ class BookDemoPage extends StatelessWidget {
                       const SizedBox(height: 36),
                       FilledButton(
                         style: FilledButton.styleFrom(
-                          backgroundColor: const Color(0xFF2563EB),
-                          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 18),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          backgroundColor: PublicSiteTheme.primary,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 32,
+                            vertical: 18,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(999),
+                          ),
                         ),
                         onPressed: () async {
                           final uri = Uri.parse(_defaultCalendarUrl);
@@ -64,10 +71,15 @@ class BookDemoPage extends StatelessWidget {
                       const SizedBox(height: 16),
                       OutlinedButton(
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFFEAF2FF),
-                          side: const BorderSide(color: Color(0xFF1F2937)),
-                          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          foregroundColor: PublicSiteTheme.foreground,
+                          side: const BorderSide(color: PublicSiteTheme.border),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 28,
+                            vertical: 16,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(999),
+                          ),
                         ),
                         onPressed: () => context.go('/contact'),
                         child: Text(l10n.t('book_demo_cta_form')),
@@ -76,7 +88,11 @@ class BookDemoPage extends StatelessWidget {
                       Text(
                         l10n.t('book_demo_footnote'),
                         textAlign: TextAlign.center,
-                        style: GoogleFonts.ibmPlexSans(color: const Color(0xFF6B7280), fontSize: 13, height: 1.5),
+                        style: GoogleFonts.ibmPlexSans(
+                          color: PublicSiteTheme.mutedForeground,
+                          fontSize: 13,
+                          height: 1.5,
+                        ),
                       ),
                     ],
                   ),

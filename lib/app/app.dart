@@ -2,6 +2,7 @@ import 'package:fabricos/core/theme/app_theme.dart';
 import 'package:fabricos/l10n/fabricos_home_arb.dart';
 import 'package:fabricos/localization/app_localizations.dart';
 import 'package:fabricos/localization/locale_provider.dart';
+import 'package:fabricos/features/app_shell/providers/shell_ui_provider.dart';
 import 'package:fabricos/routing/app_router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -17,7 +18,7 @@ class FabricOSApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
-      themeMode: ThemeMode.system,
+      themeMode: ref.watch(appThemeModeProvider),
       locale: ref.watch(localeProvider),
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: [

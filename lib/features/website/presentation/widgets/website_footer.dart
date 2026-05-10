@@ -54,6 +54,16 @@ class WebsiteFooter extends StatelessWidget {
                         color: textMuted,
                       ),
                     ),
+                    const SizedBox(height: 16),
+                    Text(
+                      l10n.t('pub_footer_publisher_block'),
+                      textAlign: stack ? TextAlign.center : TextAlign.start,
+                      style: GoogleFonts.ibmPlexSans(
+                        fontSize: 11,
+                        height: 1.5,
+                        color: textMuted,
+                      ),
+                    ),
                   ],
                 );
 

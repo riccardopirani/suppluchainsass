@@ -1,3 +1,4 @@
+import 'package:fabricos/features/website/presentation/widgets/public_site_theme.dart';
 import 'package:fabricos/features/website/presentation/widgets/website_footer.dart';
 import 'package:fabricos/localization/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -35,13 +36,13 @@ class _FactoryAuditPageState extends State<FactoryAuditPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    return Container(
-      color: const Color(0xFF030712),
+    return ColoredBox(
+      color: PublicSiteTheme.background,
       child: SingleChildScrollView(
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(24, 48, 24, 80),
+              padding: const EdgeInsets.fromLTRB(24, 56, 24, 88),
               child: Center(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 560),
@@ -51,22 +52,31 @@ class _FactoryAuditPageState extends State<FactoryAuditPage> {
                         l10n.t('pub_audit_hero'),
                         textAlign: TextAlign.center,
                         style: GoogleFonts.spaceGrotesk(
-                          color: const Color(0xFFF9FAFB),
+                          color: PublicSiteTheme.foreground,
                           fontSize: 36,
                           fontWeight: FontWeight.w800,
+                          height: 1.15,
                         ),
                       ),
                       const SizedBox(height: 12),
                       Text(
                         l10n.t('pub_audit_sub'),
                         textAlign: TextAlign.center,
-                        style: GoogleFonts.ibmPlexSans(color: const Color(0xFF9CA3AF), fontSize: 16, height: 1.5),
+                        style: GoogleFonts.ibmPlexSans(
+                          color: PublicSiteTheme.mutedForeground,
+                          fontSize: 17,
+                          height: 1.55,
+                        ),
                       ),
                       const SizedBox(height: 36),
                       if (_step < _questions.length) ...[
                         Text(
                           _questions[_step].prompt,
-                          style: GoogleFonts.spaceGrotesk(color: const Color(0xFFF9FAFB), fontSize: 20, fontWeight: FontWeight.w600),
+                          style: GoogleFonts.spaceGrotesk(
+                            color: PublicSiteTheme.foreground,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                         const SizedBox(height: 20),
                         ...List.generate(_questions[_step].options.length, (i) {
@@ -77,9 +87,12 @@ class _FactoryAuditPageState extends State<FactoryAuditPage> {
                               child: OutlinedButton(
                                 onPressed: () => _next(6 + i * 4),
                                 style: OutlinedButton.styleFrom(
-                                  foregroundColor: const Color(0xFFEAF2FF),
-                                  side: const BorderSide(color: Color(0xFF1F2937)),
+                                  foregroundColor: PublicSiteTheme.foreground,
+                                  side: const BorderSide(color: PublicSiteTheme.border),
                                   padding: const EdgeInsets.symmetric(vertical: 14),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
                                 ),
                                 child: Text(_questions[_step].options[i]),
                               ),
@@ -89,13 +102,15 @@ class _FactoryAuditPageState extends State<FactoryAuditPage> {
                       ] else ...[
                         Text(
                           'Your FactoryOps maturity score',
-                          style: GoogleFonts.ibmPlexSans(color: const Color(0xFF9CA3AF)),
+                          style: GoogleFonts.ibmPlexSans(
+                            color: PublicSiteTheme.mutedForeground,
+                          ),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           '$_score / 100',
                           style: GoogleFonts.spaceGrotesk(
-                            color: const Color(0xFF34D399),
+                            color: PublicSiteTheme.primary,
                             fontSize: 48,
                             fontWeight: FontWeight.w800,
                           ),
@@ -104,10 +119,24 @@ class _FactoryAuditPageState extends State<FactoryAuditPage> {
                         Text(
                           'FabricOS typically lifts this score in 30 days by centralizing telemetry, suppliers and inventory signals.',
                           textAlign: TextAlign.center,
-                          style: GoogleFonts.ibmPlexSans(color: const Color(0xFF9CA3AF), height: 1.5),
+                          style: GoogleFonts.ibmPlexSans(
+                            color: PublicSiteTheme.mutedForeground,
+                            height: 1.55,
+                          ),
                         ),
                         const SizedBox(height: 24),
                         FilledButton(
+                          style: FilledButton.styleFrom(
+                            backgroundColor: PublicSiteTheme.primary,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 28,
+                              vertical: 16,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                          ),
                           onPressed: () => context.go('/contact'),
                           child: Text(l10n.t('pub_mfg_cta_demo')),
                         ),

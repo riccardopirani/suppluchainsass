@@ -1,14 +1,14 @@
 import 'package:fabricos/core/theme/intelligence_theme.dart';
 import 'package:fabricos/features/app_shell/providers/fabricos_provider.dart';
+import 'package:fabricos/features/app_shell/widgets/workspace_sidebar.dart';
 import 'package:fabricos/features/billing/presentation/subscription_gate_page.dart';
+import 'package:fabricos/features/app_shell/providers/shell_ui_provider.dart';
 import 'package:fabricos/features/copilot/presentation/fabric_copilot_sheet.dart';
-import 'package:fabricos/features/team/data/team_provider.dart';
 import 'package:fabricos/features/website/presentation/widgets/language_selector.dart';
 import 'package:fabricos/localization/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AppShell extends ConsumerWidget {
   const AppShell({super.key, required this.child});
@@ -120,7 +120,7 @@ class AppShell extends ConsumerWidget {
               backgroundColor: Colors.transparent,
               body: Row(
                 children: [
-                  _Sidebar(companyName: companyName),
+                  WorkspaceSidebar(companyName: companyName),
                   Expanded(
                     child: Container(
                       decoration: const BoxDecoration(
@@ -195,409 +195,6 @@ class AppShell extends ConsumerWidget {
   }
 }
 
-class _Sidebar extends ConsumerWidget {
-  const _Sidebar({required this.companyName});
-
-  final String companyName;
-
-  static const (String, IconData, String, String) _dash = (
-    'dashboard',
-    Icons.dashboard_rounded,
-    'Dashboard',
-    '/app',
-  );
-
-  static const _operations = <(String, IconData, String, String)>[
-    (
-      'plant_floor',
-      Icons.tablet_android_outlined,
-      'Plant Floor',
-      '/app/plant-floor',
-    ),
-    (
-      'machines',
-      Icons.precision_manufacturing_outlined,
-      'Machines',
-      '/app/machines',
-    ),
-    ('orders', Icons.fact_check_outlined, 'Orders', '/app/orders'),
-  ];
-
-  static const _supply = <(String, IconData, String, String)>[
-    ('supply', Icons.visibility_outlined, 'Supply', '/app/supply'),
-    ('inventory', Icons.inventory_2_outlined, 'Inventory', '/app/inventory'),
-    ('suppliers', Icons.local_shipping_outlined, 'Suppliers', '/app/suppliers'),
-    (
-      'vendor_portal',
-      Icons.storefront_outlined,
-      'Vendor Portal',
-      '/app/vendor-portal',
-    ),
-    ('shipments', Icons.route_outlined, 'Shipments', '/app/shipments'),
-  ];
-
-  static const _intelligence = <(String, IconData, String, String)>[
-    (
-      'control_tower',
-      Icons.hub_outlined,
-      'AI Control Tower',
-      '/app/control-tower',
-    ),
-    (
-      'executive_report',
-      Icons.insights_outlined,
-      'CEO report',
-      '/app/executive-report',
-    ),
-    (
-      'forecasting',
-      Icons.trending_up_outlined,
-      'Forecasts',
-      '/app/forecasting',
-    ),
-    ('simulation', Icons.science_outlined, 'What-if lab', '/app/simulation'),
-    ('reports', Icons.description_outlined, 'Reports', '/app/reports'),
-  ];
-
-  static String _itemLabel(BuildContext context, String key, String fallback) {
-    final l10n = context.l10n;
-    final mapped = switch (key) {
-      'dashboard' => 'app_nav_dashboard',
-      'plant_floor' => 'app_nav_plant_floor',
-      'machines' => 'app_nav_machines',
-      'orders' => 'app_nav_orders',
-      'supply' => 'app_nav_supply',
-      'inventory' => 'app_nav_inventory',
-      'suppliers' => 'app_nav_suppliers',
-      'vendor_portal' => 'app_nav_vendor_portal',
-      'shipments' => 'app_nav_shipments',
-      'billing' => 'app_nav_billing',
-      'offline_sync' => 'app_nav_offline_sync',
-      'team' => 'app_nav_team',
-      'reports' => 'app_nav_reports',
-      'control_tower' => 'app_menu_control_tower',
-      'executive_report' => 'app_menu_executive',
-      'simulation' => 'app_menu_simulation',
-      'forecasting' => 'app_menu_forecasting',
-      _ => null,
-    };
-    if (mapped != null) return l10n.t(mapped);
-    return fallback;
-  }
-
-  static Widget? _navTile({
-    required BuildContext context,
-    required (String, IconData, String, String) item,
-    required List<String>? allowedRoutes,
-    required String currentPath,
-    required Color sidebarForeground,
-    required Color sidebarPrimary,
-  }) {
-    if (allowedRoutes != null && !allowedRoutes.contains(item.$1)) {
-      return null;
-    }
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: ListTile(
-        dense: true,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-          side: currentPath == item.$4
-              ? const BorderSide(color: Color(0x227DD3FC))
-              : BorderSide.none,
-        ),
-        tileColor: currentPath == item.$4
-            ? sidebarPrimary.withValues(alpha: 0.8)
-            : Colors.transparent,
-        textColor: sidebarForeground,
-        iconColor: sidebarForeground,
-        leading: Icon(item.$2, size: 20),
-        title: Text(
-          _itemLabel(context, item.$1, item.$3),
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-        ),
-        onTap: () => context.go(item.$4),
-      ),
-    );
-  }
-
-  static Widget _sectionLabel(BuildContext context, String l10nKey) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(10, 14, 10, 6),
-      child: Text(
-        context.l10n.t(l10nKey).toUpperCase(),
-        style: const TextStyle(
-          color: Color(0xFF8EA3C2),
-          fontSize: 10,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 1.1,
-        ),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final userCtx = ref.watch(fabricUserContextProvider).valueOrNull;
-    final companyId = userCtx?.companyId;
-    final role = userCtx?.role ?? 'operator';
-    final isAdmin = role == 'admin';
-    final ent = ref.watch(subscriptionEntitlementsProvider);
-
-    bool planAllowsIntel(String key) {
-      return switch (key) {
-        'control_tower' => ent.canUseControlTower,
-        'executive_report' => ent.canUseExecutiveReport,
-        'forecasting' => ent.canUseForecasting,
-        'simulation' => ent.canUseAdvancedSimulation,
-        'reports' => ent.canUseEsgReportsModule,
-        _ => true,
-      };
-    }
-
-    final permsAsync = companyId != null && !isAdmin
-        ? ref.watch(menuPermissionsProvider((companyId: companyId, role: role)))
-        : null;
-
-    final allowedRoutes = isAdmin ? null : permsAsync?.valueOrNull;
-    final currentPath = GoRouterState.of(context).uri.path;
-    const sidebarForeground = IntelligenceTheme.textPrimary;
-    const mutedForeground = IntelligenceTheme.textDim;
-    const sidebarPrimary = IntelligenceTheme.panelStrong;
-    const border = IntelligenceTheme.border;
-
-    final children = <Widget>[
-      Padding(
-        padding: const EdgeInsets.fromLTRB(6, 8, 6, 16),
-        child: Row(
-          children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                gradient: const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [IntelligenceTheme.accent, Color(0x337DD3FC)],
-                ),
-              ),
-              child: const Icon(Icons.radar_rounded, color: Color(0xFF03111E)),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'FabricOS',
-                    style: TextStyle(
-                      color: IntelligenceTheme.textPrimary,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                      letterSpacing: -0.3,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    companyName,
-                    style: const TextStyle(
-                      color: mutedForeground,
-                      fontSize: 12,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(999),
-                color: const Color(0x1F34D399),
-              ),
-              child: Text(
-                context.l10n.t('app_shell_live_badge'),
-                style: TextStyle(
-                  color: IntelligenceTheme.success,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    ];
-
-    final dash = _navTile(
-      context: context,
-      item: _dash,
-      allowedRoutes: allowedRoutes,
-      currentPath: currentPath,
-      sidebarForeground: sidebarForeground,
-      sidebarPrimary: sidebarPrimary,
-    );
-    if (dash != null) children.add(dash);
-
-    children.add(_sectionLabel(context, 'nav_section_operations'));
-    for (final item in _operations) {
-      final w = _navTile(
-        context: context,
-        item: item,
-        allowedRoutes: allowedRoutes,
-        currentPath: currentPath,
-        sidebarForeground: sidebarForeground,
-        sidebarPrimary: sidebarPrimary,
-      );
-      if (w != null) children.add(w);
-    }
-
-    children.add(_sectionLabel(context, 'nav_section_supply'));
-    for (final item in _supply) {
-      final w = _navTile(
-        context: context,
-        item: item,
-        allowedRoutes: allowedRoutes,
-        currentPath: currentPath,
-        sidebarForeground: sidebarForeground,
-        sidebarPrimary: sidebarPrimary,
-      );
-      if (w != null) children.add(w);
-    }
-
-    children.add(_sectionLabel(context, 'nav_section_intelligence'));
-    for (final item in _intelligence) {
-      if (!planAllowsIntel(item.$1)) continue;
-      final w = _navTile(
-        context: context,
-        item: item,
-        allowedRoutes: allowedRoutes,
-        currentPath: currentPath,
-        sidebarForeground: sidebarForeground,
-        sidebarPrimary: sidebarPrimary,
-      );
-      if (w != null) children.add(w);
-    }
-
-    final billing = _navTile(
-      context: context,
-      item: ('billing', Icons.credit_card_outlined, 'Billing', '/app/billing'),
-      allowedRoutes: allowedRoutes,
-      currentPath: currentPath,
-      sidebarForeground: sidebarForeground,
-      sidebarPrimary: sidebarPrimary,
-    );
-    if (billing != null) children.add(billing);
-
-    children.add(_sectionLabel(context, 'nav_section_workspace'));
-    final offlineSync = _navTile(
-      context: context,
-      item: (
-        'offline_sync',
-        Icons.sync_outlined,
-        'Offline Sync',
-        '/app/offline-sync',
-      ),
-      allowedRoutes: allowedRoutes,
-      currentPath: currentPath,
-      sidebarForeground: sidebarForeground,
-      sidebarPrimary: sidebarPrimary,
-    );
-    if (offlineSync != null) children.add(offlineSync);
-
-    final team = _navTile(
-      context: context,
-      item: ('team', Icons.people_outlined, 'Team', '/app/team'),
-      allowedRoutes: allowedRoutes,
-      currentPath: currentPath,
-      sidebarForeground: sidebarForeground,
-      sidebarPrimary: sidebarPrimary,
-    );
-    if (team != null) children.add(team);
-
-    children.add(
-      ListTile(
-        leading: const Icon(Icons.settings_outlined, size: 20),
-        iconColor: sidebarForeground,
-        textColor: sidebarForeground,
-        title: Text(
-          context.l10n.t('settings'),
-          style: TextStyle(fontSize: 14),
-        ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        onTap: () => context.go('/app/settings'),
-      ),
-    );
-
-    return Container(
-      width: 272,
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [IntelligenceTheme.background, Color(0xEE040A14)],
-        ),
-        border: Border(right: BorderSide(color: border.withValues(alpha: 0.9))),
-      ),
-      child: ListView(
-        padding: const EdgeInsets.fromLTRB(14, 18, 14, 14),
-        children: [
-          ...children,
-          const SizedBox(height: 14),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              color: IntelligenceTheme.panel,
-              border: Border.all(color: border),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  context.l10n.t('app_shell_access_title'),
-                  style: TextStyle(
-                    color: IntelligenceTheme.textPrimary,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  context.l10n.t('app_shell_access_body'),
-                  style: TextStyle(
-                    color: mutedForeground,
-                    fontSize: 12,
-                    height: 1.35,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          const Divider(color: border),
-          ListTile(
-            leading: const Icon(Icons.logout_rounded, size: 20),
-            iconColor: sidebarForeground,
-            textColor: sidebarForeground,
-            title: Text(
-              context.l10n.t('sign_out'),
-              style: TextStyle(fontSize: 14),
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-            onTap: () async {
-              await Supabase.instance.client.auth.signOut();
-              if (context.mounted) context.go('/');
-            },
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 class _TopBar extends ConsumerWidget {
   const _TopBar();
@@ -616,6 +213,9 @@ class _TopBar extends ConsumerWidget {
       '/app/inventory' => l10n.t('topbar_route_inventory'),
       '/app/machines' => l10n.t('topbar_route_machines'),
       '/app/orders' => l10n.t('topbar_route_orders'),
+      '/app/logistics' => l10n.t('topbar_route_logistics'),
+      '/app/freight-audit' => l10n.t('topbar_route_freight_audit'),
+      '/app/esg-carbon' => l10n.t('topbar_route_esg_carbon'),
       '/app/plant-floor' => l10n.t('topbar_route_plant_floor'),
       '/app/suppliers' => l10n.t('topbar_route_suppliers'),
       '/app/vendor-portal' => l10n.t('topbar_route_vendor_portal'),
@@ -775,6 +375,7 @@ class _TopBar extends ConsumerWidget {
                         runSpacing: 10,
                         alignment: WrapAlignment.end,
                         children: [
+                          const _ThemeToggleButton(),
                           const LanguageSelector(),
                           alertsChip,
                           userChip,
@@ -788,6 +389,7 @@ class _TopBar extends ConsumerWidget {
                   children: [
                     Expanded(child: titleBlock),
                     const SizedBox(width: 8),
+                    const _ThemeToggleButton(),
                     const LanguageSelector(),
                     const SizedBox(width: 12),
                     alertsChip,
@@ -797,6 +399,32 @@ class _TopBar extends ConsumerWidget {
                 ),
         );
       },
+    );
+  }
+}
+
+class _ThemeToggleButton extends ConsumerWidget {
+  const _ThemeToggleButton();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final mode = ref.watch(appThemeModeProvider);
+    final dark = mode == ThemeMode.dark ||
+        (mode == ThemeMode.system &&
+            MediaQuery.platformBrightnessOf(context) == Brightness.dark);
+    return IconButton(
+      tooltip: context.l10n.t('theme_tooltip_toggle'),
+      style: IconButton.styleFrom(
+        foregroundColor: const Color(0xFFEAF2FF),
+      ),
+      onPressed: () {
+        ref.read(appThemeModeProvider.notifier).state =
+            dark ? ThemeMode.light : ThemeMode.dark;
+      },
+      icon: Icon(
+        dark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+        size: 22,
+      ),
     );
   }
 }
@@ -843,7 +471,7 @@ class _BottomNav extends StatelessWidget {
     final path = GoRouterState.of(context).uri.path;
 
     var currentIndex = 0;
-    if (path.contains('/machines')) {
+    if (path.contains('/logistics')) {
       currentIndex = 1;
     } else if (path.contains('/orders')) {
       currentIndex = 2;
@@ -862,7 +490,7 @@ class _BottomNav extends StatelessWidget {
             context.go('/app');
             break;
           case 1:
-            context.go('/app/machines');
+            context.go('/app/logistics');
             break;
           case 2:
             context.go('/app/orders');
@@ -881,8 +509,8 @@ class _BottomNav extends StatelessWidget {
           label: l10n.t('app_bottom_nav_dashboard'),
         ),
         NavigationDestination(
-          icon: Icon(Icons.precision_manufacturing_outlined),
-          label: l10n.t('app_bottom_nav_machines'),
+          icon: Icon(Icons.route_rounded),
+          label: l10n.t('app_bottom_nav_logistics'),
         ),
         NavigationDestination(
           icon: Icon(Icons.fact_check_outlined),

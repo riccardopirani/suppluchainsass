@@ -24,6 +24,9 @@ import 'package:fabricos/features/vendor_portal/presentation/vendor_portal_page.
 import 'package:fabricos/features/suppliers/presentation/supplier_detail_page.dart';
 import 'package:fabricos/features/control_tower/presentation/control_tower_page.dart';
 import 'package:fabricos/features/executive/presentation/executive_report_page.dart';
+import 'package:fabricos/features/esg/presentation/esg_carbon_page.dart';
+import 'package:fabricos/features/freight_audit/presentation/freight_audit_page.dart';
+import 'package:fabricos/features/logistics/presentation/logistics_hub_page.dart';
 import 'package:fabricos/features/forecasting/presentation/forecasting_page.dart';
 import 'package:fabricos/features/website/presentation/book_demo_page.dart';
 import 'package:fabricos/features/website/presentation/case_studies_page.dart';
@@ -216,6 +219,21 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'machines',
                 pageBuilder: (context, state) =>
                     const NoTransitionPage(child: MachinesPage()),
+              ),
+              GoRoute(
+                path: 'logistics',
+                pageBuilder: (context, state) =>
+                    const NoTransitionPage(child: LogisticsHubPage()),
+              ),
+              GoRoute(
+                path: 'freight-audit',
+                pageBuilder: (context, state) =>
+                    const NoTransitionPage(child: FreightAuditPage()),
+              ),
+              GoRoute(
+                path: 'esg-carbon',
+                pageBuilder: (context, state) =>
+                    const NoTransitionPage(child: EsgCarbonPage()),
               ),
               GoRoute(
                 path: 'orders',

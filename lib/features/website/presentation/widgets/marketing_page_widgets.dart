@@ -203,20 +203,90 @@ class MarketingBentoTile extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.description,
+    this.bulletPoints,
     this.onTap,
   });
 
   final IconData icon;
   final String title;
   final String description;
+  /// Newline-separated lines shown as a bullet list (optional).
+  final String? bulletPoints;
   final VoidCallback? onTap;
+
+  static Iterable<Widget> _bulletList(
+    Color color,
+    String? raw,
+  ) sync* {
+    if (raw == null || raw.trim().isEmpty) return;
+    final lines = raw
+        .split('\n')
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty);
+    for (final line in lines) {
+      yield Padding(
+        padding: const EdgeInsets.only(top: 8),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Text(
+                '•',
+                style: GoogleFonts.ibmPlexSans(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: color,
+                  height: 1.35,
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                line,
+                style: GoogleFonts.ibmPlexSans(
+                  fontSize: 13,
+                  height: 1.45,
+                  color: color,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final muted = scheme.onSurfaceVariant;
     return LayoutBuilder(
       builder: (context, constraints) {
         final compact = constraints.maxWidth < 520;
+        final bodyChildren = <Widget>[
+          Text(
+            title,
+            style: GoogleFonts.spaceGrotesk(
+              fontSize: compact ? 17 : 18,
+              fontWeight: FontWeight.w700,
+              height: 1.22,
+              letterSpacing: -0.2,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            description,
+            style: GoogleFonts.ibmPlexSans(
+              fontSize: compact ? 14 : 15,
+              height: 1.55,
+              color: muted,
+            ),
+          ),
+          ..._bulletList(muted, bulletPoints),
+        ];
+
         final content = compact
             ? Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -230,23 +300,7 @@ class MarketingBentoTile extends StatelessWidget {
                     child: Icon(icon, color: scheme.primary, size: 26),
                   ),
                   const SizedBox(height: 14),
-                  Text(
-                    title,
-                    style: GoogleFonts.spaceGrotesk(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      height: 1.2,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    description,
-                    style: GoogleFonts.ibmPlexSans(
-                      fontSize: 14,
-                      height: 1.5,
-                      color: scheme.onSurfaceVariant,
-                    ),
-                  ),
+                  ...bodyChildren,
                 ],
               )
             : Row(
@@ -264,25 +318,7 @@ class MarketingBentoTile extends StatelessWidget {
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          title,
-                          style: GoogleFonts.spaceGrotesk(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                            height: 1.2,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          description,
-                          style: GoogleFonts.ibmPlexSans(
-                            fontSize: 14,
-                            height: 1.5,
-                            color: scheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
+                      children: bodyChildren,
                     ),
                   ),
                 ],
